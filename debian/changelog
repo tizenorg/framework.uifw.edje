@@ -1,0 +1,193 @@
+edje (0.9.92.060+svn20100304slp2+7) unstable; urgency=low
+
+  * Repackage due to tag
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+7
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 16 Apr 2010 11:33:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+6) unstable; urgency=low
+
+  * Repackage due to tag
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+6
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 15 Apr 2010 20:15:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+5) unstable; urgency=low
+
+  * Bug fix - entry cursor problem
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+5
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 15 Apr 2010 19:55:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+4) unstable; urgency=low
+
+  * Support autocapitalization
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+4
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 14 Apr 2010 17:44:46 +0900
+
+edje (0.9.92.060+svn20100304slp2+3) unstable; urgency=low
+
+  * rollback - edje_entry - remove <br> related bug fix
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Sat, 27 Mar 2010 18:32:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+2) unstable; urgency=low
+
+  * rollback - edje_entry - remove cursor movement bug fix
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 26 Mar 2010 22:52:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+1) unstable; urgency=low
+
+  * bug fixed - edje_entry - cursor movement
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 26 Mar 2010 08:26:00 +0900
+
+edje (0.9.92.060+svn20100304slp2) unstable; urgency=low
+
+  * change package version
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Thu, 25 Mar 2010 15:50:05 +0900
+
+edje (0.9.92.060+svn20100304-1) unstable; urgency=low
+
+  * EFL_update_revision_46864
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 10 Mar 2010 16:06:37 +0900
+
+edje (0.9.92.060+svn20100203-6) unstable; urgency=low
+
+  * bug fixed - edje_entry - CANVAS focus in/out 
+
+ -- wonguk Jeong <wonguk.jeong@samsung.com>  Fri, 19 Feb 2010 17:19:37 +0900
+
+edje (0.9.92.060+svn20100203-5) unstable; urgency=low
+
+  * repack
+
+ -- sangho park <sangho.g.park@samsung.com>  Mon, 08 Feb 2010 22:27:44 +0900
+
+edje (0.9.92.060+svn20100203-4) unstable; urgency=low
+
+  * add broken dependency in libedje-bin
+
+ -- Wonguk Jeong <wonguk.jeong@samsung.com>  Mon, 08 Feb 2010 20:12:29 +0900
+
+edje (0.9.92.060+svn20100203-3) unstable; urgency=low
+
+  * edje_entry patch for supporting to switch window
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 08 Feb 2010 13:37:37 +0900
+
+edje (0.9.92.060+svn20100203-2) unstable; urgency=low
+
+  * repack
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Thu, 04 Feb 2010 20:29:57 +0900
+
+edje (0.9.92.060+svn20100203-1) unstable; urgency=low
+
+  * EFL_update_revision_45828
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 03 Feb 2010 16:39:22 +0900
+
+edje (0.9.92.060+svn20100119-1) unstable; urgency=low
+
+  * EFL_update_revision_45322
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 19 Jan 2010 20:44:49 +0900
+
+edje (0.9.92.060+svn20100111-5) unstable; urgency=low
+
+  * change control
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 12 Jan 2010 19:10:39 +0900
+
+edje (0.9.92.060+svn20100111-4) unstable; urgency=low
+
+  * reupload EFL i686
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 12 Jan 2010 17:35:40 +0900
+
+edje (0.9.92.060+svn20100111-3) unstable; urgency=low
+
+  * remove mpfr gmp
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 12 Jan 2010 00:22:19 +0900
+
+edje (0.9.92.060+svn20100111-2) unstable; urgency=low
+
+  * reupload EFL
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Mon, 11 Jan 2010 22:17:03 +0900
+
+edje (0.9.92.060+svn20100111-1) unstable; urgency=low
+
+  * update EFL revision 45026
+
+ -- Jongwoo Chae <jongwoo.chae@samsung.com>  Mon, 11 Jan 2010 13:28:06 +0900
+
+edje (0.9.92.060+svn20091229-4) unstable; urgency=low
+
+  * To build i386... No source code changed.
+
+ -- Jongwoo Chae <jongwoo.chae@samsung.com>  Thu, 07 Jan 2010 22:03:40 +0900
+
+edje (0.9.92.060+svn20091229-3) unstable; urgency=low
+
+  * add build dep (lua)
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 30 Dec 2009 19:43:16 +0900
+
+edje (0.9.92.060+svn20091229-2) unstable; urgency=low
+
+  * add depends (lua)
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 30 Dec 2009 15:48:41 +0900
+
+edje (0.9.92.060+svn20091229-1) unstable; urgency=low
+
+  * update EFL
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 29 Dec 2009 14:27:05 +0900
+
+edje (0.9.92.060+svn20091112-4) unstable; urgency=low
+
+  * modify architecture value from all to any 
+
+ -- Youmin Ha <youmin.ha@samsung.com>  Fri, 27 Nov 2009 15:37:25 +0900
+
+edje (0.9.92.060+svn20091112-3) unstable; urgency=low
+
+  * add dependency to lua for edje-bin
+
+ -- Youmin Ha <youmin.ha@samsung.com>  Tue, 24 Nov 2009 15:20:12 +0900
+
+edje (0.9.92.060+svn20091112-2) unstable; urgency=low
+
+  * svn stable version
+
+ -- Sangho Park <sangho.g.park@samsung.com>  Thu, 19 Nov 2009 19:05:31 +0900
+
+edje (0.9.92.060+svn20091112-1) unstable; urgency=low
+
+  * Updated version
+
+ -- Sangho Park <sangho.g.park@samsung.com>  Fri, 13 Nov 2009 09:01:11 +0900
+
+edje (0.9.92.060+svnYYYYMMDD-1) unstable; urgency=low
+
+  * Updated version
+
+ -- quaker <quaker66@gmail.com>  Thu, 22 Apr 2009 18:18:23 +0100
+
+edje (0.9.9.050+svnYYYYMMDD-1) unstable; urgency=low
+
+  * Clean up changelog
+
+ -- quaker <quaker66@gmail.com>  Tue, 21 Apr 2009 19:15:44 +0100
