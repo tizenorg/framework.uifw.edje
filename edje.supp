@@ -1,0 +1,8 @@
+# $Id: edje.supp 8548 2004-01-17 23:53:57Z tsauerbeck $
+# valgrind suppression file for Edje.
+#
+{
+   BogusWarning
+   Memcheck:Cond
+   fun:_edje_part_recalc
+}
