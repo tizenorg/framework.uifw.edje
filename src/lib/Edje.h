@@ -10,6 +10,10 @@
 # undef EAPI
 #endif
 
+#ifdef HAVE_ECORE_IMF
+#include <Ecore_IMF.h>
+#endif
+
 #ifdef _WIN32
 # ifdef EFL_EDJE_BUILD
 #  ifdef DLL_EXPORT
@@ -518,6 +522,11 @@ extern "C" {
    EAPI Eina_Bool        edje_object_part_text_cursor_is_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI Eina_Bool        edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI const char      *edje_object_part_text_cursor_content_get(const Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI void             edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool on);
+#ifdef HAVE_ECORE_IMF
+   EAPI const Ecore_IMF_Context *edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part);
+#endif
+   EAPI void             edje_object_part_text_input_panel_enable_set(const Evas_Object *obj, const char *part, Eina_Bool disabled);
 
    EAPI Eina_Bool    edje_object_part_swallow        (Evas_Object *obj, const char *part, Evas_Object *obj_swallow);
    EAPI void         edje_object_part_unswallow      (Evas_Object *obj, Evas_Object *obj_swallow);

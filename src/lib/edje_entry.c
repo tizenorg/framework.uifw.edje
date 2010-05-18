@@ -57,6 +57,7 @@ struct _Entry
    Eina_Bool select_mod_start : 1;
    Eina_Bool select_mod_end : 1;
    Eina_Bool had_sel : 1;
+   Eina_Bool autocapital : 1;
 
 #ifdef HAVE_ECORE_IMF   
    int	comp_len;
@@ -1073,6 +1074,77 @@ _backspace(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
    evas_textblock_cursor_free(c2);
 }
 
+void _get_autocapitalized_str(Evas_Textblock_Cursor *cur1, Evas_Textblock_Cursor *cur2, char *str)
+{
+   char *prev_str = evas_textblock_cursor_range_text_get(cur1, cur2, EVAS_TEXTBLOCK_TEXT_MARKUP);
+
+   if (!prev_str) return;
+   unsigned short len = strlen(prev_str);
+
+   if (len == 2) 
+     {
+	if ( (prev_str[0] == '.' || prev_str[0] == '!' || prev_str[0] == '?') 
+	      && prev_str[1] == ' ') 
+	  {
+	     str[0] = str[0] + ('A' - 'a');
+	  }
+     }
+   else if (len == 0) 
+     {
+	if (strcmp(prev_str, "<br><br>") == 0) 
+	  {
+	     str[0] = str[0] + ('A' - 'a');
+	  }
+     }
+}
+
+void _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
+{
+   if (!rp) return;
+
+   Entry *en = rp->entry_data;
+   Evas_Textblock_Cursor *c1;
+   char *commit_string = strdup(str);
+
+   if (en->autocapital) 
+     {
+	if (strlen(str) == 1 && str[0] >= 'a' && str[0] <= 'z') 
+	  {
+	     c1 = evas_object_textblock_cursor_new(rp->object);
+	     evas_textblock_cursor_copy(en->cursor, c1);
+
+	     if (evas_textblock_cursor_char_prev(c1)) 
+	       {
+		  if (evas_textblock_cursor_char_prev(c1)) 
+		    {
+		       _get_autocapitalized_str(c1, en->cursor, commit_string);
+		    }
+	       }
+	     else 
+	       {
+		  if (evas_textblock_cursor_node_prev(c1)) 
+		    {
+		       evas_textblock_cursor_char_prev(c1);
+		       _get_autocapitalized_str(c1, en->cursor, commit_string);
+		    }
+		  else 
+		    {
+		       commit_string[0] = commit_string[0] + ('A' - 'a');
+		    }				
+	       }
+
+	     evas_textblock_cursor_free(c1);
+	  }
+     }
+
+   evas_textblock_cursor_text_prepend(en->cursor, commit_string);
+
+   if (commit_string) 
+     {
+	free(commit_string);
+     }
+}
+
 static void
 _delete(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 {
@@ -1437,7 +1509,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
             if (en->have_selection)
                _range_del(en->cursor, rp->object, en);
 	     _sel_clear(en->cursor, rp->object, en);
-	     evas_textblock_cursor_text_prepend(en->cursor, ev->string);
+	     _autocapitalized_text_prepend(rp, ev->string);
+	     //evas_textblock_cursor_text_prepend(en->cursor, ev->string);
 	     _curs_update_from_curs(en->cursor, rp->object, en);
 	     _anchors_get(en->cursor, rp->object, en);
 	     _edje_emit(ed, "entry,changed", rp->part->name);
@@ -2311,6 +2384,25 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
      }
 }
 
+void
+_edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool on)
+{
+   Entry *en = rp->entry_data;
+   en->autocapital = on;
+}
+
+#ifdef HAVE_ECORE_IMF
+const Ecore_IMF_Context *
+_edje_entry_imf_context_get(Edje_Real_Part *rp)
+{
+   Entry *en = rp->entry_data;
+
+   if (!en) return NULL;
+
+   return en->imf_context;
+}
+#endif
+
 static Evas_Textblock_Cursor *
 _cursor_get(Edje_Real_Part *rp, Edje_Cursor cur)
 {
@@ -2675,8 +2767,8 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 	_sel_clear(en->cursor, rp->object, en);
 	en->have_composition = EINA_FALSE;
      }
-
-   evas_textblock_cursor_text_prepend(en->cursor, ev->str);
+   _autocapitalized_text_prepend(rp, ev->str);
+   //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
 
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);
