@@ -301,6 +301,7 @@ typedef struct _Edje_Patterns                        Edje_Patterns;
 #define EDJE_ENTRY_EDIT_MODE_SELECTABLE 1
 #define EDJE_ENTRY_EDIT_MODE_EDITABLE 2
 #define EDJE_ENTRY_EDIT_MODE_PASSWORD 3
+#define EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER 4
 
 #define EDJE_ENTRY_SELECTION_MODE_DEFAULT 0
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
@@ -783,7 +784,7 @@ struct _Edje_Signals_Sources_Patterns
 };
 
 typedef struct _Edje_Signals_Sources_Patterns Edje_Signals_Sources_Patterns;
-
+typedef Eina_Bool (*Edje_elm_function) (void *input_data,void *output_data);
 struct _Edje
 {
    const Edje_Smart_Api *api;

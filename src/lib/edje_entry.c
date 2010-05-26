@@ -46,6 +46,8 @@ struct _Entry
    Evas_Object *cursor_fg;
    Evas_Textblock_Cursor *cursor;
    Evas_Textblock_Cursor *sel_start, *sel_end;
+   Evas_Textblock_Cursor *pw_cursor;
+   Ecore_Timer *pw_timer;
    Eina_List *sel;
    Eina_List *anchors;
    Eina_List *anchorlist;
@@ -67,6 +69,8 @@ struct _Entry
    Ecore_Event_Handler *imf_ee_handler_commit;
    Ecore_Event_Handler *imf_ee_handler_delete;
    Ecore_Event_Handler *imf_ee_handler_changed;
+   Edje_elm_function func;  
+   void *data;
 #endif   
 };
 
@@ -1029,6 +1033,43 @@ _range_del(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 }
 
 static void
+_remove_prev_special_node(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
+{	
+	/*remove special node and find a way to update cursor correctly*/
+	 Evas_Textblock_Cursor *c1;
+	  c1 = evas_object_textblock_cursor_new(o);
+	   evas_textblock_cursor_copy(c, c1);
+	   if (!evas_textblock_cursor_char_prev(c))
+	   	{	   	
+	   			if (evas_textblock_cursor_node_prev(c))	   								
+					{												
+							 if (evas_textblock_cursor_node_format_get(c) &&
+							 (!evas_textblock_cursor_node_format_is_visible_get(c)))
+									{											
+										evas_textblock_cursor_node_delete(c);
+									}							
+							   if (evas_textblock_cursor_char_prev(c)||	(evas_textblock_cursor_node_prev(c)))
+								   	{										   		
+								   			char *text = evas_textblock_cursor_node_text_get(c);															
+											if (evas_textblock_cursor_node_prev(c))
+												{
+													evas_textblock_cursor_node_delete(c);
+												}
+								   	}									
+					}
+	   	}	
+		if ((!evas_textblock_cursor_char_next(c)) &&
+		(!evas_textblock_cursor_node_next(c)))
+			{
+				_curs_end(c, o, en);		
+			}
+		else if (evas_textblock_cursor_compare(c, c1))
+			{
+				_curs_next(c, o, en);
+			}
+_edje_entry_real_part_configure(en->rp);	
+}
+static void
 _backspace(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 {
    Evas_Textblock_Cursor *c1, *c2;
@@ -1143,6 +1184,22 @@ void _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
      {
 	free(commit_string);
      }
+}
+
+int replace_pw(void *data)
+{	
+	 Entry *en = (Entry *)data;	
+	_remove_prev_special_node(en->pw_cursor, en->rp->object, en);
+	if(en->pw_cursor)
+		{
+			evas_textblock_cursor_free(en->pw_cursor);
+			en->pw_cursor = NULL;		
+		}		
+	/*count characters*/
+	if(en->func)
+		en->func(en->data,NULL);
+	 en->pw_timer=NULL;
+	 return 0;
 }
 
 static void
@@ -1321,7 +1378,12 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	     if (en->have_selection)
 	       _range_del(en->cursor, rp->object, en);
 	     else
-	       _backspace(en->cursor, rp->object, en);
+	     	{
+	       	_backspace(en->cursor, rp->object, en);	     	
+				/*if inputtin text is not allowed, dont allow text input*/
+				if(en->func)
+					en->func(en->data,NULL);
+	     	}
 	  }
 	_sel_clear(en->cursor, rp->object, en);
 	_curs_update_from_curs(en->cursor, rp->object, en);
@@ -1345,7 +1407,12 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	     if (en->have_selection)
 	       _range_del(en->cursor, rp->object, en);
 	     else
+	       {
                _delete(en->cursor, rp->object, en);
+				/*count characters*/			
+				if(en->func)
+					en->func(en->data,NULL);
+	       }
 	  }
 	_sel_clear(en->cursor, rp->object, en);
 	_curs_update_from_curs(en->cursor, rp->object, en);
@@ -1487,6 +1554,10 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
      }
    else if ((!strcmp(ev->key, "Return")) || (!strcmp(ev->key, "KP_Enter")))
      {
+	/*if inputtin text is not allowed, dont allow text input*/
+	if(en->func)
+		if(en->func(en->data,"<br>"))
+			return;
 	if (multiline)
 	  {
              if (en->have_selection)
@@ -1501,16 +1572,56 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	     ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
 	  }
         _edje_emit(ed, "entry,key,enter", rp->part->name);
+		/*count characters*/			
+		if(en->func)
+			en->func(en->data,NULL);
      }
    else
      {
 	if (ev->string)
 	  {
+	  	char buf[30];	
             if (en->have_selection)
                _range_del(en->cursor, rp->object, en);
 	     _sel_clear(en->cursor, rp->object, en);
-	     _autocapitalized_text_prepend(rp, ev->string);
-	     //evas_textblock_cursor_text_prepend(en->cursor, ev->string);
+			 if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+			  {			  			
+				 _remove_prev_special_node(en->pw_cursor, en->rp->object, en);			
+				 /*if inputtin text is not allowed, dont allow text input*/
+				if(en->func)
+					if(en->func(en->data,ev->string))
+						return;
+				 	if(en->pw_cursor)
+						{
+							evas_textblock_cursor_free(en->pw_cursor);
+							en->pw_cursor = NULL;		
+						}
+					if(!en->pw_cursor)
+						{
+							  en->pw_cursor = evas_object_textblock_cursor_new(rp->object); 						  					   
+						}			
+					snprintf(buf,30,"<visible=1>%s</visible>",ev->string);													
+					evas_object_textblock_text_markup_prepend(en->cursor,buf);
+					evas_textblock_cursor_copy(en->cursor, en->pw_cursor);
+					if(en->pw_timer)
+						{
+							ecore_timer_del(en->pw_timer);
+							en->pw_timer=NULL;
+						}
+					en->pw_timer = ecore_timer_add(2.0,replace_pw,en);							
+			  }	
+		  else
+		  	{	
+		  		/*if inputtin text is not allowed, dont allow text input*/
+				if(en->func)
+					if(en->func(en->data,ev->string))
+						return;
+		  		  _autocapitalized_text_prepend(rp, ev->string);
+				  //evas_textblock_cursor_text_prepend(en->cursor, ev->string);	  
+				 	/*count characters*/
+					if(en->func)
+						en->func(en->data,NULL);	    				
+		  	}
 	     _curs_update_from_curs(en->cursor, rp->object, en);
 	     _anchors_get(en->cursor, rp->object, en);
 	     _edje_emit(ed, "entry,changed", rp->part->name);
@@ -1934,7 +2045,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_DEFAULT)
      en->select_allow = 1;
 
-   if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD)
+   if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD)||(rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER))
      {
         en->select_allow = 0;
 	if ((rp->chosen_description) &&
@@ -2137,6 +2248,10 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
+	/*if inputtin text is not allowed, dont allow text input*/
+	if(en->func)
+		if(en->func(en->data,text))
+			return;
    // prepend markup @ cursor pos
    if (en->have_selection)
      _range_del(en->cursor, rp->object, en);
@@ -2156,6 +2271,10 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
      }
 #endif
    _edje_entry_real_part_configure(rp);
+	 /*count characters*/
+	if(en->func)
+		en->func(en->data,NULL);
+
 }
 
 void
@@ -2361,6 +2480,14 @@ _edje_entry_select_allow_get(const Edje_Real_Part *rp)
 {
   const Entry *en = rp->entry_data;
   return en->select_allow;
+}
+
+void
+_edje_entry_text_restrict_func_set(Edje_Real_Part *rp, Edje_elm_function func,void *data)
+{ 
+   Entry *en = rp->entry_data;
+   en->func= func;
+   en->data = data;
 }
 
 void
@@ -2750,6 +2877,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    Entry *en;
    Ecore_IMF_Event_Commit *ev = event;
    int i;
+   char buf[30];
    
    if (!rp) return 1;
    
@@ -2767,9 +2895,44 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 	_sel_clear(en->cursor, rp->object, en);
 	en->have_composition = EINA_FALSE;
      }
-   _autocapitalized_text_prepend(rp, ev->str);
-   //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
-
+  	if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+		  {			  			
+			 _remove_prev_special_node(en->pw_cursor, en->rp->object, en);	
+			 /*if inputtin text is not allowed, dont allow text input*/
+				if(en->func)
+					if(en->func(en->data,ev->str))
+						return 1;
+			 	if(en->pw_cursor)
+					{
+						evas_textblock_cursor_free(en->pw_cursor);
+						en->pw_cursor = NULL;		
+					}
+				if(!en->pw_cursor)
+					{
+						  en->pw_cursor = evas_object_textblock_cursor_new(rp->object); 						  					   
+					}			
+				snprintf(buf,30,"<visible=1>%s</visible>",ev->str);													
+				evas_object_textblock_text_markup_prepend(en->cursor,buf);
+				evas_textblock_cursor_copy(en->cursor, en->pw_cursor);	
+				if(en->pw_timer)
+						{
+							ecore_timer_del(en->pw_timer);
+							en->pw_timer=NULL;
+						}
+				en->pw_timer = ecore_timer_add(2.0,replace_pw,en);							
+		  }	
+	else
+		{		
+			/*if inputtin text is not allowed, dont allow text input*/
+			if(en->func)
+				if(en->func(en->data,ev->str))
+					return 1;
+			_autocapitalized_text_prepend(rp, ev->str);
+			//evas_textblock_cursor_text_prepend(en->cursor, ev->str);	  
+			/*count characters*/
+			if(en->func)
+			en->func(en->data,NULL);				
+		}
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
@@ -2802,6 +2965,10 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
 
    ecore_imf_context_preedit_string_get(en->imf_context, &preedit_string, &length);
 
+	/*if inputtin text is not allowed, dont allow text input*/
+	if((en->func)&&!en->have_composition)
+		if(en->func(en->data,preedit_string))
+			return 1;
    // FIXME : check the maximum length of evas_textblock
    if ( 0 /* check the maximum length of evas_textblock */ )
      return 1;
@@ -2823,6 +2990,9 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
 
    evas_object_textblock_text_markup_prepend (en->cursor, preedit_string);
    
+	/*count characters*/			
+	if(en->func)
+		en->func(en->data,NULL);
    _sel_extend(en->cursor, rp->object, en);
 
    _curs_update_from_curs(en->cursor, rp->object, en);

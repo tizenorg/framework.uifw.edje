@@ -1271,6 +1271,19 @@ edje_object_part_text_set(Evas_Object *obj, const char *part, const char *text)
    return _edje_object_part_text_raw_set(obj, rp, part, text);
 }
 
+EAPI void
+edje_object_part_text_restrict_fun(const Evas_Object *obj, const char *part, Edje_elm_function func, void *data)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     _edje_entry_text_restrict_func_set(rp, func,data);
+}
 /**
  * @brief Return the text of the object part.
  *
