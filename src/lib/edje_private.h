@@ -305,6 +305,7 @@ typedef struct _Edje_Patterns                        Edje_Patterns;
 
 #define EDJE_ENTRY_SELECTION_MODE_DEFAULT 0
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
+#define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2
 
 #define EDJE_PART_PATH_SEPARATOR ':'
 #define EDJE_PART_PATH_SEPARATOR_STRING ":"

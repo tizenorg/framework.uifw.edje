@@ -2366,6 +2366,7 @@ st_collections_group_parts_part_select_mode(void)
    ep->select_mode = parse_enum(0,
                                 "DEFAULT", EDJE_ENTRY_SELECTION_MODE_DEFAULT,
                                 "EXPLICIT", EDJE_ENTRY_SELECTION_MODE_EXPLICIT,
+                                "BLOCK_HANDLE", EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE,
                                 NULL);
 }
 
