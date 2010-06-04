@@ -1162,10 +1162,13 @@ _remove_prev_special_node(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 									}							
 							   if (evas_textblock_cursor_char_prev(c)||	(evas_textblock_cursor_node_prev(c)))
 								   	{										   		
-								   			char *text = evas_textblock_cursor_node_text_get(c);															
 											if (evas_textblock_cursor_node_prev(c))
 												{
-													evas_textblock_cursor_node_delete(c);
+													 if (evas_textblock_cursor_node_format_get(c) &&
+													 (!evas_textblock_cursor_node_format_is_visible_get(c)))
+														{											
+															evas_textblock_cursor_node_delete(c);
+														}	
 												}
 								   	}									
 					}
@@ -1180,6 +1183,7 @@ _remove_prev_special_node(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 				_curs_next(c, o, en);
 			}
 _edje_entry_real_part_configure(en->rp);	
+  evas_textblock_cursor_free(c1);
 }
 static void
 _backspace(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
