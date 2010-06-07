@@ -219,6 +219,8 @@ typedef struct _Edje_Font_Directory                  Edje_Font_Directory;
 typedef struct _Edje_Font_Directory_Entry            Edje_Font_Directory_Entry;
 typedef struct _Edje_Image_Directory                 Edje_Image_Directory;
 typedef struct _Edje_Image_Directory_Entry           Edje_Image_Directory_Entry;
+typedef struct _Edje_Image_Directory_Set             Edje_Image_Directory_Set;
+typedef struct _Edje_Image_Directory_Set_Entry       Edje_Image_Directory_Set_Entry;
 typedef struct _Edje_Spectrum_Directory              Edje_Spectrum_Directory;
 typedef struct _Edje_Spectrum_Directory_Entry        Edje_Spectrum_Directory_Entry;
 typedef struct _Edje_Program                         Edje_Program;
@@ -401,6 +403,7 @@ struct _Edje_External_Directory_Entry
 struct _Edje_Image_Directory
 {
    Eina_List *entries; /* a list of Edje_Image_Directory_Entry */
+   Eina_List *sets; /* a list of Edje_Image_Directory_Set */
 };
 
 struct _Edje_Image_Directory_Entry
@@ -409,6 +412,27 @@ struct _Edje_Image_Directory_Entry
    int   source_type; /* alternate source mode. 0 = none */
    int   source_param; /* extra params on encoding */
    int   id; /* the id no. of the image */
+};
+
+struct _Edje_Image_Directory_Set
+{
+   char *name;
+   Eina_List *entries;
+
+   int id;
+};
+
+struct _Edje_Image_Directory_Set_Entry
+{
+   char *name;
+   int id;
+
+   struct {
+     struct {
+       int w;
+       int h;
+     } min, max;
+   } size;
 };
 
 /*----------*/
@@ -603,6 +627,7 @@ struct _Edje_Part
 struct _Edje_Part_Image_Id
 {
    int id;
+   Eina_Bool set;
 };
 
 struct _Edje_Part_Description
@@ -635,6 +660,7 @@ struct _Edje_Part_Description
       Eina_List     *tween_list; /* list of Edje_Part_Image_Id */
       int            id; /* the image id to use */
       int            scale_hint; /* evas scale hint */
+      Eina_Bool      set; /* if image condition it's content */
    } image;
 
    struct {
@@ -746,6 +772,7 @@ struct _Edje_Part_Description
 typedef struct _Edje Edje;
 typedef struct _Edje_Real_Part_State Edje_Real_Part_State;
 typedef struct _Edje_Real_Part_Drag Edje_Real_Part_Drag;
+typedef struct _Edje_Real_Part_Set Edje_Real_Part_Set;
 typedef struct _Edje_Real_Part Edje_Real_Part;
 typedef struct _Edje_Running_Program Edje_Running_Program;
 typedef struct _Edje_Signal_Callback Edje_Signal_Callback;
@@ -764,6 +791,7 @@ typedef struct _Edje_Var_Animator Edje_Var_Animator;
 typedef struct _Edje_Var_Timer Edje_Var_Timer;
 typedef struct _Edje_Var_Pool Edje_Var_Pool;
 typedef struct _Edje_Signal_Source_Char Edje_Signal_Source_Char;
+typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callback;
 
 struct _Edje_Signal_Source_Char
 {
@@ -813,6 +841,7 @@ struct _Edje
    Edje_Program        **table_programs;
    Edje_Real_Part       *focused_part;
    Eina_List            *subobjs;
+   Eina_List            *text_insert_filter_callbacks;
    void                 *script_only_data;
    int                   table_programs_size;
    int                   table_parts_size;
@@ -913,6 +942,14 @@ struct _Edje_Calc_Params
    unsigned char    smooth : 1; // 1
 }; // 96
 
+struct _Edje_Real_Part_Set
+{
+  Edje_Image_Directory_Set_Entry *entry; // 4
+  Edje_Image_Directory_Set       *set; // 4
+
+  int                             id; // 4
+};
+
 struct _Edje_Real_Part_State
 {
    Edje_Part_Description *description; // 4
@@ -925,8 +962,9 @@ struct _Edje_Real_Part_State
    Edje_Calc_Params       p; // 96
 #endif
    void                  *external_params; // 4
-}; // 24
-// WITH EDJE_CALC_CACHE 124
+   Edje_Real_Part_Set    *set; // 4
+}; // 28
+// WITH EDJE_CALC_CACHE 128
 
 struct _Edje_Real_Part_Drag
 {
@@ -1030,6 +1068,13 @@ struct _Edje_Signal_Callback
    void  *data;
    unsigned char just_added : 1;
    unsigned char delete_me : 1;
+};
+
+struct _Edje_Text_Insert_Filter_Callback
+{
+   const char  *part;
+   void       (*func) (void *data, Evas_Object *obj, const char *part, char **text);
+   void        *data;
 };
 
 struct _Edje_Pending_Program
@@ -1357,8 +1402,8 @@ Eina_Bool         _edje_object_part_text_raw_set(Evas_Object *obj, Edje_Real_Par
 char             *_edje_text_escape(const char *text);
 char             *_edje_text_unescape(const char *text);
 
-void          _edje_embryo_script_init      (Edje *ed);
-void          _edje_embryo_script_shutdown  (Edje *ed);
+void          _edje_embryo_script_init      (Edje_Part_Collection *edc);
+void          _edje_embryo_script_shutdown  (Edje_Part_Collection *edc);
 void          _edje_embryo_script_reset     (Edje *ed);
 void          _edje_embryo_test_run         (Edje *ed, const char *fname, const char *sig, const char *src);
 Edje_Var     *_edje_var_new                 (void);

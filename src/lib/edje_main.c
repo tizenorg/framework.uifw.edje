@@ -6,12 +6,13 @@
 
 #include "edje_private.h"
 
+static Edje_Version _version = { VMAJ, VMIN, VMIC, VREV };
+EAPI Edje_Version *edje_version = &_version;
+
 static int _edje_init_count = 0;
 int _edje_default_log_dom = -1;
 Eina_Mempool *_edje_real_part_mp = NULL;
 Eina_Mempool *_edje_real_part_state_mp = NULL;
-
-
 
 /*============================================================================*
  *                                   API                                      *
@@ -264,6 +265,15 @@ _edje_del(Edje *ed)
 	if (tc->name) eina_stringshare_del(tc->name);
 	if (tc->font) eina_stringshare_del(tc->font);
 	free(tc);
+     }
+   while (ed->text_insert_filter_callbacks)
+     {
+        Edje_Text_Insert_Filter_Callback *cb;
+        
+        cb = eina_list_data_get(ed->text_insert_filter_callbacks);
+        ed->text_insert_filter_callbacks = eina_list_remove(ed->text_insert_filter_callbacks, cb);
+        eina_stringshare_del(cb->part);
+        free(cb);
      }
    free(ed);
 }
