@@ -186,7 +186,7 @@ edje_file_group_exists(const char *file, const char *glob)
    Edje_File *edf;
    int error_ret = 0;
 
-   if ((!file) || (!*file)) return 0;
+   if ((!file) || (!*file)) return EINA_FALSE;
    edf = _edje_cache_file_coll_open(file, NULL, &error_ret, NULL);
    if (edf != NULL)
      {
@@ -200,13 +200,13 @@ edje_file_group_exists(const char *file, const char *glob)
                {
                   edje_match_patterns_free(patterns);
                   _edje_cache_file_unref(edf);
-                  return 1;
+                  return EINA_TRUE;
                }
              edje_match_patterns_free(patterns);
 	  }
 	_edje_cache_file_unref(edf);
      }
-   return 0;
+   return EINA_FALSE;
 }
 
 
@@ -558,7 +558,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 	     _edje_ref(ed);
 	     _edje_block(ed);
 	     _edje_freeze(ed);
-	     if (ed->collection->script) _edje_embryo_script_init(ed);
+//	     if (ed->collection->script) _edje_embryo_script_init(ed);
 	     _edje_var_init(ed);
 	     for (i = 0; i < ed->table_parts_size; i++)
 	       {
@@ -843,6 +843,10 @@ _edje_file_del(Edje *ed)
    _edje_block_violate(ed);
    _edje_var_shutdown(ed);
    _edje_programs_patterns_clean(ed);
+//   if (ed->collection)
+//     {
+//        if (ed->collection->script) _edje_embryo_script_shutdown(ed);
+//     }
 
    if (!((ed->file) && (ed->collection))) return;
    if (ed->table_parts)
@@ -907,8 +911,14 @@ _edje_file_del(Edje *ed)
 
 	     /* Cleanup optional part. */
 	     free(rp->drag);
+	     free(rp->param1.set);
 
+	     if (rp->param2)
+	       free(rp->param2->set);
 	     eina_mempool_free(_edje_real_part_state_mp, rp->param2);
+
+	     if (rp->custom)
+	       free(rp->custom->set);
 	     eina_mempool_free(_edje_real_part_state_mp, rp->custom);
 
 	     _edje_unref(rp->edje);
@@ -984,7 +994,7 @@ static Eina_Bool data_cache_free(const Eina_Hash *hash __UNUSED__, const void *k
 
    edf = fdata;
    if (edf->free_strings) eina_stringshare_del(data);
-   return 1;
+   return EINA_TRUE;
 }
 
 void
@@ -1106,6 +1116,7 @@ _edje_collection_free(Edje_File *edf, Edje_Part_Collection *ec)
    Edje_Program *pr;
    Edje_Part *ep;
 
+   _edje_embryo_script_shutdown(ec);
    EINA_LIST_FREE(ec->programs, pr)
      {
 	Edje_Program_Target *prt;
@@ -1208,7 +1219,7 @@ _edje_file_collection_hash_foreach(const Eina_Hash *hash __UNUSED__, const void 
        coll->part, coll->references);
    _edje_collection_free(edf, coll);
 
-   return 1;
+   return EINA_TRUE;
 }
 
 #ifdef EDJE_PROGRAM_CACHE
@@ -1216,7 +1227,7 @@ static Eina_Bool
 _edje_collection_free_prog_cache_matches_free_cb(const Eina_Hash *hash, const void *key, void *data, void *fdata)
 {
    eina_list_free((Eina_List *)data);
-   return 1;
+   return EINA_TRUE;
    key = NULL;
    hash = NULL;
    fdata = NULL;
