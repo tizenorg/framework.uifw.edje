@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+0) unstable; urgency=low
+
+  * Update opensource EFL from SVN
+  * SVN revision: 49543 (Total EFL revision: 49550)
+  * Tag: 0.9.92.060+svn.49543slp2+0
+
+ -- Daniel Juyung Seo <juyung.seo@smasung.net>  Thu, 10 Jun 2010 15:50:38 +0900
+
 edje (0.9.92.060+svn20100304slp2+7) unstable; urgency=low
 
   * Repackage due to tag
