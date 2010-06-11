@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+3build05) unstable; urgency=low
+
+  * Package version changes.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build05
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Fri, 11 Jun 2010 18:54:09 +0900
+
 edje (0.9.92.060+svn.49543slp2+3build04) unstable; urgency=low
 
   * Packaging.
