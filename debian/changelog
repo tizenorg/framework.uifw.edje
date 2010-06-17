@@ -1,3 +1,67 @@
+edje (0.9.92.060+svn.49543slp2+3build05) unstable; urgency=low
+
+  * Package version changes.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build05
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Fri, 11 Jun 2010 18:54:09 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build04) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build04
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 10 Jun 2010 21:09:28 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build03) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build03
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 10 Jun 2010 21:04:12 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build02) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build02
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  목, 10  6월 2010 21:00:51 +0900
+
+edje (0.9.92.060+svn.49543slp2+3) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 10 Jun 2010 20:46:54 +0900
+
+edje (0.9.92.060+svn.49543slp2+2) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+2
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.net>  Thu, 10 Jun 2010 20:46:08 +0900
+
+edje (0.9.92.060+svn.49543slp2+1) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+1
+
+ -- Daniel Juyung Seo <juyung.seo@smasung.net>  Thu, 10 Jun 2010 20:45:22 +0900
+
+edje (0.9.92.060+svn.49543slp2+0) unstable; urgency=low
+
+  * Update opensource EFL from SVN
+  * SVN revision: 49543 (Total EFL revision: 49550)
+  * Tag: 0.9.92.060+svn.49543slp2+0
+
+ -- Daniel Juyung Seo <juyung.seo@smasung.net>  Thu, 10 Jun 2010 15:50:38 +0900
+
 edje (0.9.92.060+svn20100304slp2+7) unstable; urgency=low
 
   * Repackage due to tag
