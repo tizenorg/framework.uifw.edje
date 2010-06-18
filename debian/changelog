@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+3build07) unstable; urgency=low
+
+  * add lua dependency
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build07
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Fri, 18 Jun 2010 09:24:30 +0900
+
 edje (0.9.92.060+svn.49543slp2+3build06) unstable; urgency=low
 
   * Changed Lua package as a dependent package.
