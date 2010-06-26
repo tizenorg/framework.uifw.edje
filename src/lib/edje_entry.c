@@ -2308,7 +2308,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         en->imf_ee_handler_delete = ecore_event_handler_add(ECORE_IMF_EVENT_DELETE_SURROUNDING, _edje_entry_imf_event_delete_surrounding_cb, rp);
         en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_changed_cb, rp->edje);
         ecore_imf_context_input_mode_set(en->imf_context, 
-                                         rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD ? 
+	    (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD || rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER) ? 
                                          ECORE_IMF_INPUT_MODE_INVISIBLE : ECORE_IMF_INPUT_MODE_FULL);
 #endif
      }
@@ -2679,10 +2679,12 @@ _edje_entry_select_allow_get(const Edje_Real_Part *rp)
 }
 
 void
-_edje_entry_text_restrict_func_set(Edje_Real_Part *rp, Edje_elm_function func,void *data)
-{ 
+_edje_entry_textinput_callback_set(Edje_Real_Part * rp, Edje_elm_function func,
+				   void *data)
+{
    Entry *en = rp->entry_data;
-   en->func= func;
+
+   en->func = func;
    en->data = data;
 }
 

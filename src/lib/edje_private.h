@@ -813,7 +813,7 @@ struct _Edje_Signals_Sources_Patterns
 };
 
 typedef struct _Edje_Signals_Sources_Patterns Edje_Signals_Sources_Patterns;
-typedef Eina_Bool (*Edje_elm_function) (void *input_data,void *output_data);
+typedef Eina_Bool(*Edje_elm_function) (void *data, void *input_data);
 struct _Edje
 {
    const Edje_Smart_Api *api;

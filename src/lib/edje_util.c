@@ -1292,8 +1292,14 @@ edje_object_part_text_set(Evas_Object *obj, const char *part, const char *text)
    return _edje_object_part_text_raw_set(obj, rp, part, text);
 }
 
+/**Sets the callback function which would be called before and after inserting text in to entry.
+ * @param obj A valid Evas Object handle
+ * @param part The part name
+ * @param func The Call Back function
+ * @param dara data to be passed along with callback function.
+ */
 EAPI void
-edje_object_part_text_restrict_fun(const Evas_Object *obj, const char *part, Edje_elm_function func, void *data)
+edje_object_part_textinput_callback_set(const Evas_Object *obj, const char *part, Edje_elm_function func, void *data)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1303,8 +1309,10 @@ edje_object_part_text_restrict_fun(const Evas_Object *obj, const char *part, Edj
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_text_restrict_func_set(rp, func,data);
+     _edje_entry_textinput_callback_set(rp, func,data);
 }
+
+
 /**
  * @brief Return the text of the object part.
  *
