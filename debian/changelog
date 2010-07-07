@@ -4,7 +4,7 @@ edje (0.9.92.060+svn.49543slp2+3build08) unstable; urgency=low
   * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
   * Tag: edje_0.9.92.060+svn.49543slp2+3build08
 
- -- Juyung Seo <juyung.seo@samsung.com>  Wed, 07 Jul 2010 16:47:28 +0900
+ -- ChunEon Park <chuneon.park@samsung.com>  Wed, 07 Jul 2010 16:47:28 +0900
 
 edje (0.9.92.060+svn.49543slp2+3build07) unstable; urgency=low
 
