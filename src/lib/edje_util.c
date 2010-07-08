@@ -31,6 +31,7 @@ FLOAT_T _edje_scale = ZERO;
 int _edje_freeze_val = 0;
 int _edje_freeze_calc_count = 0;
 Eina_List *_edje_freeze_calc_list = NULL;
+Eina_Bool _edje_input_panel_enable = EINA_FALSE;
 
 typedef struct _Edje_List_Foreach_Data Edje_List_Foreach_Data;
 struct _Edje_List_Foreach_Data
@@ -264,6 +265,16 @@ edje_object_scale_get(const Evas_Object *obj)
    ed = _edje_fetch(obj);
    if (!ed) return 0.0;
    return TO_DOUBLE(ed->scale);
+}
+
+EAPI void
+edje_input_panel_enabled_set(Eina_Bool enabled)
+{
+   Eina_List *l;
+   Evas_Object *data;
+
+   if (_edje_input_panel_enable == enabled) return;
+   _edje_input_panel_enable = enabled;
 }
 
 /**
@@ -1908,6 +1919,20 @@ edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
      return NULL;
 }
 #endif
+
+EAPI void
+edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char *part, Eina_Bool enabled)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     _edje_entry_input_panel_enabled_set(rp, enabled);
+}
 
 /**
  * @brief XX

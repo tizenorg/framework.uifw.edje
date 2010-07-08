@@ -34,6 +34,8 @@ static int _edje_entry_imf_event_changed_cb(void *data, int type, void *event);
 static int _edje_entry_imf_event_delete_surrounding_cb(void *data, int type, void *event);
 #endif
 
+static Eina_Bool keypad_show = EINA_FALSE;
+
 typedef struct _Entry Entry;
 typedef struct _Sel Sel;
 typedef struct _Anchor Anchor;
@@ -71,6 +73,7 @@ struct _Entry
 #ifdef HAVE_ECORE_IMF   
    int	comp_len;
    Eina_Bool have_composition : 1;
+   Eina_Bool input_panel_enable : 1;
    Ecore_IMF_Context *imf_context;
 
    Ecore_Event_Handler *imf_ee_handler_commit;
@@ -97,6 +100,21 @@ struct _Anchor
 };
 
 #ifdef HAVE_ECORE_IMF   
+static int _hide_timer_handler(void *data)
+{
+   Entry *en = (Entry *)data;
+
+   if (!keypad_show)
+     {
+	if (en->imf_context) 
+	  {
+	     ecore_imf_context_input_panel_hide(en->imf_context);
+	  }
+     }
+
+   return ECORE_CALLBACK_CANCEL;
+}
+
 static void 
 _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
 {
@@ -107,12 +125,19 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
    if (!rp || !rp->entry_data || !rp->edje || !rp->edje->obj) return;
 
    en = rp->entry_data;
+   if (!en) return;
    if (!en->imf_context) return;
 
    if (evas_object_focus_get(rp->edje->obj))
      {
 	ecore_imf_context_reset(en->imf_context);
 	ecore_imf_context_focus_in(en->imf_context);
+
+	if (en->input_panel_enable)
+	  {
+	     keypad_show = EINA_TRUE;
+	     ecore_imf_context_input_panel_show(en->imf_context);
+	  }
      }
 }
 
@@ -131,6 +156,12 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
+
+   if (en->input_panel_enable)
+     {
+	keypad_show = EINA_FALSE;
+	ecore_timer_add(0.2, _hide_timer_handler, en);
+     }
 }
 #endif
 
@@ -152,11 +183,17 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE))
      return;
- 
+
    if (en->imf_context)
      {
 	ecore_imf_context_reset(en->imf_context);
 	ecore_imf_context_focus_in(en->imf_context);
+
+	if (en->input_panel_enable)
+	  {
+	     keypad_show = EINA_TRUE;
+	     ecore_imf_context_input_panel_show(en->imf_context);
+	  }
      }
 #endif
 }
@@ -179,12 +216,17 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE))
      return;
 
-   if (en->imf_context)
+   if (!en->imf_context) return;
+
+   ecore_imf_context_reset(en->imf_context);
+   ecore_imf_context_cursor_position_set(en->imf_context,
+	 evas_textblock_cursor_pos_get(en->cursor));
+   ecore_imf_context_focus_out(en->imf_context);
+
+   if (en->input_panel_enable)
      {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-        ecore_imf_context_focus_out(en->imf_context);
+	keypad_show = EINA_FALSE;
+	ecore_timer_add(0.2, _hide_timer_handler, en);
      }
 #endif
 }
@@ -1424,7 +1466,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if (!ev->key) return;
 
 #ifdef HAVE_ECORE_IMF
-#if 0 // FIXME -- keyboard activated IMF
+#if 1 // FIXME -- keyboard activated IMF
    if (en->imf_context)
      {
         Ecore_IMF_Event_Key_Down ecore_ev;
@@ -1819,7 +1861,9 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
      return;
 
 #ifdef HAVE_ECORE_IMF
-#if 0 // FIXME key activation imf
+#if 1 // FIXME key activation imf
+   Evas_Event_Key_Up *ev = event_info;
+
    if (en->imf_context)
      {
         Ecore_IMF_Event_Key_Up ecore_ev;
@@ -1994,6 +2038,12 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 	ecore_imf_context_reset(en->imf_context);
 	ecore_imf_context_cursor_position_set(en->imf_context,
                                               evas_textblock_cursor_pos_get(en->cursor));
+
+	if (en->input_panel_enable)
+	  {
+	     keypad_show = EINA_TRUE;
+	     ecore_imf_context_input_panel_show(en->imf_context);
+	  }
      }
 #endif
    
@@ -2229,6 +2279,10 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    if (!en) return;
    rp->entry_data = en;
    en->rp = rp;
+
+#ifdef HAVE_ECORE_IMF
+   en->input_panel_enable = _edje_input_panel_enable;
+#endif
 
    evas_object_event_callback_add(rp->object, EVAS_CALLBACK_MOUSE_DOWN, _edje_part_mouse_down_cb, rp);
    evas_object_event_callback_add(rp->object, EVAS_CALLBACK_MOUSE_UP, _edje_part_mouse_up_cb, rp);
@@ -2727,6 +2781,13 @@ _edje_entry_imf_context_get(Edje_Real_Part *rp)
    return en->imf_context;
 }
 #endif
+
+void
+_edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled)
+{
+   Entry *en = rp->entry_data;
+   en->input_panel_enable = enabled;
+}
 
 static Evas_Textblock_Cursor *
 _cursor_get(Edje_Real_Part *rp, Edje_Cursor cur)

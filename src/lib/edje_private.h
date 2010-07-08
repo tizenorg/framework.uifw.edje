@@ -1297,6 +1297,7 @@ extern FLOAT_T          _edje_scale;
 extern int              _edje_freeze_val;
 extern int              _edje_freeze_calc_count;
 extern Eina_List       *_edje_freeze_calc_list;
+extern Eina_Bool        _edje_input_panel_enable;
 
 extern Eina_Mempool *_edje_real_part_mp;
 extern Eina_Mempool *_edje_real_part_state_mp;
@@ -1608,7 +1609,11 @@ void _edje_entry_cursor_geometry_get(Edje_Real_Part *rp, Evas_Coord *cx, Evas_Co
 void _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow);
 Eina_Bool _edje_entry_select_allow_get(const Edje_Real_Part *rp);
 void _edje_entry_select_abort(Edje_Real_Part *rp);
-
+void _edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool on);
+#ifdef HAVE_ECORE_IMF
+const Ecore_IMF_Context *_edje_entry_imf_context_get(Edje_Real_Part *rp);
+#endif
+void _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled);
 Eina_Bool _edje_entry_cursor_next(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_prev(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_up(Edje_Real_Part *rp, Edje_Cursor cur);
