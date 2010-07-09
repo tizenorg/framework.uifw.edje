@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+3build11) unstable; urgency=low
+
+  * Add edje_object_part_text_input_panel_enabled_get 
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build11
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 09 Jul 2010 19:57:42 +0900
+
 edje (0.9.92.060+svn.49543slp2+3build10) unstable; urgency=low
 
   * Bug fix related to timer issue 

@@ -1934,6 +1934,23 @@ edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char
      _edje_entry_input_panel_enabled_set(rp, enabled);
 }
 
+EAPI Eina_Bool
+edje_object_part_text_input_panel_enabled_get(const Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return EINA_FALSE;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return EINA_FALSE;
+
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     return _edje_entry_input_panel_enabled_get(rp);
+   else
+     return EINA_FALSE;
+}
+
 /**
  * @brief XX
  * 

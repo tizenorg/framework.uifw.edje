@@ -183,16 +183,15 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE))
      return;
 
-   if (en->imf_context)
-     {
-	ecore_imf_context_reset(en->imf_context);
-	ecore_imf_context_focus_in(en->imf_context);
+   if (!en->imf_context) return;
 
-	if (en->input_panel_enable)
-	  {
-	     keypad_show = EINA_TRUE;
-	     ecore_imf_context_input_panel_show(en->imf_context);
-	  }
+   ecore_imf_context_reset(en->imf_context);
+   ecore_imf_context_focus_in(en->imf_context);
+
+   if (en->input_panel_enable)
+     {
+	keypad_show = EINA_TRUE;
+	ecore_imf_context_input_panel_show(en->imf_context);
      }
 #endif
 }
@@ -2792,7 +2791,18 @@ void
 _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled)
 {
    Entry *en = rp->entry_data;
+   if (!en) return;
+
    en->input_panel_enable = enabled;
+}
+
+Eina_Bool
+_edje_entry_input_panel_enabled_get(Edje_Real_Part *rp)
+{
+   Entry *en = rp->entry_data;
+   if (!en) return EINA_FALSE;
+
+   return en->input_panel_enable;
 }
 
 static Evas_Textblock_Cursor *
