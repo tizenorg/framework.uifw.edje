@@ -35,6 +35,7 @@ static int _edje_entry_imf_event_delete_surrounding_cb(void *data, int type, voi
 #endif
 
 static Eina_Bool keypad_show = EINA_FALSE;
+static Ecore_Timer *hide_timer = NULL;
 
 typedef struct _Entry Entry;
 typedef struct _Sel Sel;
@@ -103,13 +104,11 @@ struct _Anchor
 static int _hide_timer_handler(void *data)
 {
    Entry *en = (Entry *)data;
+   if (!en || !en->imf_context) return ECORE_CALLBACK_CANCEL;
 
    if (!keypad_show)
      {
-	if (en->imf_context) 
-	  {
 	     ecore_imf_context_input_panel_hide(en->imf_context);
-	  }
      }
 
    return ECORE_CALLBACK_CANCEL;
@@ -160,7 +159,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    if (en->input_panel_enable)
      {
 	keypad_show = EINA_FALSE;
-	ecore_timer_add(0.2, _hide_timer_handler, en);
+	hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
      }
 }
 #endif
@@ -226,7 +225,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
    if (en->input_panel_enable)
      {
 	keypad_show = EINA_FALSE;
-	ecore_timer_add(0.2, _hide_timer_handler, en);
+	hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
      }
 #endif
 }
@@ -2412,10 +2411,17 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
         
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,in", rp->part->name, _edje_entry_focus_in_cb);
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,out", rp->part->name, _edje_entry_focus_out_cb);
+
+	if (hide_timer)
+	  {
+	     ecore_timer_del(hide_timer);
+	     hide_timer = NULL;
+	  }
+	
         ecore_imf_shutdown();
      }
 #endif
-   
+
    free(en);
 }
 
