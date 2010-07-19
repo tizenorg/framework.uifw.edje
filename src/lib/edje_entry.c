@@ -546,6 +546,11 @@ _sel_clear(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __UNUSED__, Entry
 	free(en->selection);
 	en->selection = NULL;
      }
+	 if(en->pw_cursor)
+	 	{
+	 		evas_textblock_cursor_free(en->pw_cursor);
+			en->pw_cursor = NULL;
+	 	}
    while (en->sel)
      {
 	Sel *sel;
@@ -2380,6 +2385,11 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_fg);
    evas_object_del(en->cursor_bg);
    evas_object_del(en->cursor_fg);
+	 if(en->pw_timer)
+						{
+							ecore_timer_del(en->pw_timer);
+							en->pw_timer=NULL;
+						}
 
 #ifdef HAVE_ECORE_IMF
    if (rp->part->entry_mode >= EDJE_ENTRY_EDIT_MODE_EDITABLE)
