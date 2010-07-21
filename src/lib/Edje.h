@@ -539,7 +539,7 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI const char      *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI void             edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool on);
 #ifdef HAVE_ECORE_IMF
-   EAPI const Ecore_IMF_Context *edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part);
+   EAPI Ecore_IMF_Context *edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part);
 #endif
    EAPI void             edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char *part, Eina_Bool disabled);
    EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get(const Evas_Object *obj, const char *part);

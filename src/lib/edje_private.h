@@ -14,6 +14,7 @@
 #include <Ecore.h>
 #ifdef HAVE_ECORE_IMF
 # include <Ecore_IMF.h>
+# include <Ecore_IMF_Evas.h>
 #endif
 #include <Eet.h>
 #include <Embryo.h>
@@ -1611,9 +1612,10 @@ Eina_Bool _edje_entry_select_allow_get(const Edje_Real_Part *rp);
 void _edje_entry_select_abort(Edje_Real_Part *rp);
 void _edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool on);
 #ifdef HAVE_ECORE_IMF
-const Ecore_IMF_Context *_edje_entry_imf_context_get(Edje_Real_Part *rp);
+Ecore_IMF_Context *_edje_entry_imf_context_get(Edje_Real_Part *rp);
 #endif
 void _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled);
+Eina_Bool _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp);
 Eina_Bool _edje_entry_cursor_next(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_prev(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_up(Edje_Real_Part *rp, Edje_Cursor cur);

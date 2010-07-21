@@ -1465,7 +1465,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if (!ev->key) return;
 
 #ifdef HAVE_ECORE_IMF
-#if 1 // FIXME -- keyboard activated IMF
    if (en->imf_context)
      {
         Ecore_IMF_Event_Key_Down ecore_ev;
@@ -1475,7 +1474,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                                            (Ecore_IMF_Event *)&ecore_ev))
           return;
      }
-#endif
 #endif
    
    tc = evas_object_textblock_cursor_new(rp->object);
@@ -1860,19 +1858,17 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
      return;
 
 #ifdef HAVE_ECORE_IMF
-#if 1 // FIXME key activation imf
    Evas_Event_Key_Up *ev = event_info;
 
    if (en->imf_context)
      {
         Ecore_IMF_Event_Key_Up ecore_ev;
-        ecore_imf_evas_event_key_down_wrap(ev, &ecore_ev);
+        ecore_imf_evas_event_key_up_wrap(ev, &ecore_ev);
         if (ecore_imf_context_filter_event(en->imf_context,
                                            ECORE_IMF_EVENT_KEY_UP,
                                            (Ecore_IMF_Event *)&ecore_ev))
           return;
      }
-#endif
 #endif
    
 }
@@ -2784,7 +2780,7 @@ _edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool on)
 }
 
 #ifdef HAVE_ECORE_IMF
-const Ecore_IMF_Context *
+Ecore_IMF_Context *
 _edje_entry_imf_context_get(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;

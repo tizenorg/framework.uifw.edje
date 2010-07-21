@@ -270,9 +270,6 @@ edje_object_scale_get(const Evas_Object *obj)
 EAPI void
 edje_input_panel_enabled_set(Eina_Bool enabled)
 {
-   Eina_List *l;
-   Evas_Object *data;
-
    if (_edje_input_panel_enable == enabled) return;
    _edje_input_panel_enable = enabled;
 }
@@ -1901,7 +1898,7 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
 }
 
 #ifdef HAVE_ECORE_IMF
-EAPI const Ecore_IMF_Context *
+EAPI Ecore_IMF_Context *
 edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
 {
    Edje *ed;
