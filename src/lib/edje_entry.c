@@ -108,7 +108,7 @@ static int _hide_timer_handler(void *data)
 
    if (!keypad_show)
      {
-	     ecore_imf_context_input_panel_hide(en->imf_context);
+	ecore_imf_context_input_panel_hide(en->imf_context);
      }
 
    return ECORE_CALLBACK_CANCEL;
@@ -217,8 +217,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
    if (!en->imf_context) return;
 
    ecore_imf_context_reset(en->imf_context);
-   ecore_imf_context_cursor_position_set(en->imf_context,
-	 evas_textblock_cursor_pos_get(en->cursor));
+   ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
 
    if (en->input_panel_enable)
@@ -553,22 +552,22 @@ _sel_clear(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __UNUSED__, Entry
 	sel = en->sel->data;
         en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
         en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
-        if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	 {
-		en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
-		en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
-		en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
-		en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
-        }
+	if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+	  {
+	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
+	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
+	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
+	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
+	  }
 	if (sel->obj_bg) evas_object_del(sel->obj_bg);
 	if (sel->obj_fg) evas_object_del(sel->obj_fg);
-	 if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	 {
-		if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
-		if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
-		if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
-		if (sel->obj_bh_right) evas_object_del(sel->obj_bh_right);
-	 }
+	if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+	  {
+	     if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
+	     if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
+	     if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
+	     if (sel->obj_bh_right) evas_object_del(sel->obj_bh_right);
+	  }
 	free(sel);
 	en->sel = eina_list_remove_list(en->sel, en->sel);
      }
@@ -782,9 +781,9 @@ _edje_anchor_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UN
 	if (!n) n = "";
 	len = 200 + strlen(n);
 	buf = alloca(len);
-        if (ev->flags & EVAS_BUTTON_TRIPLE_CLICK)
-          snprintf(buf, len, "anchor,mouse,down,%i,%s,triple", ev->button, an->name);
-        else if (ev->flags & EVAS_BUTTON_DOUBLE_CLICK)
+	if (ev->flags & EVAS_BUTTON_TRIPLE_CLICK)
+	  snprintf(buf, len, "anchor,mouse,down,%i,%s,triple", ev->button, an->name);
+	else if (ev->flags & EVAS_BUTTON_DOUBLE_CLICK)
 	  snprintf(buf, len, "anchor,mouse,down,%i,%s,double", ev->button, an->name);
 	else
 	  snprintf(buf, len, "anchor,mouse,down,%i,%s", ev->button, an->name);
@@ -1065,15 +1064,15 @@ _anchors_clear(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __UNUSED__, E
 	while (an->sel)
 	  {
 	     Sel *sel = an->sel->data;
-             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
-             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
+	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
+	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
 	     if (sel->obj_bg) evas_object_del(sel->obj_bg);
 	     if (sel->obj_fg) evas_object_del(sel->obj_fg);
 	     if (sel->obj) evas_object_del(sel->obj);
 	     free(sel);
 	     an->sel = eina_list_remove_list(an->sel, an->sel);
 	  }
-        free(an->name);
+	free(an->name);
 	free(an);
 	en->anchors = eina_list_remove_list(en->anchors, en->anchors);
      }
@@ -1177,14 +1176,14 @@ _anchors_get(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 	     s = evas_textblock_cursor_node_text_get(c1);
 	     if (an)
 	       {
-                  if (!an->item)
-                    {
-                       if (!firsttext)
-                         {
-                            evas_textblock_cursor_copy(c1, an->start);
-                            firsttext = 1;
-                         }
-                    }
+		  if (!an->item)
+		    {
+		       if (!firsttext)
+			 {
+			    evas_textblock_cursor_copy(c1, an->start);
+			    firsttext = 1;
+			 }
+		    }
 		  evas_textblock_cursor_char_last(c1);
 		  evas_textblock_cursor_copy(c1, an->end);
 	       }
@@ -1360,7 +1359,7 @@ void _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
 	     evas_textblock_cursor_free(c1);
 	  }
      }
-
+   
    evas_textblock_cursor_text_prepend(en->cursor, commit_string);
 
    if (commit_string) 
@@ -1371,18 +1370,18 @@ void _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
 
 int replace_pw(void *data)
 {	
-	 Entry *en = (Entry *)data;	
-	_remove_prev_special_node(en->pw_cursor, en->rp->object, en);
-	if(en->pw_cursor)
-		{
-			evas_textblock_cursor_free(en->pw_cursor);
-			en->pw_cursor = NULL;		
-		}		
-	/*count characters*/
-	if(en->func)
-		en->func(en->data,NULL);
-	 en->pw_timer=NULL;
-	 return 0;
+   Entry *en = (Entry *)data;	
+   _remove_prev_special_node(en->pw_cursor, en->rp->object, en);
+   if(en->pw_cursor)
+     {
+	evas_textblock_cursor_free(en->pw_cursor);
+	en->pw_cursor = NULL;		
+     }		
+   /*count characters*/
+   if(en->func)
+     en->func(en->data,NULL);
+   en->pw_timer=NULL;
+   return 0;
 }
 
 int select_mode_cb(void *data)
@@ -1494,37 +1493,37 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
      {
 	if (multiline)
 	  {
-             if (en->select_allow)
-               {
-                  if (shift) _sel_start(en->cursor, rp->object, en);
-                  else _sel_clear(en->cursor, rp->object, en);
-               }
+	     if (en->select_allow)
+	       {
+		  if (shift) _sel_start(en->cursor, rp->object, en);
+		  else _sel_clear(en->cursor, rp->object, en);
+	       }
 	     _curs_up(en->cursor, rp->object, en);
-             if (en->select_allow)
-               {
-                  if (shift) _sel_extend(en->cursor, rp->object, en);
-               }
+	     if (en->select_allow)
+	       {
+		  if (shift) _sel_extend(en->cursor, rp->object, en);
+	       }
 	     ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
 	  }
-        _edje_emit(ed, "entry,key,up", rp->part->name);
+	_edje_emit(ed, "entry,key,up", rp->part->name);
      }
    else if (!strcmp(ev->key, "Down"))
      {
 	if (multiline)
 	  {
-             if (en->select_allow)
-               {
-                  if (shift) _sel_start(en->cursor, rp->object, en);
-                  else _sel_clear(en->cursor, rp->object, en);
-               }
+	     if (en->select_allow)
+	       {
+		  if (shift) _sel_start(en->cursor, rp->object, en);
+		  else _sel_clear(en->cursor, rp->object, en);
+	       }
 	     _curs_down(en->cursor, rp->object, en);
-             if (en->select_allow)
-               {
-                  if (shift) _sel_extend(en->cursor, rp->object, en);
-               }
+	     if (en->select_allow)
+	       {
+		  if (shift) _sel_extend(en->cursor, rp->object, en);
+	       }
 	     ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
 	  }
-        _edje_emit(ed, "entry,key,down", rp->part->name);
+	_edje_emit(ed, "entry,key,down", rp->part->name);
      }
    else if (!strcmp(ev->key, "Left"))
      {
@@ -1571,12 +1570,12 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	     if (en->have_selection)
 	       _range_del(en->cursor, rp->object, en);
 	     else
-	     	{
-	       	_backspace(en->cursor, rp->object, en);	     	
-				/*if inputtin text is not allowed, dont allow text input*/
-				if(en->func)
-					en->func(en->data,NULL);
-	     	}
+	       {
+		  _backspace(en->cursor, rp->object, en);	     	
+		  /*if inputtin text is not allowed, dont allow text input*/
+		  if(en->func)
+		    en->func(en->data,NULL);
+	       }
 	  }
 	_sel_clear(en->cursor, rp->object, en);
 	_curs_update_from_curs(en->cursor, rp->object, en);
@@ -1601,10 +1600,10 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	       _range_del(en->cursor, rp->object, en);
 	     else
 	       {
-               _delete(en->cursor, rp->object, en);
-				/*count characters*/			
-				if(en->func)
-					en->func(en->data,NULL);
+		  _delete(en->cursor, rp->object, en);
+		  /*count characters*/			
+		  if(en->func)
+		    en->func(en->data,NULL);
 	       }
 	  }
 	_sel_clear(en->cursor, rp->object, en);
@@ -1733,31 +1732,31 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
      }
    else if (!strcmp(ev->key, "Next"))
      {
-        if (en->select_allow)
-          {
-             if (shift) _sel_start(en->cursor, rp->object, en);
-             else _sel_clear(en->cursor, rp->object, en);
-          }
+	if (en->select_allow)
+	  {
+	     if (shift) _sel_start(en->cursor, rp->object, en);
+	     else _sel_clear(en->cursor, rp->object, en);
+	  }
 	_curs_jump_line_by(en->cursor, rp->object, en, 10);
-        if (en->select_allow)
-          {
-             if (shift) _sel_extend(en->cursor, rp->object, en);
-          }
-        _edje_emit(ed, "entry,key,pgdn", rp->part->name);
+	if (en->select_allow)
+	  {
+	     if (shift) _sel_extend(en->cursor, rp->object, en);
+	  }
+	_edje_emit(ed, "entry,key,pgdn", rp->part->name);
 	ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
    else if ((!strcmp(ev->key, "Return")) || (!strcmp(ev->key, "KP_Enter")))
      {
 	/*if inputtin text is not allowed, dont allow text input*/
 	if(en->func)
-		if(en->func(en->data,"<br>"))
-			return;
+	  if(en->func(en->data,"<br>"))
+	    return;
 	if (multiline)
 	  {
-             if (en->have_selection)
-               _range_del(en->cursor, rp->object, en);
-             _sel_clear(en->cursor, rp->object, en);
-             //yy
+	     if (en->have_selection)
+	       _range_del(en->cursor, rp->object, en);
+	     _sel_clear(en->cursor, rp->object, en);
+	     //yy
 	     evas_textblock_cursor_format_prepend(en->cursor, "\n");
 	     _curs_update_from_curs(en->cursor, rp->object, en);
 	     _anchors_get(en->cursor, rp->object, en);
@@ -1766,18 +1765,18 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	     cursor_changed = EINA_TRUE;
 	     ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
 	  }
-        _edje_emit(ed, "entry,key,enter", rp->part->name);
-		/*count characters*/			
-		if(en->func)
-			en->func(en->data,NULL);
+	_edje_emit(ed, "entry,key,enter", rp->part->name);
+	/*count characters*/			
+	if(en->func)
+	  en->func(en->data,NULL);
      }
    else
      {
 	if (ev->string)
 	  {
-	  	char buf[30];	
-            if (en->have_selection)
-               _range_del(en->cursor, rp->object, en);
+	     char buf[30];	
+	     if (en->have_selection)
+	       _range_del(en->cursor, rp->object, en);
 	     _sel_clear(en->cursor, rp->object, en);
 	     if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
 	       {			  			
@@ -1990,30 +1989,30 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
                   sc = rp->edje->scale;
                   if (sc == ZERO) sc = _edje_scale;
                   d = (Evas_Coord)MUL(FROM_INT(20), sc); // FIXME: maxing number!
-                  if(rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-                  {
-                  	d = 30 * 30;/*calculate it,as finger size not accessible at edje level*/
-                  }
-		    else
-                  d = d * d;
-                  if (d1 < d2)
-                    {
-                       if (d1 <= d)
-                         {
-                            en->select_mod_start = EINA_TRUE;
-                            en->selecting = EINA_TRUE;
-                         }
-                    }
-                  else
-                    {
-                       if (d2 <= d)
-                         {
-                            en->select_mod_end = EINA_TRUE;
-                            en->selecting = EINA_TRUE;
-                         }
-                    }
-               }
-          }
+		  if(rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+		    {
+		       d = 30 * 30;/*calculate it,as finger size not accessible at edje level*/
+		    }
+		  else
+		    d = d * d;
+		  if (d1 < d2)
+		    {
+		       if (d1 <= d)
+			 {
+			    en->select_mod_start = EINA_TRUE;
+			    en->selecting = EINA_TRUE;
+			 }
+		    }
+		  else
+		    {
+		       if (d2 <= d)
+			 {
+			    en->select_mod_end = EINA_TRUE;
+			    en->selecting = EINA_TRUE;
+			 }
+		    }
+	       }
+	  }
         else
           {
              en->selecting = EINA_TRUE;
@@ -2506,10 +2505,10 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-	/*if inputtin text is not allowed, dont allow text input*/
-	if(en->func)
-		if(en->func(en->data,text))
-			return;
+   /*if inputtin text is not allowed, dont allow text input*/
+   if(en->func)
+     if(en->func(en->data,text))
+       return;
    // prepend markup @ cursor pos
    if (en->have_selection)
      _range_del(en->cursor, rp->object, en);
@@ -2652,10 +2651,10 @@ _edje_entry_anchors_list(Edje_Real_Part *rp)
    if (!en) return NULL;
    if (!en->anchorlist)
      {
-        EINA_LIST_FOREACH(en->anchors, l, an)
+	EINA_LIST_FOREACH(en->anchors, l, an)
 	  {
 	     const char *n = an->name;
-             if (an->item) continue;
+	     if (an->item) continue;
 	     if (!n) n = "";
 	     anchors = eina_list_append(anchors, strdup(n));
 	  }
@@ -2674,12 +2673,12 @@ _edje_entry_item_geometry_get(Edje_Real_Part *rp, const char *item, Evas_Coord *
    if (!en) return EINA_FALSE;
    EINA_LIST_FOREACH(en->anchors, l, an)
      {
-        if (an->item) continue;
+	if (an->item) continue;
 	if (!strcmp(item, an->name))
-          {
-             evas_textblock_cursor_format_item_geometry_get(an->start, cx, cy, cw, ch);
-             return EINA_TRUE;
-          }
+	  {
+	     evas_textblock_cursor_format_item_geometry_get(an->start, cx, cy, cw, ch);
+	     return EINA_TRUE;
+	  }
      }
    return EINA_FALSE;
 }
@@ -3201,7 +3200,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 	en->pw_timer = ecore_timer_add(2.0,replace_pw,en);
      }	
    else
-     {		
+     {
 	/*if inputtin text is not allowed, dont allow text input*/
 	if(en->func)
 	  if(en->func(en->data,ev->str))
