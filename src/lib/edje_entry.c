@@ -1380,6 +1380,7 @@ int replace_pw(void *data)
    /*count characters*/
    if(en->func)
      en->func(en->data,NULL);
+
    en->pw_timer=NULL;
    return 0;
 }
@@ -1751,6 +1752,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 	if(en->func)
 	  if(en->func(en->data,"<br>"))
 	    return;
+
 	if (multiline)
 	  {
 	     if (en->have_selection)
@@ -1785,6 +1787,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 		  if(en->func)
 		    if(en->func(en->data,ev->string))
 		      return;
+
 		  if(en->pw_cursor)
 		    {
 		       evas_textblock_cursor_free(en->pw_cursor);
@@ -1810,6 +1813,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 		  if(en->func)
 		    if(en->func(en->data,ev->string))
 		      return;
+
 		  _autocapitalized_text_prepend(rp, ev->string);
 		  //evas_textblock_cursor_text_prepend(en->cursor, ev->string);	  
 		  /*count characters*/
@@ -2299,9 +2303,9 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
 
    en->cursor_bg = edje_object_add(rp->edje->evas);
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-   edje_object_file_set(en->cursor_bg, rp->edje->path, rp->part->source6);
+     edje_object_file_set(en->cursor_bg, rp->edje->path, rp->part->source6);
    else
-   edje_object_file_set(en->cursor_bg, rp->edje->path, rp->part->source3);
+     edje_object_file_set(en->cursor_bg, rp->edje->path, rp->part->source3);
    evas_object_smart_member_add(en->cursor_bg, rp->edje->obj);
    evas_object_stack_below(en->cursor_bg, rp->object);
    evas_object_clip_set(en->cursor_bg, evas_object_clip_get(rp->object));
@@ -2509,6 +2513,7 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
    if(en->func)
      if(en->func(en->data,text))
        return;
+
    // prepend markup @ cursor pos
    if (en->have_selection)
      _range_del(en->cursor, rp->object, en);
@@ -3165,6 +3170,12 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    
    if (en->imf_context != ev->ctx) return 1;
 
+   if (en->have_selection)
+     {
+	_range_del(en->cursor, rp->object, en);
+	_sel_clear(en->cursor, rp->object, en);
+     }
+
    if (en->have_composition)
      {
 	for (i = 0; i < en->comp_len; i++)
@@ -3180,6 +3191,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 	if(en->func)
 	  if(en->func(en->data,ev->str))
 	    return 1;
+
 	if(en->pw_cursor)
 	  {
 	     evas_textblock_cursor_free(en->pw_cursor);
@@ -3189,9 +3201,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 	  {
 	     en->pw_cursor = evas_object_textblock_cursor_new(rp->object);
 	  }			
-	snprintf(buf,30,"<visible=1>%s</visible>",ev->str);													
+	snprintf(buf,30,"<visible=1>%s</visible>",ev->str);
 	evas_object_textblock_text_markup_prepend(en->cursor,buf);
-	evas_textblock_cursor_copy(en->cursor, en->pw_cursor);	
+	evas_textblock_cursor_copy(en->cursor, en->pw_cursor);
 	if(en->pw_timer)
 	  {
 	     ecore_timer_del(en->pw_timer);
@@ -3205,6 +3217,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 	if(en->func)
 	  if(en->func(en->data,ev->str))
 	    return 1;
+
 	_autocapitalized_text_prepend(rp, ev->str);
 	//evas_textblock_cursor_text_prepend(en->cursor, ev->str);	  
 	/*count characters*/
@@ -3256,6 +3269,12 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
    // FIXME : check the maximum length of evas_textblock
    if ( 0 /* check the maximum length of evas_textblock */ )
      return 1;
+
+   if (en->have_selection)
+     {
+	_range_del(en->cursor, rp->object, en);
+	_sel_clear(en->cursor, rp->object, en);
+     }
    
    if (en->have_composition)
      {
