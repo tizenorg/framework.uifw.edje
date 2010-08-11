@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+3build13) unstable; urgency=low
+
+  * Remove selection area when character is inserted.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build13
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 11 Aug 2010 20:11:06 +0900
+
 edje (0.9.92.060+svn.49543slp2+3build12) unstable; urgency=low
 
   * Entry crash issue is solved.
