@@ -106,14 +106,25 @@ struct _Anchor
 static int _hide_timer_handler(void *data)
 {
    Entry *en = (Entry *)data;
-   if (!en || !en->imf_context) return ECORE_CALLBACK_CANCEL;
+   if (!en || !en->imf_context) goto done;
 
    if (!keypad_show)
      {
         ecore_imf_context_input_panel_hide(en->imf_context);
      }
 
+done:
+   hide_timer = NULL;
    return ECORE_CALLBACK_CANCEL;
+}
+
+static void _input_panel_hide_timer_start(void *data)
+{
+   if (hide_timer)
+     {
+        ecore_timer_del(hide_timer);
+     }
+   hide_timer = ecore_timer_add(0.2, _hide_timer_handler, data);
 }
 
 static void 
@@ -161,7 +172,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    if (en->input_panel_enable)
      {
         keypad_show = EINA_FALSE;
-        hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
+        _input_panel_hide_timer_start(en);
      }
 }
 #endif
@@ -225,7 +236,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
    if (en->input_panel_enable)
      {
         keypad_show = EINA_FALSE;
-        hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
+        _input_panel_hide_timer_start(en);
      }
 #endif
 }
@@ -1384,7 +1395,8 @@ int replace_pw(void *data)
    if (en->func)
       en->func(en->data,NULL);
 
-   en->pw_timer=NULL;
+   en->pw_timer = NULL;
+
    return 0;
 }
 
@@ -1806,7 +1818,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 		  if (en->pw_timer)
 		    {
 		       ecore_timer_del(en->pw_timer);
-		       en->pw_timer=NULL;
+		       en->pw_timer = NULL;
 		    }
 		  en->pw_timer = ecore_timer_add(2.0,replace_pw,en);							
 	       }	
@@ -2396,7 +2408,7 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    if (en->pw_timer)
      {
         ecore_timer_del(en->pw_timer);
-        en->pw_timer=NULL;
+        en->pw_timer = NULL;
      }
 
 #ifdef HAVE_ECORE_IMF
@@ -3203,22 +3215,23 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
            if (en->func(en->data,ev->str))
               return 1;
 
-        if(en->pw_cursor)
+        if (en->pw_cursor)
           {
              evas_textblock_cursor_free(en->pw_cursor);
              en->pw_cursor = NULL;		
           }
-        if(!en->pw_cursor)
+        if (!en->pw_cursor)
           {
              en->pw_cursor = evas_object_textblock_cursor_new(rp->object);
           }			
         snprintf(buf,30,"<visible=1>%s</visible>",ev->str);
         evas_object_textblock_text_markup_prepend(en->cursor,buf);
         evas_textblock_cursor_copy(en->cursor, en->pw_cursor);
-        if(en->pw_timer)
+
+        if (en->pw_timer)
           {
              ecore_timer_del(en->pw_timer);
-             en->pw_timer=NULL;
+             en->pw_timer = NULL;
           }
         en->pw_timer = ecore_timer_add(2.0,replace_pw,en);
      }	
