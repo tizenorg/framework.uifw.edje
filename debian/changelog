@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+3build14) unstable; urgency=low
+
+  * Bug fix : ecore_timer_del problem.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build14
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 25 Aug 2010 09:30:26 +0900
+
 edje (0.9.92.060+svn.49543slp2+3build13) unstable; urgency=low
 
   * Remove selection area when character is inserted.
