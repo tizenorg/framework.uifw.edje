@@ -57,7 +57,7 @@ syn keyword	edcLabel	mouse_events repeat_events clip_to contained
 syn keyword	edcLabel	x y z confine events scale contained
 syn keyword	edcLabel	ignore_flags precise_is_inside contained
 syn keyword	edcLabel	use_alternate_font_metrics entry_mode contained
-syn keyword	edcLabel	source source2 source3 source4 contained
+syn keyword	edcLabel	source source2 source3 source4 source7 contained
 syn keyword	edcLabel	source5 source6 multiline pointer_mode contained
 syn keyword	edcLabel	state visible step aspect fixed middle contained
 syn keyword	edcLabel	aspect_preference elipsis image contained
@@ -768,6 +768,7 @@ let s:partLabel = {
       \ 'source4':		        '"group_name" (TEXTBLOCK only)',
       \ 'source5':		        '"group_name" (TEXTBLOCK only)',
       \ 'source6':		        '"group_name" (TEXTBLOCK only)',
+      \ 'source7':		        '"group_name" (GROUP or TEXTBLOCK only)',
       \ }
 let s:partStatement = [
       \ 'dragable',

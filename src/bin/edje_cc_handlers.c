@@ -132,6 +132,7 @@ static void st_collections_group_parts_part_source3(void);
 static void st_collections_group_parts_part_source4(void);
 static void st_collections_group_parts_part_source5(void);
 static void st_collections_group_parts_part_source6(void);
+static void st_collections_group_parts_part_source7(void);
 static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
 static void st_collections_group_parts_part_multiline(void);
@@ -360,6 +361,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.source4", st_collections_group_parts_part_source4},
      {"collections.group.parts.part.source5", st_collections_group_parts_part_source5},
      {"collections.group.parts.part.source6", st_collections_group_parts_part_source6},
+     {"collections.group.parts.part.source7", st_collections_group_parts_part_source7},
      {"collections.group.parts.part.dragable.x", st_collections_group_parts_part_dragable_x},
      {"collections.group.parts.part.dragable.y", st_collections_group_parts_part_dragable_y},
      {"collections.group.parts.part.dragable.confine", st_collections_group_parts_part_dragable_confine},
@@ -2515,6 +2517,32 @@ st_collections_group_parts_part_source6(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    ep->source6 = parse_str(0);
+}
+
+/**
+    @page edcref
+    @property
+        source7
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be 
+        loaded and used for the preedit string display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source7(void)
+{
+   Edje_Part_Collection *pc;
+   Edje_Part *ep;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+   ep = eina_list_data_get(eina_list_last(pc->parts));
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   ep->source7 = parse_str(0);
 }
 
 /**
