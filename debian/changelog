@@ -1,3 +1,11 @@
+edje (0.9.92.060+svn.49543slp2+3build15) unstable; urgency=low
+
+  * Show preedit area.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build15
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 30 Aug 2010 10:36:54 +0900
+
 edje (0.9.92.060+svn.49543slp2+3build14) unstable; urgency=low
 
   * Bug fix : ecore_timer_del problem.
