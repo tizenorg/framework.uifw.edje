@@ -168,7 +168,7 @@ struct slave_cmd
   {NULL, NULL}
 };
 
-static int
+static Eina_Bool
 _slave_mode(void *data, Ecore_Fd_Handler *fd_handler)
 {
    Evas_Object *edje = data;
@@ -180,23 +180,23 @@ _slave_mode(void *data, Ecore_Fd_Handler *fd_handler)
      {
 	fputs("ERROR: error on stdin! Exit.\n", stderr);
 	ecore_main_loop_quit();
-	return 0;
+	return ECORE_CALLBACK_CANCEL;
      }
    if (!ecore_main_fd_handler_active_get(fd_handler, ECORE_FD_READ))
-     return 1;
+     return ECORE_CALLBACK_RENEW;
 
    if (!fgets(buf, sizeof(buf), stdin))
      {
 	fputs("ERROR: end of stdin! Exit.\n", stderr);
 	ecore_main_loop_quit();
-	return 0;
+	return ECORE_CALLBACK_CANCEL;
      }
 
    len = strlen(buf);
    if (len < 1)
      {
 	fputs("ERROR: no input! Try: help\n", stderr);
-	return 1;
+	return ECORE_CALLBACK_RENEW;
      }
    if (buf[len - 1] == '\n')
      {
@@ -235,7 +235,7 @@ _slave_mode(void *data, Ecore_Fd_Handler *fd_handler)
 	  }
      }
 
-   return 1;
+   return ECORE_CALLBACK_RENEW;
 }
 
 static void
@@ -508,7 +508,7 @@ _create_edje(Evas *evas, const struct opts *opts)
    return edje;
 }
 
-static  unsigned char _parse_color(const Ecore_Getopt *parser, const Ecore_Getopt_Desc *desc, const char *str, void *data, Ecore_Getopt_Value *storage)
+static unsigned char _parse_color(__UNUSED__ const Ecore_Getopt *parser, __UNUSED__ const Ecore_Getopt_Desc *desc, const char *str, __UNUSED__ void *data, Ecore_Getopt_Value *storage)
 {
    unsigned char *color = (unsigned char *)storage->ptrp;
 
@@ -519,6 +519,11 @@ static  unsigned char _parse_color(const Ecore_Getopt *parser, const Ecore_Getop
      }
 
    return 1;
+}
+
+static void _cb_delete(__UNUSED__ Ecore_Evas *ee)
+{
+  ecore_main_loop_quit();
 }
 
 const Ecore_Getopt optdesc = {
@@ -575,7 +580,7 @@ int main(int argc, char **argv)
    Evas_Object *stack, *edje;
    struct opts opts;
    Eina_Bool quit_option = EINA_FALSE;
-   int args, ret;
+   int args;
    Ecore_Getopt_Value values[] = {
      ECORE_GETOPT_VALUE_STR(opts.group),
      ECORE_GETOPT_VALUE_BOOL(opts.list_groups),
@@ -599,33 +604,30 @@ int main(int argc, char **argv)
 
    memset(&opts, 0, sizeof(opts));
 
-   evas_init();
-   ecore_init();
-   ecore_evas_init();
-   edje_init();
+   if (!ecore_evas_init())
+     return EXIT_FAILURE;
+   if (!edje_init())
+     goto shutdown_ecore_evas;
+   edje_frametime_set(1.0/60.0);
 
    args = ecore_getopt_parse(&optdesc, values, argc, argv);
    if (args < 0)
      {
 	fputs("Could not parse arguments.\n", stderr);
-	ret = -1;
-	goto end;
+	goto shutdown_edje;
      }
    else if (quit_option)
      {
-	ret = 0;
 	goto end;
      }
    else if (args >= argc)
      {
 	fputs("Missing edje file to load.\n", stderr);
-	ret = -2;
-	goto end;
+	goto shutdown_edje;
      }
 
    ecore_app_args_set(argc, (const char **)argv);
 
-   ret = 0;
    opts.file = argv[args];
    if (opts.list_groups)
      {
@@ -646,16 +648,15 @@ int main(int argc, char **argv)
 		"ERROR: could not create window of "
 		"size %dx%d using engine %s.\n",
 		opts.size.w, opts.size.h, opts.engine ? opts.engine : "(auto)");
-	ret = -3;
-	goto end;
+	goto shutdown_edje;
      }
 
+   ecore_evas_callback_delete_request_set(win, _cb_delete);
    evas = ecore_evas_get(win);
    stack = _create_stack(evas, &opts);
    if (!stack)
      {
-	ret = -4;
-	goto end_win;
+	goto free_ecore_evas;
      }
 
    ecore_evas_object_associate(win, stack, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
@@ -675,8 +676,7 @@ int main(int argc, char **argv)
      evas_object_box_append(stack, edje);
    else
      {
-	ret = -5;
-	goto end_win;
+	goto free_ecore_evas;
      }
 
    evas_object_event_callback_add(stack, EVAS_CALLBACK_CHANGED_SIZE_HINTS,
@@ -690,6 +690,7 @@ int main(int argc, char **argv)
 
    if (opts.slave_mode)
      {
+#ifndef _WIN32
 	int flags;
 	flags = fcntl(STDIN_FILENO, F_GETFL, 0);
 	flags |= O_NONBLOCK;
@@ -697,11 +698,15 @@ int main(int argc, char **argv)
 	  {
 	     fprintf(stderr, "ERROR: Could not set stdin to non-block: %s\n",
 		     strerror(errno));
-	     ret = -6;
-	     goto end_win;
+	     goto free_ecore_evas;
 	  }
 	ecore_main_fd_handler_add(STDIN_FILENO, ECORE_FD_READ | ECORE_FD_ERROR,
 				  _slave_mode, edje, NULL, NULL);
+#else
+        /* TODO: port the code above to Windows */
+        fprintf (stderr, "ERROR: slave mode not working on Windows\n");
+        goto free_ecore_evas;
+#endif
      }
 
    ecore_evas_borderless_set(win, opts.borderless);
@@ -722,13 +727,18 @@ int main(int argc, char **argv)
    ecore_evas_show(win);
    ecore_main_loop_begin();
 
- end_win:
    ecore_evas_free(win);
  end:
    edje_shutdown();
    ecore_evas_shutdown();
-   ecore_shutdown();
-   evas_shutdown();
 
-   return ret;
+   return 0;
+
+ free_ecore_evas:
+   ecore_evas_free(win);
+ shutdown_edje:
+   edje_shutdown();
+ shutdown_ecore_evas:
+   ecore_evas_shutdown();
+   return EXIT_FAILURE;
 }

@@ -1,7 +1,3 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include <time.h>
 
 #include "edje_private.h"
@@ -70,19 +66,19 @@ edje_init(void)
 
    if (!ecore_init())
      {
-	ERR("Edje: Ecore init failed");
+	ERR("Ecore init failed");
 	goto unregister_log_domain;
      }
 
    if (!embryo_init())
      {
-	ERR("Edje: Embryo init failed");
+	ERR("Embryo init failed");
 	goto shutdown_ecore;
      }
 
    if (!eet_init())
      {
-	ERR("Edje: Eet init failed");
+	ERR("Eet init failed");
 	goto shutdown_embryo;
      }
 
@@ -93,7 +89,9 @@ edje_init(void)
    _edje_box_init();
    _edje_external_init();
    _edje_module_init();
+#ifndef LUA2
    _edje_lua_init();
+#endif
    _edje_message_init();
 
    _edje_real_part_mp = eina_mempool_add("chained_mempool",
@@ -122,7 +120,9 @@ edje_init(void)
    _edje_real_part_state_mp = NULL;
    _edje_real_part_mp = NULL;
    _edje_message_shutdown();
+#ifndef LUA2
    _edje_lua_shutdown();
+#endif
    _edje_module_shutdown();
    _edje_external_shutdown();
    _edje_box_shutdown();
@@ -181,7 +181,9 @@ edje_shutdown(void)
    _edje_real_part_mp = NULL;
 
    _edje_message_shutdown();
+#ifndef LUA2
    _edje_lua_shutdown();
+#endif
    _edje_module_shutdown();
    _edje_external_shutdown();
    _edje_box_shutdown();
