@@ -28,7 +28,7 @@ void *alloca (size_t);
 
 #include "edje_private.h"
 
-#define USE_PREEDIT_BLOCK 1
+//#define USE_PREEDIT_BLOCK 1
 
 #ifdef HAVE_ECORE_IMF
 #include <Ecore_IMF_Evas.h>
@@ -1841,7 +1841,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 		       ecore_timer_del(en->pw_timer);
 		       en->pw_timer = NULL;
 		    }
-		  en->pw_timer = ecore_timer_add(2.0, _replace_pw, en);							
+		  en->pw_timer = ecore_timer_add(2.0, _replace_pw, en);
 	       }	
 	     else
 	       {	
@@ -2838,6 +2838,12 @@ _edje_entry_imf_context_get(Edje_Real_Part *rp)
 
    return en->imf_context;
 }
+#else
+void *
+_edje_entry_imf_context_get(Edje_Real_Part *rp)
+{
+   return NULL;
+}
 #endif
 
 void
@@ -2846,7 +2852,9 @@ _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled)
    Entry *en = rp->entry_data;
    if (!en) return;
 
+#ifdef HAVE_ECORE_IMF
    en->input_panel_enable = enabled;
+#endif
 }
 
 Eina_Bool
@@ -2855,7 +2863,11 @@ _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp)
    Entry *en = rp->entry_data;
    if (!en) return EINA_FALSE;
 
+#ifdef HAVE_ECORE_IMF
    return en->input_panel_enable;
+#else
+   return EINA_FALSE;
+#endif
 }
 
 static Evas_Textblock_Cursor *
@@ -3297,8 +3309,6 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
    Ecore_IMF_Event_Commit *ev = event;
    int i;
    char *preedit_string;
-   int preedit_start_pos = 0;
-   Eina_List *range = NULL;
 
    if (!rp) return 1;
 
@@ -3343,13 +3353,17 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
 
    en->comp_len = length;
 
+#if 0
    _sel_clear(en->cursor, rp->object, en);
    _sel_enable(en->cursor, rp->object, en);
    _sel_start(en->cursor, rp->object, en);
+#endif
 
    en->have_composition = EINA_TRUE;
 
 #ifdef USE_PREEDIT_BLOCK
+   int preedit_start_pos = 0;
+
    if (length)
        preedit_start_pos = evas_textblock_cursor_pos_get(en->cursor);
 #endif /* USE_PREEDIT_BLOCK */
@@ -3396,7 +3410,7 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
           }
 #endif
 
-        range = evas_textblock_cursor_range_geometry_get(pre_start, pre_end);
+        Eina_List *range = evas_textblock_cursor_range_geometry_get(pre_start, pre_end);
 
         if (range)
           {
@@ -3440,7 +3454,9 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
    if (en->func)
      en->func(en->data, NULL);
 
+#if 0
    _sel_extend(en->cursor, rp->object, en);
+#endif
 
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);

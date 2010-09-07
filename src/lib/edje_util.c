@@ -32,6 +32,8 @@ int _edje_freeze_val = 0;
 int _edje_freeze_calc_count = 0;
 Eina_List *_edje_freeze_calc_list = NULL;
 Eina_Bool _edje_input_panel_enable = EINA_FALSE;
+Eina_Bool _edje_autocapital = EINA_FALSE;
+Eina_Bool _edje_autoperiod = EINA_FALSE;
 
 typedef struct _Edje_List_Foreach_Data Edje_List_Foreach_Data;
 struct _Edje_List_Foreach_Data
@@ -272,6 +274,20 @@ edje_input_panel_enabled_set(Eina_Bool enabled)
 {
    if (_edje_input_panel_enable == enabled) return;
    _edje_input_panel_enable = enabled;
+}
+
+EAPI void
+edje_autocapitalization_set(Eina_Bool on)
+{
+   if (_edje_autocapital == on) return;
+   _edje_autocapital = on;
+}
+
+EAPI void
+edje_autoperiod_set(Eina_Bool on)
+{
+   if (_edje_autoperiod == on) return;
+   _edje_autoperiod = on;
 }
 
 /**

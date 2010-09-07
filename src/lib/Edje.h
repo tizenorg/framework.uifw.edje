@@ -434,6 +434,8 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI Eina_Bool    edje_object_scale_set           (Evas_Object *obj, double scale);
    EAPI double       edje_object_scale_get           (const Evas_Object *obj);
    EAPI void         edje_input_panel_enabled_set    (Eina_Bool enabled);
+   EAPI void         edje_autocapitalization_set     (Eina_Bool on);
+   EAPI void         edje_autoperiod_set             (Eina_Bool on);
 
    /* edje_load.c */
    EAPI Eina_List   *edje_file_collection_list       (const char *file);
@@ -540,6 +542,8 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI void             edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool on);
 #ifdef HAVE_ECORE_IMF
    EAPI Ecore_IMF_Context *edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part);
+#else
+   EAPI void            *edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part);
 #endif
    EAPI void             edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char *part, Eina_Bool disabled);
    EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get(const Evas_Object *obj, const char *part);
