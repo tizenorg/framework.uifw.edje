@@ -493,31 +493,6 @@ EAPI Eina_Bool edje_edit_color_class_name_set(Evas_Object *obj, const char *name
 
 //@}
 
-/** Add a new ttf font to the edje file.
- *
- * The newly created font will be available to all the groups in the edje,
- * not only the current one.
- *
- * @param obj Object being edited.
- * @param path Path to the font file to add into the Edje file.
- * @param alias Name with which the font will be referred inside the Edje,
- *              can be NULL to use the filename.
- *
- * @return EINA_TRUE if the font got succesfully added, EINA_FALSE if not.
- */
-EAPI Eina_Bool edje_edit_font_add(Evas_Object *obj, const char *path, const char *alias);
-
-/** Remove a ttf font to the edje file.
- *
- * The font exists at the file level, it's not per object. So deleting it
- * will affect every group that is using it.
- *
- * @param obj Object being edited.
- * @param alias Name by which the file is identified in the Edje file.
- *
- * @return EINA_TRUE if succesful, EINA_FALSE otherwise.
- */
-EAPI Eina_Bool edje_edit_font_del(Evas_Object *obj, const char *alias);
 
 /******************************************************************************/
 /**************************   TEXT STYLES *************************************/
@@ -757,6 +732,44 @@ EAPI Eina_Bool edje_edit_part_restack_above(Evas_Object *obj, const char *part);
  */
 EAPI Eina_Bool edje_edit_part_name_set(Evas_Object *obj, const char *part, const char *new_name);
 
+/** Get api's name of a part.
+ *
+ * @param obj Object being edited.
+ * @param part Name of the part.
+ *
+ * @return name of the api if succesful, NULL otherwise.
+ */
+EAPI const char * edje_edit_part_api_name_get(Evas_Object *obj, const char *part);
+
+/** Get api's description of a part.
+ *
+ * @param obj Object being edited.
+ * @param part Name of the part.
+ *
+ * @return description of the api if succesful, NULL otherwise.
+ */
+EAPI const char * edje_edit_part_api_description_get(Evas_Object *obj, const char *part);
+
+/** Set api's name of a part.
+ *
+ * @param obj Object being edited.
+ * @param part Name of the part.
+ * @param name New name for the api property.
+ *
+ * @return EINA_TRUE if succesful, EINA_FALSE otherwise.
+ */
+EAPI Eina_Bool edje_edit_part_api_name_set(Evas_Object *obj, const char *part, const char *name);
+
+/** Set api's description of a part.
+ *
+ * @param obj Object being edited.
+ * @param part Name of part.
+ * @param description New description for the api property.
+ *
+ * @return EINA_TRUE if succesful, EINA_FALSE otherwise.
+ */
+EAPI Eina_Bool edje_edit_part_api_description_set(Evas_Object *obj, const char *part, const char *description);
+
 /** Get the type of a part.
  *
  * @param obj Object being edited.
@@ -904,10 +917,30 @@ EAPI Evas_Event_Flags edje_edit_part_ignore_flags_get(Evas_Object *obj, const ch
 
 /** Set repeat_events for part.
  *
- * @param obj Object bein edited.
- * @oaram part Part to set which event flags will be ignored
+ * @param obj Object being edited.
+ * @param part Part to set which event flags will be ignored
  */
 EAPI void edje_edit_part_ignore_flags_set(Evas_Object *obj, const char *part, Evas_Event_Flags ignore_flags);
+
+/** Set scale property for the part.
+ *
+ * This property tells Edje that the given part should be scaled by the
+ * Edje scale factor.
+ *
+ * @param obj Object being edited.
+ * @param part Part to set scale for.
+ * @param scale Scale value to set.
+ */
+EAPI void edje_edit_part_scale_set(Evas_Object *obj, const char *part, Eina_Bool scale);
+
+/** Get scale for the part.
+ *
+ * @param obj Object being edited.
+ * @param part Part to get the scale value of.
+ *
+ * @return Whether scale is on (EINA_TRUE) or not.
+ */
+EAPI Eina_Bool edje_edit_part_scale_get(Evas_Object *obj, const char *part);
 
 /** Get horizontal dragable state for part.
  *
@@ -1081,8 +1114,10 @@ EAPI Eina_Bool edje_edit_state_name_set(Evas_Object *obj, const char *part, cons
  * @param part Part to set the name of the new state.
  * @param name Name for the new state (not including the state value).
  * @param value The state value.
+ *
+ * @return EINA_TRUE if succesfully, EINA_FALSE otherwise.
  */
-EAPI void edje_edit_state_add(Evas_Object *obj, const char *part, const char *name, double value);
+EAPI Eina_Bool edje_edit_state_add(Evas_Object *obj, const char *part, const char *name, double value);
 
 /** Delete the given part state from the edje.
  *
@@ -1090,8 +1125,10 @@ EAPI void edje_edit_state_add(Evas_Object *obj, const char *part, const char *na
  * @param part Part that contain state.
  * @param state The current name of the state (not including the state value).
  * @param value The state value.
+ *
+ * @return EINA_TRUE if succesfully, EINA_FALSE otherwise.
  */
-EAPI void edje_edit_state_del(Evas_Object *obj, const char *part, const char *state, double value);
+EAPI Eina_Bool edje_edit_state_del(Evas_Object *obj, const char *part, const char *state, double value);
 
 /** Check if a part state with the given name exist.
  *
@@ -3127,6 +3164,44 @@ EAPI Eina_Bool edje_edit_program_afters_clear(Evas_Object *obj, const char *prog
  */
 EAPI const char * edje_edit_program_state_get(Evas_Object *obj, const char *prog);
 
+/** Get api's name of a program.
+ *
+ * @param obj Object being edited.
+ * @param prog Name of program.
+ *
+ * @return name of the api if succesful, NULL otherwise.
+ */
+EAPI const char * edje_edit_program_api_name_get(Evas_Object *obj, const char *prog);
+
+/** Get api's description of a program.
+ *
+ * @param obj Object being edited.
+ * @param prog Name of program.
+ *
+ * @return description of the api if succesful, NULL otherwise.
+ */
+EAPI const char * edje_edit_program_api_description_get(Evas_Object *obj, const char *prog);
+
+/** Set api's name of a program.
+ *
+ * @param obj Object being edited.
+ * @param prog Name of the part.
+ * @param name New name for the api property.
+ *
+ * @return EINA_TRUE if succesful, EINA_FALSE otherwise.
+ */
+EAPI Eina_Bool edje_edit_program_api_name_set(Evas_Object *obj, const char *prog, const char *name);
+
+/** Set api's description of a program.
+ *
+ * @param obj Object being edited.
+ * @param prog Name of the program.
+ * @param description New description for the api property.
+ *
+ * @return EINA_TRUE if succesful, EINA_FALSE otherwise.
+ */
+EAPI Eina_Bool edje_edit_program_api_description_set(Evas_Object *obj, const char *prog, const char *description);
+
 /** Set the state for the given program
  *
  * In a STATE_SET action this is the name of state to set.
@@ -3251,6 +3326,8 @@ EAPI double edje_edit_program_transition_time_get(Evas_Object *obj, const char *
  */
 EAPI Eina_Bool edje_edit_program_transition_time_set(Evas_Object *obj, const char *prog, double seconds);
 
+EAPI const char * edje_edit_program_filter_part_get(Evas_Object *obj, const char *prog);
+EAPI Eina_Bool edje_edit_program_filter_part_set(Evas_Object *obj, const char *prog, const char *filter_part);
 
 //@}
 /******************************************************************************/

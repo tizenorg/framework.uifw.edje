@@ -1,99 +1,3 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
-/**
-@page luaref Edje LUA scripting
-
-
-@section intro Introduction
-
-Lua scripts are declared in edc files with the @a lua_script keyword. Like this:
-@code
-group {
-   name: "mygroup";
-   lua_script {
-       print("LUA: on-load script");
-   }
-   parts {
-      ...
-   }
-   programs {
-      program {
-         signal: "a_signal";
-         source: "a_part";
-         lua_script {
-            print("LUA: 'mouse,down,1' on 'button'");
-         }
-      }
-   }
-}
-@endcode
-
-Inside a lua_script code block, there's a reference to your edje @ref Group named
-@a ed, which you may use for accessing your parts (e.g. a part named "label"
-is accessed through @a ed.label). This is the main object that is used to
-access every parts and is also used to create @ref Timer, @ref poller and
-@ref animator; to emit signal, send messagges, run/stop programs and more.
-Look at the @ref Group class to see all the methods and properties.
-
-Some object attributes return a table of values, the @ref Object attribute
-@a geometry for example return a table of 4 values (x,y,w,h). This tables don't
-have named index thus you can access the fields only using: geometry[1] for the
-x value. NOTE that you can NOT use gemetry.x or .geometry["x"]. But
-you can use the lua unpack function in this way:
-@code
-x, y, w, h = unpack(ed.part_name.geometry)
-print("geometry: ", x, y, w, h)
-// the same for state names:
-state, val = unpack(ed.part_name.state)
-print("state: ", state, val)
-// and for setting tables attributes:
-custom.color = { 255, 255, 255, 255 }
-ed.part_name.state = { 'custom', 0.0 }
-@endcode
-
-Classes hierarchy:
-- @ref Timer
-- @ref Animator
-- @ref Poller
-- @ref Object
-  - @ref Group
-  - @ref Part
-  - @ref Image
-  - @ref Line
-  - @ref Polygon
-  - @ref Table
-  - @ref Description
-
-References:
-@li For general LUA documentations look at the official LUA manual
-(http://www.lua.org/manual/5.1/)
-@li The lua-users wiki is also full of lua info (http://lua-users.org/wiki/)
-@li Examples of edc files that use LUA can be found in the doc/examples folder
-in the edje sources.
- 
-
-Lua snippets:
-@code
-// print one or more values in console in a tabbed way or using printf style
-print("something to say", val1, val2)
-s = string.format("%d %d", 3, 4)
-print(s)
-
-// string concat
-print("string1" .. "string2" .. val1)
- 
-// var to string
-tostring(var)
- 
-// Print the type of a variable 
-print(type(var))
-
-@endcode
-
-*/
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -121,6 +25,8 @@ void *alloca(size_t);
 
 #include <lauxlib.h>
 #include <lualib.h>
+
+#ifndef LUA2
 
 #define EDJE_LUA_GET 1
 #define EDJE_LUA_SET 2
@@ -231,7 +137,7 @@ struct _Edje_Lua_Edje_Part_Description
 jmp_buf _edje_lua_panic_jmp;
 
 static int
-_edje_lua_custom_panic(lua_State *L)
+_edje_lua_custom_panic(__UNUSED__ lua_State *L)
 {
    printf("PANIC\n");
    longjmp(_edje_lua_panic_jmp, 1);
@@ -343,7 +249,6 @@ _edje_lua_reg_count (lua_State *L)
 static Edje_Lua_Ref *
 _edje_lua_new_ref(lua_State *L, int index)
 {
-   //printf ("_edje_lua_new_ref %d %d %d\n", L, lua_objlen(L, LUA_REGISTRYINDEX), _edje_lua_reg_count(L));
    lua_pushvalue(L, index);
    Edje_Lua_Ref *ref = malloc(sizeof(Edje_Lua_Ref));
    ref->id = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -801,31 +706,6 @@ const luaL_Reg lClass_fn[] = {
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Timer,Timer Class}
-
-The timer class is a wrapper around ecore_timer. You can create a timer using
-the @a timer(secs,callback) method of the @ref Group class.
-The callback function will be called every @a secs seconds until it will
-return CALLBACK_RENEW. If CALLBACK_CANCEL is returned the timer will stop.
-
-Example:
-@code
-lua_script {
-   function timer_cb()
-      print("timer_cb")
-      return CALLBACK_RENEW
-   end
-
-   timer = ed:timer(0.5, timer_cb)
-}
-@endcode
-
-A more detailed example can be found in doc/examples/lua_timer.edc
-
-@seealso{Ecore Timer Docs,http://docs.enlightenment.org/auto/ecore/group__Ecore__Timer__Group.html}
-*/
 
 const luaL_Reg lTimer_get[];
 
@@ -846,13 +726,13 @@ const Edje_Lua_Reg *cTimer[] = {
    NULL				// sentinel
 };
 
-static int
+static Eina_Bool
 _edje_lua_timer_cb(void *data)
 {
    Edje_Lua_Timer *obj = data;
    lua_State *L = obj->L;
    int err_code;
-   int res;
+   Eina_Bool res;
 
    _edje_lua_get_ref(L, obj->cb);	// callback function
    _edje_lua_get_reg(L, obj);
@@ -860,7 +740,7 @@ _edje_lua_timer_cb(void *data)
    if ((err_code = lua_pcall(L, 1, 1, 0)))
      {
         _edje_lua_error(L, err_code);
-        return 0;
+        return ECORE_CALLBACK_CANCEL;
      }
 
    res = luaL_optint(L, -1, ECORE_CALLBACK_CANCEL);
@@ -923,13 +803,6 @@ _edje_lua_timer_get_interval(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Timer.pending
-@li Timer.precision
-@li Timer.interval
-*/
 const luaL_Reg lTimer_get[] = {
    {"pending", _edje_lua_timer_get_pending},
    {"precision", _edje_lua_timer_get_precision},
@@ -945,12 +818,6 @@ _edje_lua_timer_set_interval(lua_State *L)
       ecore_timer_interval_set(obj->et, luaL_checknumber(L, 2));
    return 0;
 }
-
-/**
-@page luaref
-@setters
-@li Timer.interval
-*/
 
 const luaL_Reg lTimer_set[] = {
    {"interval", _edje_lua_timer_set_interval},
@@ -1002,14 +869,6 @@ _edje_lua_timer_fn_delay(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li Timer:del()
-@li Timer:freeze()
-@li Timer:thaw()
-@li Timer:delay(secs)
-*/
 const luaL_Reg lTimer_fn[] = {
    {"del", _edje_lua_timer_fn_del},
    {"freeze", _edje_lua_timer_fn_freeze},
@@ -1018,13 +877,6 @@ const luaL_Reg lTimer_fn[] = {
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Animator,Animator Class}
-
-The animator class is a wrapper around ecore_animator. Animator are used the
-same way as @ref Timer.
-*/
 const luaL_Reg lAnimator_get[];
 
 const luaL_Reg lAnimator_fn[];
@@ -1042,10 +894,11 @@ const Edje_Lua_Reg *cAnimator[] = {
    NULL				// sentinel
 };
 
-static int
+static Eina_Bool
 _edje_lua_animator_cb(void *data)
 {
-   int err, res;
+   Eina_Bool res;
+   int err;
    Edje_Lua_Animator *obj = data;
    lua_State *L = obj->L;
 
@@ -1055,7 +908,7 @@ _edje_lua_animator_cb(void *data)
    if ((err = lua_pcall(L, 1, 1, 0)))
      {
         _edje_lua_error(L, err);
-        return 0;
+        return ECORE_CALLBACK_CANCEL;
      }
 
    res = luaL_checkint(L, -1);
@@ -1088,11 +941,6 @@ _edje_lua_animator_get_frametime(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Animator.frametime
-*/
 const luaL_Reg lAnimator_get[] = {
     {"frametime", _edje_lua_animator_get_frametime},
     {NULL, NULL}
@@ -1116,23 +964,11 @@ _edje_lua_animator_fn_del(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li Animator:del()
-*/
 const luaL_Reg lAnimator_fn[] = {
    {"del", _edje_lua_animator_fn_del},
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Poller,Poller Class}
-
-The poller class is a wrapper around ecore_poller.
-
-*/
 const luaL_Reg lPoller_get[];
 
 const luaL_Reg lPoller_fn[];
@@ -1150,10 +986,11 @@ const Edje_Lua_Reg *cPoller[] = {
    NULL				// sentinel
 };
 
-static int
+static Eina_Bool
 _edje_lua_poller_cb(void *data)
 {
-   int err, res;
+   Eina_Bool res;
+   int err;
    Edje_Lua_Poller *obj = data;
    lua_State *L = obj->L;
 
@@ -1163,7 +1000,7 @@ _edje_lua_poller_cb(void *data)
    if ((err = lua_pcall(L, 1, 1, 0)))
      {
         _edje_lua_error(L, err);
-        return 0;
+        return ECORE_CALLBACK_CANCEL;
      }
 
    res = luaL_checkint(L, -1);
@@ -1196,11 +1033,6 @@ _edje_lua_poller_get_interval(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Poller.interval
-*/
 const luaL_Reg lPoller_get[] = {
    {"interval", _edje_lua_poller_get_interval},
    {NULL, NULL}
@@ -1226,11 +1058,6 @@ _edje_lua_poller_fn_del(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li Poller:del()
-*/
 const luaL_Reg lPoller_fn[] = {
    {"del", _edje_lua_poller_fn_del},
    {NULL, NULL}
@@ -1412,36 +1239,6 @@ const luaL_Reg lTransition_fn[] = {
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Object,General Object Class}
-
-This is the base class, many other classes are children of this.
-
-You can attach event callbacks to this class using a classic c approach:
-@code
-function mouse_move_cb(self, ...)
-    print("mouse_move", ...)
-end
-
-rect = ed:rectangle()
-rect.mouse_events = true
-rect.mouse_move = mouse_move_cb
-@endcode
-or you can also do the same in a more lua-fashion style
-@code
-rect = ed:rectangle {
-    mouse_events = true,
-    mouse_move = function (self, ...)
-                    print ('mouse_move', ...)
-                 end
-}
-@endcode
-
-
-@seealso{Evas Object Docs,http://docs.enlightenment.org/auto/evas/group__Evas__Object__Group.html}
-*/
-
 const luaL_Reg lObject_get[];
 
 const luaL_Reg lObject_set[];
@@ -1456,8 +1253,7 @@ const Edje_Lua_Reg mObject = {
 };
 
 static void
-_edje_lua_object_del_cb(void *data, Evas * e, Evas_Object * obj,
-			void *event_info)
+_edje_lua_object_del_cb(void *data, __UNUSED__ Evas * e, Evas_Object * obj, __UNUSED__ void *event_info)
 {
    //printf("_edje_lua_object_delete_cb\n");
    lua_State *L = data;
@@ -1563,20 +1359,6 @@ _edje_lua_object_fn_clip_unset(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li Object:del()
-@li Object:show()
-@li Object:hide()
-@li Object:move(x, y)
-@li Object:resize(w, h)
-@li Object:raise()
-@li Object:lower()
-@li Object:stack_above()
-@li Object:stack_below()
-@li Object:clip_unset()
-*/
 const luaL_Reg lObject_fn[] = {
    {"del", _edje_lua_object_fn_del},
    {"show", _edje_lua_object_fn_show},
@@ -1909,39 +1691,6 @@ _edje_lua_object_get_mouse_events(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Object.name
-@li Object.geometry: (x, y, width, height)
-@li Object.type: object type (RECT=1, TEXT, IMAGE, SWALLOW, TEXTBLOCK, GRADIENT, GROUP, BOX, TABLE, EXTERNAL)
-@li Object.layer
-@li Object.above
-@li Object.below
-@li Object.size_hint_min: (w,h)
-@li Object.size_hint_max: (w,h)
-@li Object.size_hint_request: (w,h)
-@li Object.size_hint_aspect: (aspect, w, h)
-@li Object.size_hint_align: (w,h)
-@li Object.size_hint_weight: (w,h)
-@li Object.size_hint_padding: (l,r,t,b)
-@li Object.visible
-@li Object.render_op
-@li Object.anti_alias
-@li Object.scale
-@li Object.color: (r, g, b, alpha)
-@li Object.color_interpolation
-@li Object.clip
-@li Object.clipees
-@li Object.evas (not implemeted, always return nil)
-@li Object.pass_events
-@li Object.repeat_events
-@li Object.propagate_events
-@li Object.focus
-@li Object.pointer_mode
-@li Object.precise_is_inside
-@li Object.mouse_events
-*/
 const luaL_Reg lObject_get[] = {
    {"name", _edje_lua_object_get_name},
    {"geometry", _edje_lua_object_get_geometry},
@@ -2206,7 +1955,7 @@ _edje_lua_object_set_precise_is_inside(lua_State *L)
    lua_insert(L, -2);
 
 static void
-_edje_lua_object_cb_mouse_in(void *data, Evas * e, Evas_Object * obj,
+_edje_lua_object_cb_mouse_in(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
 			     void *event_info)
 {
    OBJECT_CB_MACRO("mouse_in");
@@ -2223,7 +1972,7 @@ _edje_lua_object_cb_mouse_in(void *data, Evas * e, Evas_Object * obj,
 }
 
 static void
-_edje_lua_object_cb_mouse_out(void *data, Evas * e, Evas_Object * obj,
+_edje_lua_object_cb_mouse_out(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
 			      void *event_info)
 {
    OBJECT_CB_MACRO("mouse_out");
@@ -2240,7 +1989,7 @@ _edje_lua_object_cb_mouse_out(void *data, Evas * e, Evas_Object * obj,
 }
 
 static void
-_edje_lua_object_cb_mouse_down(void *data, Evas * e, Evas_Object * obj,
+_edje_lua_object_cb_mouse_down(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
 			       void *event_info)
 {
    OBJECT_CB_MACRO("mouse_down");
@@ -2258,7 +2007,7 @@ _edje_lua_object_cb_mouse_down(void *data, Evas * e, Evas_Object * obj,
 }
 
 static void
-_edje_lua_object_cb_mouse_up(void *data, Evas * e, Evas_Object * obj,
+_edje_lua_object_cb_mouse_up(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
 			     void *event_info)
 {
    OBJECT_CB_MACRO("mouse_up");
@@ -2276,7 +2025,7 @@ _edje_lua_object_cb_mouse_up(void *data, Evas * e, Evas_Object * obj,
 }
 
 static void
-_edje_lua_object_cb_mouse_move(void *data, Evas * e, Evas_Object * obj,
+_edje_lua_object_cb_mouse_move(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
 			       void *event_info)
 {
    OBJECT_CB_MACRO("mouse_move");
@@ -2294,7 +2043,7 @@ _edje_lua_object_cb_mouse_move(void *data, Evas * e, Evas_Object * obj,
 }
 
 static void
-_edje_lua_object_cb_mouse_wheel(void *data, Evas * e, Evas_Object * obj,
+_edje_lua_object_cb_mouse_wheel(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
 			       void *event_info)
 {
    OBJECT_CB_MACRO("mouse_wheel");
@@ -2339,32 +2088,6 @@ _edje_lua_object_set_mouse_events(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@setters
-@li Object.name
-@li Object.layer
-@li Object.size_hint_min: (w,h)
-@li Object.size_hint_max: (w,h)
-@li Object.size_hint_request: (w,h)
-@li Object.size_hint_aspect: (w,h)
-@li Object.size_hint_align: (w,h)
-@li Object.size_hint_weight: (w,h)
-@li Object.size_hint_padding: (l,r,t,b)
-@li Object.render_op
-@li Object.anti_alias
-@li Object.scale
-@li Object.color: (r, g, b, alpha)
-@li Object.color_interpolation
-@li Object.clip
-@li Object.pass_events
-@li Object.repeat_events
-@li Object.propagate_events
-@li Object.focus
-@li Object.pointer_mode
-@li Object.precise_is_inside
-@li Object.mouse_events
-*/
 const luaL_Reg lObject_set[] = {
    {"name", _edje_lua_object_set_name},
    {"layer", _edje_lua_object_set_layer},
@@ -2390,16 +2113,6 @@ const luaL_Reg lObject_set[] = {
    {"mouse_events", _edje_lua_object_set_mouse_events},
    {NULL, NULL}			// sentinel
 };
-/**
-@page luaref
-@events
-@li Object.mouse_in: func(self,output_x,output_y,canvas_x,canvas_y)
-@li Object.mouse_out: func(self,output_x,output_y,canvas_x,canvas_y)
-@li Object.mouse_down: func(self,button,output_x,output_y,canvas_x,canvas_y)
-@li Object.mouse_up: func(self,button,output_x,output_y,canvas_x,canvas_y)
-@li Object.mouse_move: func(self,buttons,output_x,output_y,canvas_x,canvas_y)
-@li Object.mouse_wheel: func(self,z,output_x,output_y,canvas_x,canvas_y)
-*/
 
 const Edje_Lua_Reg *cRectangle[] = {
    &mClass,
@@ -2407,11 +2120,6 @@ const Edje_Lua_Reg *cRectangle[] = {
    NULL				// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Image,Image Class}
-@seealso{Evas Object Image Docs,http://docs.enlightenment.org/auto/evas/group__Evas__Object__Image.html}
-*/
 const luaL_Reg lImage_get[];
 
 const luaL_Reg lImage_set[];
@@ -2444,11 +2152,6 @@ _edje_lua_image_get_size(lua_State *L)
    return 1;
 };
 
-/**
-@page luaref
-@attributes
-@li Image.size: (w,h)
-*/
 const luaL_Reg lImage_get[] = {
    {"size", _edje_lua_image_get_size},
    {NULL, NULL}			// sentinel
@@ -2460,7 +2163,7 @@ _edje_lua_image_set_file(lua_State *L)
    Edje_Lua_Evas_Object *obj = _edje_lua_checkudata(L, 1, &mImage);
    int id = edje_edit_image_id_get(obj->ed->obj, luaL_checkstring(L, 2));
    char buf[256];
-   sprintf(buf, "images/%i", id);
+   sprintf(buf, "edje/images/%i", id);
    evas_object_image_file_set(obj->eo, obj->ed->path, buf);
    return 0;
 }
@@ -2498,14 +2201,6 @@ _edje_lua_image_set_alpha(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@setters
-@li Image.file
-@li Image.fill: (x,y,w,h)
-@li Image.fill_transform
-@li Image.alpha
-*/
 const luaL_Reg lImage_set[] = {
    {"file", _edje_lua_image_set_file},
    {"fill", _edje_lua_image_set_fill},
@@ -2514,11 +2209,6 @@ const luaL_Reg lImage_set[] = {
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Line,Line Class}
-@seealso{Evas Object Line Docs,http://docs.enlightenment.org/auto/evas/group__Evas__Line__Group.html}
-*/
 const luaL_Reg lLine_get[];
 const luaL_Reg lLine_set[];
 
@@ -2550,11 +2240,6 @@ _edje_lua_line_get_xy(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Line.xy: (x1,y1,x2,y2)
-*/
 const luaL_Reg lLine_get[] = {
    {"xy", _edje_lua_line_get_xy},
    {NULL, NULL}			// sentinel
@@ -2577,21 +2262,11 @@ _edje_lua_line_set_xy(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@setters
-@li Line.xy: (x1,y1,x2,y2)
-*/
 const luaL_Reg lLine_set[] = {
    {"xy", _edje_lua_line_set_xy},
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Polygon,Polygon Class}
-@seealso{Evas Object Polygon Docs,http://docs.enlightenment.org/auto/evas/group__Evas__Object__Polygon.html}
-*/
 const luaL_Reg lPolygon_fn[];
 
 const Edje_Lua_Reg mPolygon = {
@@ -2626,23 +2301,12 @@ _edje_lua_polygon_fn_points_clear(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li Polygon:point_add(x,y)
-@li Polygon:points_clear()
-*/
 const luaL_Reg lPolygon_fn[] = {
    {"point_add", _edje_lua_polygon_fn_point_add},
    {"points_clear", _edje_lua_polygon_fn_points_clear},
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Table,Table Class}
-@seealso{Evas Object Table Docs,http://docs.enlightenment.org/auto/evas/group__Evas__Object__Table.html}
-*/
 const luaL_Reg lTable_get[];
 
 const luaL_Reg lTable_set[];
@@ -2731,15 +2395,6 @@ _edje_lua_table_get_children(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Table.homogeneous
-@li Table.padding: (horiz,vert)
-@li Table.align: (horiz,vert)
-@li Table.col_row_size: (cols,rows)
-@li Table.children
-*/
 const luaL_Reg lTable_get[] = {
    {"homogeneous", _edje_lua_table_get_homogeneous},
    {"padding", _edje_lua_table_get_padding},
@@ -2784,13 +2439,6 @@ _edje_lua_table_set_align(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@setters
-@li Table.homogeneous
-@li Table.padding: (horiz,vert)
-@li Table.align: (horiz,vert)
-*/
 const luaL_Reg lTable_set[] = {
    {"homogeneous", _edje_lua_table_set_homogeneous},
    {"padding", _edje_lua_table_set_padding},
@@ -2830,24 +2478,12 @@ _edje_lua_table_fn_clear(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li Table.pack(child,col,row,colspan,rowspan)
-@li Table.unpack(child)
-@li Table.clear(clear)
-*/
 const luaL_Reg lTable_fn[] = {
    {"pack", _edje_lua_table_fn_pack},
    {"unpack", _edje_lua_table_fn_unpack},
    {"clear", _edje_lua_table_fn_clear},
    {NULL, NULL}			// sentinel
 };
-
-/**
-@page luaref
-@luaclass{Description,Description Class}
-*/
 
 const luaL_Reg lDescription_get[];
 
@@ -3318,41 +2954,6 @@ _edje_lua_description_get_visible(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Description.alignment: (x,y)
-@li Description.min: (w,h)
-@li Description.max: (w,h)
-@li Description.step: (w,h)
-@li Description.aspect: (x,y)
-@li Description.aspect_pref
-@li Description.color: (r,g,b,a)
-@li Description.color2: (r,g,b,a)
-@li Description.color3: (r,g,b,a)
-@li Description.color_class
-@li Description.rel1: (x,y)
-@li Description.rel1_to: (to_x,to_y)
-@li Description.rel1_offset: (x,y)
-@li Description.rel2: (x,y)
-@li Description.rel2_to: (to_x,to_y)
-@li Description.rel2_offset: (x,y)
-@li Description.image (not yet implemented)
-@li Description.border: (l,r,t,b)
-@li Description.fill_smooth
-@li Description.fill_pos: (rel_x,rel_y,offset_x,offset_y)
-@li Description.fill_size: (rel_x,rel_y,offset_x,offset_y)
-@li Description.text
-@li Description.text_class
-@li Description.text_font
-@li Description.text_style
-@li Description.text_size
-@li Description.text_fit: (x,y)
-@li Description.text_min: (x,y)
-@li Description.text_max: (x,y)
-@li Description.text_align: (x,y)
-@li Description.visible
-*/
 const luaL_Reg lDescription_get[] = {
    {"alignment", _edje_lua_description_get_alignment},
    {"min", _edje_lua_description_get_min},
@@ -3844,41 +3445,6 @@ _edje_lua_description_set_visible(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@setters
-@li Description.alignment: (x,y)
-@li Description.min: (w,h)
-@li Description.max: (w,h)
-@li Description.step: (w,h)
-@li Description.aspect: (x,y)
-@li Description.aspect_pref
-@li Description.color: (r,g,b,a)
-@li Description.color2: (r,g,b,a)
-@li Description.color3: (r,g,b,a)
-@li Description.color_class
-@li Description.rel1: (x,y)
-@li Description.rel1_to: (to_x,to_y)
-@li Description.rel1_offset: (x,y)
-@li Description.rel2: (x,y)
-@li Description.rel2_to: (to_x,to_y)
-@li Description.rel2_offset: (x,y)
-@li Description.image
-@li Description.border: (l,r,t,b)
-@li Description.fill_smooth
-@li Description.fill_pos: (rel_x,rel_y,offset_x,offset_y)
-@li Description.fill_size: (rel_x,rel_y,offset_x,offset_y)
-@li Description.text
-@li Description.text_class
-@li Description.text_font
-@li Description.text_style
-@li Description.text_size
-@li Description.text_fit: (x,y)
-@li Description.text_min: (x,y)
-@li Description.text_max: (x,y)
-@li Description.text_align: (x,y)
-@li Description.visible
-*/
 const luaL_Reg lDescription_set[] = {
    {"alignment", _edje_lua_description_set_alignment},
    {"min", _edje_lua_description_set_min},
@@ -3914,14 +3480,6 @@ const luaL_Reg lDescription_set[] = {
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Part,Part Class}
-
-Parts are objects, that is, they inherit the methods from the @ref Object class.
-They also contain the following methods and attributes: 
-
-*/
 const luaL_Reg lPart_get[];
 
 const luaL_Reg lPart_set[];
@@ -3936,8 +3494,8 @@ const Edje_Lua_Reg mPart = {
 };
 
 static void
-_edje_lua_edje_part_del_cb(void *data, Evas * e, Evas_Object * obj,
-			void *event_info)
+_edje_lua_edje_part_del_cb(void *data, __UNUSED__ Evas * e, Evas_Object * obj,
+			   __UNUSED__ void *event_info)
 {
    //printf("_edje_lua_object_delete_cb\n");
    lua_State *L = data;
@@ -4161,26 +3719,6 @@ _edje_lua_part_get_table_col_row_size(lua_State *L)
 
 static int _edje_lua_part_fn_custom_state(lua_State *L);
 
-/**
-@page luaref
-@attributes
-@li @ref Object Part.swallow
-@li Part.drag_dir
-@li Part.drag_value: (dx,dy)
-@li Part.drag_size: (dx,dy)
-@li Part.drag_step: (dx,dy)
-@li Part.drag_page: (dx,dy)
-@li Part.type
-@li Part.effect
-@li Part.mouse_events
-@li Part.states_list
-@li Part.state: (state,value)
-@li Part.text
-@li Part.text_selection
-@li Part.text_cursor_geometry: (x,y,w,h)
-@li Part.geometry: (x,y,w,h)
-@li Part.part_col_row_size: (cols,rows)
-*/
 const luaL_Reg lPart_get[] = {
    {"custom_state", _edje_lua_part_fn_custom_state},
    {"Swallow", _edje_lua_part_get_swallow}, //TODO it the capital S correct?
@@ -4322,20 +3860,6 @@ _edje_lua_part_set_drag_page(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@setters
-@li Part.drag_value: (dx,dy)
-@li Part.drag_size: (dx,dy)
-@li Part.drag_step: (dx,dy)
-@li Part.drag_page: (dx,dy)
-@li Part.effect
-@li Part.mouse_events
-@li Part.repeat_events
-@li Part.state: (state,value)
-@li Part.tween_state
-@li Part.text
-*/
 const luaL_Reg lPart_set[] = {
    {"drag_value", _edje_lua_part_set_drag_value},
    {"drag_size", _edje_lua_part_set_drag_size},
@@ -4566,26 +4090,6 @@ _edje_lua_part_fn_box_remove_all(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@methods
-@li Part:swallow(obj)
-@li Part:unswallow()
-@li @ref PartDescription Part:custom_state(state_name, state_val)
-@li Part:text_select_none
-@li Part:text_select_all
-@li Part:text_insert(text)
-@li Part:table_pack(child, row, colspan, rowspan)
-@li Part:table_unpack(child)
-@li Part:table_clear(clear)
-@li Part:box_append(item)
-@li Part:box_prepend(item)
-@li Part:box_insert_before(item, before)
-@li Part:box_insert_at(item, index)
-@li Part:box_remove(item)
-@li Part:box_remove_at(item, index)
-@li Part:box_remove_all(clear)
-*/
 const luaL_Reg lPart_fn[] = {
    {"swallow", _edje_lua_part_fn_swallow},
    {"unswallow", _edje_lua_part_fn_unswallow},
@@ -4610,14 +4114,6 @@ const luaL_Reg lPart_fn[] = {
    {NULL, NULL}			// sentinel
 };
 
-/**
-@page luaref
-@luaclass{Group,Group Class}
-
-Groups are objects, that is, they inherit the methods from the general
-@ref Object Class.
-They also contain the following methods and attributes:
-*/
 const luaL_Reg lGroup_mt[];
 
 const luaL_Reg lGroup_get[];
@@ -4805,21 +4301,6 @@ _edje_lua_group_get_frametime(lua_State *L)
    return 1;
 }
 
-/**
-@page luaref
-@attributes
-@li Group.group
-@li Group.mouse: (x,y)
-@li Group.mouse_buttons
-@li Group.size_min: (w,h)
-@li Group.size_max: (w,h)
-@li Group.scale
-@li Group.load_error
-@li Group.load_error_str
-@li Group.play
-@li Group.animation
-@li Group.frametime 
-*/
 const luaL_Reg lGroup_get[] = {
    {"group", _edje_lua_group_get_group},
    {"mouse", _edje_lua_group_get_mouse},
@@ -4925,18 +4406,6 @@ _edje_lua_group_set_frametime(lua_State *L)
    edje_frametime_set(luaL_checknumber(L, 2));
    return 0;
 }
-/**
-@page luaref
-@setters
-@li Group.group
-@li Group.size_min: (w,h)
-@li Group.size_max: (w,h)
-@li Group.scale
-@li Group.play
-@li Group.animation
-@li Group.text_change_cb
-@li Group.frametime
-*/
 const luaL_Reg lGroup_set[] = {
    {"group", _edje_lua_group_set_group},
    {"size_min", _edje_lua_group_set_size_min},
@@ -5018,8 +4487,8 @@ _edje_lua_group_fn_poller(lua_State *L)
      }
 
    // Only 1 type of poller currently implemented in ecore
-   tar->ep = ecore_poller_add(ECORE_POLLER_CORE, interval, 
-			   _edje_lua_poller_cb, tar);
+   tar->ep = ecore_poller_add(ECORE_POLLER_CORE, interval,
+			      _edje_lua_poller_cb, tar);
    tar->L = L;
    _edje_lua_new_reg(L, -1, tar); // freed in _edje_lua_poller_cb/del
    tar->cb = _edje_lua_new_ref(L, 3); // freed in _edje_lua_poller_cb/del
@@ -5320,22 +4789,6 @@ _edje_lua_group_fn_thaw(lua_State *L)
    return 0;
 }
 
-/**
-@page luaref
-@methods
-@li @ref Timer Group:timer(secs, callback)
-@li @ref Animator Group:animator(func)
-@li @ref Poller Group:poller(interval, callback)
-@li @ref Transform Group:transform()
-@li Group:signal_emit(emission, source)
-@li Group:message_send(message_type, id, msg)
-@li Group:program_run(name)
-@li Group:program_stop(name)
-@li Group:signal_callback_add(emission, source, callback)
-@li Group:signal_callback_del(emission, source)
-@li Group:freeze()
-@li Group:thaw()
-*/
 const luaL_Reg lGroup_fn[] = {
    {"timer", _edje_lua_group_fn_timer},
    {"animator", _edje_lua_group_fn_animator},
@@ -5712,3 +5165,5 @@ _edje_lua_shutdown()
    lua_close(Ledje);
    Ledje = NULL;
 }
+
+#endif // not LUA2

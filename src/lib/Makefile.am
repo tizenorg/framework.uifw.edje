@@ -16,7 +16,8 @@ AM_CPPFLAGS = \
 
 lib_LTLIBRARIES = libedje.la
 
-include_HEADERS = Edje.h Edje_Edit.h
+includes_HEADERS = Edje.h Edje_Edit.h
+includesdir = $(includedir)/edje-@VMAJ@
 
 base_sources = \
 edje_calc.c \
@@ -55,9 +56,9 @@ edje_amalgamation.c: $(base_sources) Makefile
 	@echo "# include \"config.h\"" >> edje_amalgamation.c
 	@echo "#endif" >> edje_amalgamation.c
 
-	@echo "#ifndef _WIN32" >> eina_amalgamation.c
-	@echo "#define _GNU_SOURCE" >> eina_amalgamation.c
-	@echo "#endif" >> eina_amalgamation.c
+	@echo "#ifndef _WIN32" >> edje_amalgamation.c
+	@echo "#define _GNU_SOURCE" >> edje_amalgamation.c
+	@echo "#endif" >> edje_amalgamation.c
 
 	@echo "#ifdef HAVE_ALLOCA_H" >> edje_amalgamation.c
 	@echo "# include <alloca.h>" >> edje_amalgamation.c
@@ -128,7 +129,7 @@ endif
 libedje_la_LIBADD = @EDJE_LIBS@ @ECORE_IMF_LIBS@ @EVIL_LIBS@ -lm
 libedje_la_LDFLAGS = -no-undefined @lt_enable_auto_import@ -version-info @version_info@ @release_info@
 
-EXTRA_DIST = edje_private.h edje_container.h
+EXTRA_DIST = edje_private.h edje_container.h edje_convert.h
 
 clean-local:
 	@rm -rf  edje_amalgamation.c

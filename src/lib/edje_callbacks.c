@@ -1,11 +1,7 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include "edje_private.h"
 
 static void
-_edje_hold_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_hold_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Hold *ev;
    Edje *ed;
@@ -24,7 +20,7 @@ _edje_hold_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
 }
 
 static void
-_edje_focus_in_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_focus_in_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info __UNUSED__)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -40,7 +36,7 @@ _edje_focus_in_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_in
 }
 
 static void
-_edje_focus_out_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_focus_out_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info __UNUSED__)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -56,7 +52,7 @@ _edje_focus_out_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_i
 }
 
 static void
-_edje_mouse_in_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_mouse_in_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_In *ev;
    Edje *ed;
@@ -74,7 +70,7 @@ _edje_mouse_in_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_in
 }
 
 static void
-_edje_mouse_out_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_mouse_out_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_Out *ev;
    Edje *ed;
@@ -92,7 +88,7 @@ _edje_mouse_out_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_i
 }
 
 static void
-_edje_mouse_down_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_mouse_down_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_Down *ev;
    Edje *ed;
@@ -208,7 +204,7 @@ _edje_mouse_down_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_
 }
 
 static void
-_edje_mouse_up_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_mouse_up_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_Up *ev;
    Edje *ed;
@@ -276,7 +272,7 @@ _edje_mouse_up_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_in
 }
 
 static void
-_edje_mouse_move_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_mouse_move_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_Move *ev;
    Edje *ed;
@@ -355,7 +351,7 @@ _edje_mouse_move_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_
 }
 
 static void
-_edje_mouse_wheel_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event_info)
+_edje_mouse_wheel_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_Wheel *ev;
    Edje *ed;
@@ -375,8 +371,8 @@ _edje_mouse_wheel_signal_cb(void *data, Evas * e, Evas_Object * obj, void *event
    e = NULL;
 }
 
-int
-_edje_timer_cb(void *data)
+Eina_Bool
+_edje_timer_cb(void *data __UNUSED__)
 {
    double t;
    Eina_List *l;
@@ -445,13 +441,12 @@ _edje_timer_cb(void *data)
 	_edje_thaw(ed);
 	_edje_unref(ed);
      }
-   if (_edje_anim_count > 0) return 1;
+   if (_edje_anim_count > 0) return ECORE_CALLBACK_RENEW;
    _edje_timer = NULL;
-   return 0;
-   data = NULL;
+   return ECORE_CALLBACK_CANCEL;
 }
 
-int
+Eina_Bool
 _edje_pending_timer_cb(void *data)
 {
    Edje_Pending_Program *pp;
@@ -460,7 +455,7 @@ _edje_pending_timer_cb(void *data)
    pp->edje->pending_actions = eina_list_remove(pp->edje->pending_actions, pp);
    _edje_program_run(pp->edje, pp->program, 1, "", "");
    free(pp);
-   return 0;
+   return ECORE_CALLBACK_CANCEL;
 }
 
 void
