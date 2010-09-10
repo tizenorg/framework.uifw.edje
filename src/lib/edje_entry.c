@@ -106,7 +106,7 @@ struct _Anchor
 };
 
 #ifdef HAVE_ECORE_IMF   
-static int _hide_timer_handler(void *data)
+static Eina_Bool _hide_timer_handler(void *data)
 {
    Entry *en = (Entry *)data;
    if (!en || !en->imf_context) goto done;
@@ -121,7 +121,8 @@ done:
    return ECORE_CALLBACK_CANCEL;
 }
 
-static void _input_panel_hide_timer_start(void *data)
+static void 
+_input_panel_hide_timer_start(void *data)
 {
    if (hide_timer)
      {
@@ -130,7 +131,7 @@ static void _input_panel_hide_timer_start(void *data)
    hide_timer = ecore_timer_add(0.2, _hide_timer_handler, data);
 }
 
-   static void 
+static void 
 _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
 {
    Edje_Real_Part *rp;
@@ -156,7 +157,7 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
      }
 }
 
-   static void
+static void
 _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
 {
    Edje_Real_Part *rp;
@@ -180,7 +181,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
 }
 #endif /* HAVE_ECORE_IMF */
 
-   static void
+static void
 _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
    Edje *ed = data;
@@ -212,7 +213,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 #endif /* HAVE_ECORE_IMF */
 }
 
-   static void
+static void
 _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
    Edje *ed = data;
@@ -245,7 +246,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
 }
 
 // need one for markup and format too - how to do it? extra type param?
-   static void
+static void
 _text_filter_prepend(Entry *en, const char *text)
 {
    char *text2;
@@ -1196,7 +1197,7 @@ _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
      }
 }
 
-static int 
+static Eina_Bool 
 _select_mode_cb(void *data)
 {	
    Entry *en = (Entry *)data;
@@ -2157,19 +2158,21 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                   ecore_event_handler_del(en->imf_ee_handler_changed);
                   en->imf_ee_handler_changed = NULL;
                }
-             
+
+             ecore_imf_context_input_panel_hide(en->imf_context);
+
              ecore_imf_context_del(en->imf_context);
              en->imf_context = NULL;
+          }
+
+        if (hide_timer)
+          {
+             ecore_timer_del(hide_timer);
+             hide_timer = NULL;
           }
         
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,in", rp->part->name, _edje_entry_focus_in_cb);
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,out", rp->part->name, _edje_entry_focus_out_cb);
-
-	if (hide_timer)
-	  {
-	     ecore_timer_del(hide_timer);
-	     hide_timer = NULL;
-	  }
 	
         ecore_imf_shutdown();
      }
