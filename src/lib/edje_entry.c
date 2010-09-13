@@ -1,6 +1,3 @@
-/*
- * vim:ts=8:sw=3:sts=3:expandtab:cino=>5n-3f0^-2{2(0W1st0
- */
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -28,7 +25,6 @@ void *alloca (size_t);
 #include "edje_private.h"
 
 //#define USE_PREEDIT_BLOCK 1
-
 #ifdef HAVE_ECORE_IMF
 #include <Ecore_IMF_Evas.h>
 
@@ -73,6 +69,7 @@ struct _Entry
    Eina_Bool select_mod_end : 1;
    Eina_Bool had_sel : 1;
    Eina_Bool autocapital : 1;
+   Eina_Bool autoperiod : 1;
    int select_dragging_state;
 
 #ifdef HAVE_ECORE_IMF   
@@ -141,8 +138,7 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
    if (!rp || !rp->entry_data || !rp->edje || !rp->edje->obj) return;
 
    en = rp->entry_data;
-   if (!en) return;
-   if (!en->imf_context) return;
+   if (!en || !en->imf_context) return;
 
    if (evas_object_focus_get(rp->edje->obj))
      {
@@ -167,7 +163,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    if (!rp || !rp->entry_data) return;
 
    en = rp->entry_data;
-   if (!en->imf_context) return;
+   if (!en || !en->imf_context) return;
 
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
@@ -246,7 +242,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
 }
 
 // need one for markup and format too - how to do it? extra type param?
-static void
+static void __UNUSED__
 _text_filter_prepend(Entry *en, const char *text)
 {
    char *text2;
@@ -1117,7 +1113,6 @@ _range_del(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __UNUSED__, Entry
    evas_textblock_cursor_range_delete(en->sel_start, en->sel_end);
 }
 
-
 static void
 _backspace(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSED__)
 {
@@ -1597,6 +1592,7 @@ static void
 _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
    Edje *ed = data;
+   Evas_Event_Key_Up *ev = event_info;
    Edje_Real_Part *rp = ed->focused_part;
    Entry *en;
    if (!rp) return;
@@ -1606,8 +1602,6 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
      return;
 
 #ifdef HAVE_ECORE_IMF
-   Evas_Event_Key_Up *ev = event_info;
-
    if (en->imf_context)
      {
         Ecore_IMF_Event_Key_Up ecore_ev;
@@ -2173,7 +2167,6 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
         
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,in", rp->part->name, _edje_entry_focus_in_cb);
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,out", rp->part->name, _edje_entry_focus_out_cb);
-	
         ecore_imf_shutdown();
      }
 #endif /* HAVE_ECORE_IMF */
@@ -2528,11 +2521,19 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
 }
 
 void
-_edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool on)
+_edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool autocap)
 {
    Entry *en = rp->entry_data;
    if (!en) return;   
-   en->autocapital = on;
+   en->autocapital = autocap;
+}
+
+void
+_edje_entry_autoperiod_set(Edje_Real_Part *rp, Eina_Bool autoperiod)
+{
+   Entry *en = rp->entry_data;
+   if (!en) return;   
+   en->autocapital = autoperiod;
 }
 
 #ifdef HAVE_ECORE_IMF
@@ -2925,7 +2926,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    Entry *en;
    Ecore_IMF_Event_Commit *ev = event;
    int i;
- 
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
 
@@ -3017,7 +3017,7 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
         _range_del(en->cursor, rp->object, en);
         _sel_clear(en->cursor, rp->object, en);
      }
-   
+
    if (en->have_composition)
      {
 	// delete the composing characters
@@ -3030,13 +3030,6 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
      }
 
    en->comp_len = length;
-
-#if 0
-   _sel_clear(en->cursor, rp->object, en);
-   _sel_enable(en->cursor, rp->object, en);
-   _sel_start(en->cursor, rp->object, en);
-#endif
-
    en->have_composition = EINA_TRUE;
 
 #ifdef USE_PREEDIT_BLOCK
@@ -3132,10 +3125,6 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
    if (en->func)
      en->func(en->data, NULL);
 
-#if 0
-   _sel_extend(en->cursor, rp->object, en);
-#endif
-
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
@@ -3163,3 +3152,5 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
    return ECORE_CALLBACK_DONE;
 }
 #endif /* HAVE_ECORE_IMF */
+
+/* vim:set ts=8 sw=3 sts=3 expandtab cino=>5n-2f0^-2{2(0W1st0 :*/

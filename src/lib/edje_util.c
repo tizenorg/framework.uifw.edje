@@ -274,17 +274,17 @@ edje_input_panel_enabled_set(Eina_Bool enabled)
 }
 
 EAPI void
-edje_autocapitalization_set(Eina_Bool on)
+edje_autocapitalization_set(Eina_Bool autocap)
 {
-   if (_edje_autocapital == on) return;
-   _edje_autocapital = on;
+   if (_edje_autocapital == autocap) return;
+   _edje_autocapital = autocap;
 }
 
 EAPI void
-edje_autoperiod_set(Eina_Bool on)
+edje_autoperiod_set(Eina_Bool autoperiod)
 {
-   if (_edje_autoperiod == on) return;
-   _edje_autoperiod = on;
+   if (_edje_autoperiod == autoperiod) return;
+   _edje_autoperiod = autoperiod;
 }
 
 /**
@@ -1893,7 +1893,7 @@ edje_object_part_text_select_extend(const Evas_Object *obj, const char *part)
 }
 
 EAPI void
-edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool on)
+edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool autocap)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1903,7 +1903,21 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_autocapitalization_set(rp, on);
+     _edje_entry_autocapitalization_set(rp, autocap);
+}
+
+EAPI void
+edje_object_part_text_autoperiod_set(const Evas_Object *obj, const char *part, Eina_Bool autoperiod)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     _edje_entry_autoperiod_set(rp, autoperiod);
 }
 
 #ifdef HAVE_ECORE_IMF
