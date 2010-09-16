@@ -4938,6 +4938,42 @@ edje_edit_program_signal_set(Evas_Object *obj, const char *prog, const char *sig
 }
 
 EAPI const char *
+edje_edit_program_sound_name_get(Evas_Object * obj, const char *prog)
+{
+   GET_EPR_OR_RETURN(NULL);
+   if (!epr->sound_name)
+      return NULL;
+   return eina_stringshare_add(epr->sound_name);
+}
+EAPI Eina_Bool
+edje_edit_program_sound_name_set(Evas_Object * obj, const char *prog,
+				 const char *sound_name)
+{
+   GET_ED_OR_RETURN(0);
+   GET_EPR_OR_RETURN(0);
+   _edje_if_string_free(ed, epr->sound_name);
+   epr->sound_name = eina_stringshare_add(sound_name);
+   return 1;
+}
+EAPI const char *
+edje_edit_program_haptic_name_get(Evas_Object * obj, const char *prog)
+{
+   GET_EPR_OR_RETURN(NULL);
+   if (!epr->haptic_name)
+      return NULL;
+   return eina_stringshare_add(epr->haptic_name);
+}
+EAPI Eina_Bool
+edje_edit_program_haptic_name_set(Evas_Object * obj, const char *prog,
+				  const char *haptic_name)
+{
+   GET_ED_OR_RETURN(0);
+   GET_EPR_OR_RETURN(0);
+   _edje_if_string_free(ed, epr->haptic_name);
+   epr->haptic_name = eina_stringshare_add(haptic_name);
+   return 1;
+}
+EAPI const char *
 edje_edit_program_state_get(Evas_Object *obj, const char *prog)
 {
    GET_EPR_OR_RETURN(NULL);

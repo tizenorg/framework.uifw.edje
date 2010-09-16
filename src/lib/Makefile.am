@@ -44,7 +44,8 @@ edje_script_only.c \
 edje_lua_script_only.c \
 edje_entry.c \
 edje_external.c \
-edje_module.c
+edje_module.c \
+edje_multisense_ui.c
 
 if EDJE_AMALGAMATION
 nodist_libedje_la_SOURCES = edje_amalgamation.c

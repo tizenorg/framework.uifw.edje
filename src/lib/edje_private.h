@@ -227,6 +227,9 @@ typedef struct _Edje_Image_Directory                 Edje_Image_Directory;
 typedef struct _Edje_Image_Directory_Entry           Edje_Image_Directory_Entry;
 typedef struct _Edje_Image_Directory_Set             Edje_Image_Directory_Set;
 typedef struct _Edje_Image_Directory_Set_Entry       Edje_Image_Directory_Set_Entry;
+typedef struct _Edje_Sound_Directory                 Edje_Sound_Directory;
+typedef struct _Edje_Sound_Info                      Edje_Sound_Info;
+typedef struct _Edje_Haptic_Info                     Edje_Haptic_Info;
 typedef struct _Edje_Program                         Edje_Program;
 typedef struct _Edje_Program_Target                  Edje_Program_Target;
 typedef struct _Edje_Program_After                   Edje_Program_After;
@@ -337,8 +340,10 @@ struct _Edje_File
 
    Edje_External_Directory        *external_dir;
    Edje_Image_Directory           *image_dir;
+   Edje_Sound_Directory           *sound_dir;
    Eina_List                      *styles;
    Eina_List                      *color_classes;
+   Eina_List 		  	  	      *haptics;
 
    int                             references;
    const char                     *compiler;
@@ -347,6 +352,7 @@ struct _Edje_File
 
    Eina_Hash                      *data;
    Eina_Hash			  *fonts;
+   char				*outdir_for_sound ;
 
    Eina_Hash			  *collection;
    Eina_List			  *collection_cache;
@@ -443,6 +449,34 @@ struct _Edje_Image_Directory_Set_Entry
    } size;
 };
 
+struct _Edje_Sound_Directory
+{
+   Eina_List *entries; /* a list of Edje_Sound_Directory_Entry */
+};
+
+struct _Edje_Sound_Info
+{
+   char *name; /* the name of the sound */
+   unsigned int start_point;
+   unsigned int end_point;
+   int   id; /* the id no. of the sound */
+};
+
+struct _Edje_Haptic_Info
+{
+   char *name ;
+   int  magnitude ;
+   int duration ;
+   int attack_time ;
+   int attack_level ;
+   int fade_level ;
+   int fade_time ;
+   int type ;
+   char* pattern ;
+   int id;
+};
+
+
 /*----------*/
 
 struct _Edje_Program /* a conditional program to be run */
@@ -452,6 +486,11 @@ struct _Edje_Program /* a conditional program to be run */
 
    const char *signal; /* if signal emission name matches the glob here... */
    const char *source; /* if part that emitted this (name) matches this glob */
+   const char *sound_name;/*name of sound to be played*/
+   int sound_iterations;
+   int sound_volume;
+   char *haptic_name;
+   int haptic_iterations;
 
    struct {
       const char *part;
@@ -1351,6 +1390,8 @@ void edje_match_signal_source_free(Edje_Signal_Source_Char *key, void *data);
 
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_file;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_part_collection;
+EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_directory;
+EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_info;
 
 extern int              _edje_anim_count;
 extern Ecore_Animator  *_edje_timer;

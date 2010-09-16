@@ -76,6 +76,7 @@ static void st_images_set_name(void);
 static void ob_images_set_image(void);
 static void st_images_set_image_image(void);
 static void st_images_set_image_size(void);
+static void st_sounds_sound(void);
 
 static void st_fonts_font(void);
 
@@ -248,6 +249,16 @@ static void st_collections_group_programs_program_api(void);
 
 static void ob_collections_group_programs_program_script(void);
 static void ob_collections_group_programs_program_lua_script(void);
+static void st_haptics_haptic_name(void);
+static void st_haptics_haptic_pattern(void);
+static void st_haptics_haptic_magnitude(void);
+static void st_haptics_haptic_duration(void);
+static void st_haptics_haptic_attack_level(void);
+static void st_haptics_haptic_attack_time(void);
+static void st_haptics_haptic_fade_level(void);
+static void st_haptics_haptic_fade_time(void);
+static void st_haptics_haptic_type(void);
+static void ob_haptics_haptic(void);
 
 /*****/
 
@@ -286,6 +297,16 @@ New_Statement_Handler statement_handlers[] =
      {"collections.color_classes.color_class.color", st_color_class_color}, /* dup */
      {"collections.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.color_classes.color_class.color3", st_color_class_color3}, /* dup */
+     {"collections.sounds.sound", st_sounds_sound},	/* dup */
+     {"collections.haptics.haptic.name", st_haptics_haptic_name},	/* dup */
+     {"collections.haptics.haptic.pattern", st_haptics_haptic_pattern},	/* dup */
+     {"collections.haptics.haptic.magnitude", st_haptics_haptic_magnitude},	/* dup */
+     {"collections.haptics.haptic.duration", st_haptics_haptic_duration},	/* dup */
+     {"collections.haptics.haptic.attack_level", st_haptics_haptic_attack_level},	/* dup */
+     {"collections.haptics.haptic.attack_time", st_haptics_haptic_attack_time},	/* dup */
+     {"collections.haptics.haptic.fade_level", st_haptics_haptic_fade_level},	/* dup */
+     {"collections.haptics.haptic.fade_time", st_haptics_haptic_fade_time},	/* dup */
+     {"collections.haptics.haptic.type", st_haptics_haptic_type},	/* dup */
      {"collections.group.name", st_collections_group_name},
      {"collections.group.script_only", st_collections_group_script_only},
      {"collections.group.lua_script_only", st_collections_group_lua_script_only},
@@ -638,6 +659,9 @@ New_Object_Handler object_handlers[] =
      {"collections.styles.style", ob_styles_style}, /* dup */
      {"collections.color_classes", NULL}, /* dup */
      {"collections.color_classes.color_class", ob_color_class}, /* dup */
+     {"collections.sounds", NULL},	/* dup */
+     {"collections.haptics", NULL},	/* dup */
+     {"collections.haptics.haptic", ob_haptics_haptic},	/* dup */
      {"collections.group", ob_collections_group},
      {"collections.group.data", NULL},
      {"collections.group.script", ob_collections_group_script},
@@ -1248,6 +1272,47 @@ st_images_set_image_size(void)
 
 /**
     @page edcref
+    @block
+        Sound
+    @context
+        sounds {
+			sound: "sound_file.wav" START_POINT  ENDPOINT
+            ..
+        }
+    @description
+        The " sounds" block contains a list of one or more " sound" items.
+    @endblock
+*/
+static void
+st_sounds_sound(void)
+{
+   Edje_Sound_Info *snd, *lsnd;
+   Eina_List *l;
+
+   if (!edje_file->sound_dir)
+      edje_file->sound_dir = mem_alloc(SZ(Edje_Sound_Directory));
+   snd = mem_alloc(SZ(Edje_Sound_Info));
+   snd->name = parse_str(0);
+   snd->start_point = parse_int_range(1, 0, 100);
+   snd->end_point = parse_int_range(2, 0, 100);
+
+   EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, lsnd)
+   {
+	  if (!strcmp(lsnd->name, snd->name))
+	  {
+	     free(snd->name);
+	     free(snd);
+	     return;
+	  }
+   }
+
+   edje_file->sound_dir->entries =
+      eina_list_append(edje_file->sound_dir->entries, snd);
+   snd->id = eina_list_count(edje_file->sound_dir->entries) - 1;
+}
+
+/**
+    @page edcref
 
     @block
         fonts
@@ -1675,6 +1740,222 @@ st_styles_style_tag(void)
    tag->key = parse_str(0);
    tag->value = parse_str(1);
    stl->tags = eina_list_append(stl->tags, tag);
+}
+
+/**
+    @page edcref
+    @block
+        haptics
+    @context
+         haptics {
+           haptic {
+                name: " hapticname";
+                duration: "500";  //500 MS
+                ...
+               
+            }
+            ..
+        }
+    @description
+        The " haptics" block contains a list of one or more " haptic" items.
+    @endblock
+*/
+
+static void
+ob_haptics_haptic(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = mem_alloc(SZ(Edje_Haptic_Info));
+   edje_file->haptics = eina_list_append(edje_file->haptics, hinfo);
+}
+
+/**
+    @page edcref
+    @property
+        name
+    @parameters
+        [haptic name]
+    @effect
+        The name of the haptic to be used as reference later in the theme.
+    @endproperty
+*/
+
+static void
+st_haptics_haptic_name(void)
+{
+   Edje_Haptic_Info *hinfo, *thinfo;
+   Eina_List *l;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->name = parse_str(0);
+   EINA_LIST_FOREACH(edje_file->haptics, l, thinfo)
+   {
+      if ((hinfo != thinfo) && (!strcmp(hinfo->name, thinfo->name)))
+	{
+	   ERR("%s: Error. parse error %s:%i. There is already a haptic named \"%s\"", progname, file_in, line - 1, hinfo->name);
+	   exit(-1);
+	}
+   }
+}
+
+/**
+    @page edcref
+    @property
+        Pattern
+    @parameters
+        [haptic Pattern]
+    @effect
+        The Full pattern of Haptic - in HEX.
+    @endproperty
+*/
+static void
+st_haptics_haptic_pattern(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->pattern = parse_str(0);
+
+}
+
+/**
+    @page edcref
+    @property
+        Magnitude
+    @parameters
+        [haptic magnitude]
+    @effect
+        The magnitude of  the haptic to be used  in the theme.
+    @endproperty
+*/
+static void
+st_haptics_haptic_magnitude(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->magnitude = parse_int(0);
+}
+
+/**
+    @page edcref
+    @property
+        duration
+    @parameters
+        [haptic duration]
+    @effect
+        The duration of  the haptic to be used  in the theme.
+    @endproperty
+*/
+static void
+st_haptics_haptic_duration(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->duration = parse_int(0);
+}
+
+/**
+    @page edcref
+    @property
+        attack_time
+    @parameters
+        [haptic attack_time]
+    @effect
+        The attack_time of  the haptic to be used  in the theme.
+    @endproperty
+*/
+static void
+st_haptics_haptic_attack_time(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->attack_time = parse_int(0);
+}
+
+/**
+    @page edcref
+    @property
+        attack_level
+    @parameters
+        [haptic attack_level]
+    @effect
+        The attack_level of  the haptic to be used  in the theme.
+    @endproperty
+*/
+static void
+st_haptics_haptic_attack_level(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->attack_level = parse_int(0);
+   
+}
+
+/**
+    @page edcref
+    @property
+        fade_level
+    @parameters
+        [haptic fade_level]
+    @effect
+        The fade_level of  the haptic to be used  in the theme.
+    @endproperty
+*/
+static void
+st_haptics_haptic_fade_level(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->fade_level = parse_int(0);
+   
+}
+
+/**
+    @page edcref
+    @property
+        fade_time
+    @parameters
+        [haptic fade_time]
+    @effect
+        The fade_time of the haptic to be used  in the theme.
+    @endproperty
+*/
+static void
+st_haptics_haptic_fade_time(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->fade_time = parse_int(0);
+   
+}
+
+/**
+    @page edcref
+    @property
+        Haptic type
+    @parameters
+        [haptic type]
+    @effect
+        The Haptic types: EDJE_HAPTIC_EFFECT_PERIODIC,EDJE_HAPTIC_EFFECT_MAGSWEEP.
+    @endproperty
+*/
+static void
+st_haptics_haptic_type(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->type = parse_enum(0,
+		    "PERIODIC", EDJE_HAPTIC_EFFECT_PERIODIC,
+		    "MAGSWEEP", EDJE_HAPTIC_EFFECT_MAGSWEEP,
+             NULL);
 }
 
 /**
@@ -6809,7 +7090,8 @@ st_collections_group_programs_program_action(void)
 			   "FOCUS_OBJECT", EDJE_ACTION_TYPE_FOCUS_OBJECT,
 			   "PARAM_COPY", EDJE_ACTION_TYPE_PARAM_COPY,
 			   "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
-			   NULL);
+			   "TOUCH_SOUND", EDJE_ACTION_TYPE_TOUCH_SOUND,
+			   "TOUCH_HAPTIC", EDJE_ACTION_TYPE_TOUCH_HAPTIC, NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
 	ep->state = parse_str(1);
@@ -6819,6 +7101,17 @@ st_collections_group_programs_program_action(void)
      {
 	ep->state = parse_str(1);
 	ep->state2 = parse_str(2);
+     }
+   else if (ep->action == EDJE_ACTION_TYPE_TOUCH_SOUND)
+     {
+	ep->sound_name = parse_str(1);
+	ep->sound_iterations = parse_int(2);
+	ep->sound_volume = parse_int_range(3, 0, 100);
+     }
+   else if (ep->action == EDJE_ACTION_TYPE_TOUCH_HAPTIC)
+     {
+	ep->haptic_name = parse_str(1);
+	ep->haptic_iterations = parse_int(2);
      }
    else if (ep->action == EDJE_ACTION_TYPE_DRAG_VAL_SET)
      {
@@ -6884,6 +7177,12 @@ st_collections_group_programs_program_action(void)
 	 break;
       case EDJE_ACTION_TYPE_PARAM_SET:
 	 check_arg_count(4);
+	 break;
+      case EDJE_ACTION_TYPE_TOUCH_SOUND:
+ 	 check_arg_count(4);
+ 	 break;
+      case EDJE_ACTION_TYPE_TOUCH_HAPTIC:
+ 	 check_arg_count(2);
 	 break;
       default:
 	check_arg_count(3);

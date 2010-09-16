@@ -151,7 +151,9 @@ typedef enum _Edje_Action_Type
    EDJE_ACTION_TYPE_FOCUS_OBJECT  = 10,
    EDJE_ACTION_TYPE_PARAM_COPY    = 11,
    EDJE_ACTION_TYPE_PARAM_SET     = 12,
-   EDJE_ACTION_TYPE_LAST          = 13
+   EDJE_ACTION_TYPE_TOUCH_SOUND   = 13,
+   EDJE_ACTION_TYPE_TOUCH_HAPTIC  = 14,
+   EDJE_ACTION_TYPE_LAST          = 15
 } Edje_Action_Type;
 
 typedef enum _Edje_Tween_Mode
@@ -163,6 +165,13 @@ typedef enum _Edje_Tween_Mode
    EDJE_TWEEN_MODE_DECELERATE = 4,
    EDJE_TWEEN_MODE_LAST       = 5
 } Edje_Tween_Mode;
+
+typedef enum _Edje_Haptic_Effect_Type
+{
+   EDJE_HAPTIC_EFFECT_PERIODIC = 0,
+   EDJE_HAPTIC_EFFECT_MAGSWEEP = 1,
+   EDJE_HAPTIC_EFFECT_LAST     = 2
+} Edje_Haptic_Effect_Type;
 
 enum _Edje_Cursor
 {
@@ -450,7 +459,6 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI int          edje_collection_cache_get       (void);
    EAPI void         edje_collection_cache_flush     (void);
 
-
    /* edje_util.c */
    EAPI Eina_Bool    edje_color_class_set            (const char *color_class, int r, int g, int b, int a, int r2, int g2, int b2, int a2, int r3, int g3, int b3, int a3);
    EAPI Eina_Bool    edje_color_class_get            (const char *color_class, int *r, int *g, int *b, int *a, int *r2, int *g2, int *b2, int *a2, int *r3, int *g3, int *b3, int *a3);
@@ -630,6 +638,10 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI const Edje_Perspective *edje_evas_global_perspective_get(const Evas *e);
    EAPI void                    edje_object_perspective_set     (Evas_Object *obj, Edje_Perspective *ps);
    EAPI const Edje_Perspective *edje_object_perspective_get     (const Evas_Object *obj);
+
+   /* edje_multisense_ui.c */
+   EAPI Eina_Bool               edje_multisense_ui_sound_play(const char* sound_name, unsigned int iterations, unsigned int volume) ;
+   EAPI Eina_Bool               edje_multisense_ui_haptic_play(const char* haptic_name, unsigned int iterations);
    
 #ifdef __cplusplus
 }
