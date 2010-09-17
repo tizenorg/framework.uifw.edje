@@ -1,8 +1,8 @@
-edje (1.0.0.001+svn.51480slp2+build04) unstable; urgency=low
+edje (1.0.0.001+svn.51480slp2+build05) unstable; urgency=low
 
   * Support autoperiod, autocapital.
   * Git: 165.213.180.234:/git/slp/pkgs/edje
-  * Tag: edje_1.0.0.001+svn.51480slp2+build04
+  * Tag: edje_1.0.0.001+svn.51480slp2+build05
 
  -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 17 Sep 2010 16:43:56 +0900
 
