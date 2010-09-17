@@ -168,7 +168,11 @@ enum _Edje_Cursor
 {
    EDJE_CURSOR_MAIN,
    EDJE_CURSOR_SELECTION_BEGIN,
-   EDJE_CURSOR_SELECTION_END
+   EDJE_CURSOR_SELECTION_END,
+   EDJE_CURSOR_PREEDIT_START,
+   EDJE_CURSOR_PREEDIT_END,
+   EDJE_CURSOR_USER,
+   EDJE_CURSOR_USER_EXTRA,
    // more later
 };
 typedef enum _Edje_Cursor Edje_Cursor;
@@ -246,23 +250,23 @@ struct _Edje_Message_String_Float_Set
 enum
 {
    EDJE_DRAG_DIR_NONE = 0,
-     EDJE_DRAG_DIR_X = 1,
-     EDJE_DRAG_DIR_Y = 2,
-     EDJE_DRAG_DIR_XY = 3
+   EDJE_DRAG_DIR_X = 1,
+   EDJE_DRAG_DIR_Y = 2,
+   EDJE_DRAG_DIR_XY = 3
 };
 
 enum
 {
    EDJE_LOAD_ERROR_NONE = 0,
-     EDJE_LOAD_ERROR_GENERIC = 1,
-     EDJE_LOAD_ERROR_DOES_NOT_EXIST = 2,
-     EDJE_LOAD_ERROR_PERMISSION_DENIED = 3,
-     EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED = 4,
-     EDJE_LOAD_ERROR_CORRUPT_FILE = 5,
-     EDJE_LOAD_ERROR_UNKNOWN_FORMAT = 6,
-     EDJE_LOAD_ERROR_INCOMPATIBLE_FILE = 7,
-     EDJE_LOAD_ERROR_UNKNOWN_COLLECTION = 8,
-     EDJE_LOAD_ERROR_RECURSIVE_REFERENCE = 9
+   EDJE_LOAD_ERROR_GENERIC = 1,
+   EDJE_LOAD_ERROR_DOES_NOT_EXIST = 2,
+   EDJE_LOAD_ERROR_PERMISSION_DENIED = 3,
+   EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED = 4,
+   EDJE_LOAD_ERROR_CORRUPT_FILE = 5,
+   EDJE_LOAD_ERROR_UNKNOWN_FORMAT = 6,
+   EDJE_LOAD_ERROR_INCOMPATIBLE_FILE = 7,
+   EDJE_LOAD_ERROR_UNKNOWN_COLLECTION = 8,
+   EDJE_LOAD_ERROR_RECURSIVE_REFERENCE = 9
 };
 
 enum _Edje_External_Param_Type
@@ -537,6 +541,7 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI void             edje_object_part_text_cursor_copy                 (const Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst);
    EAPI void             edje_object_part_text_cursor_line_begin_set       (const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI void             edje_object_part_text_cursor_line_end_set         (const Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI Eina_Bool        edje_object_part_text_cursor_coord_set            (Evas_Object *obj, const char *part, Edje_Cursor cur, Evas_Coord x, Evas_Coord y);
    EAPI Eina_Bool        edje_object_part_text_cursor_is_format_get        (const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI Eina_Bool        edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI const char      *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);

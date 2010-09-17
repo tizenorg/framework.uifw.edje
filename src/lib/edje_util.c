@@ -2174,6 +2174,36 @@ edje_object_part_text_cursor_line_end_set(const Evas_Object *obj, const char *pa
 }
 
 /**
+ * Position the given cursor to a X,Y position.
+ *
+ * This is frequently used with the user cursor.
+ *
+ * @param obj An Edje object.
+ * @param part The part containing the object.
+ * @param cur The cursor to adjust.
+ * @param x X Coordinate.
+ * @param y Y Coordinate.
+ * @return True on success, false on error.
+ */
+EAPI Eina_Bool
+edje_object_part_text_cursor_coord_set(Evas_Object *obj, const char *part,
+		Edje_Cursor cur, Evas_Coord x, Evas_Coord y)
+{
+ Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return EINA_FALSE;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return EINA_FALSE;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     {
+        return _edje_entry_cursor_coord_set(rp, cur, x, y);
+     }
+   return EINA_FALSE;
+}
+
+/**
  * @brief XX
  *
  * @param obj A valid Evas_Object handle
