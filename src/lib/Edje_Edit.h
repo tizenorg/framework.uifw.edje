@@ -3142,6 +3142,28 @@ EAPI Eina_Bool edje_edit_program_after_add(Evas_Object *obj, const char *prog, c
  * @return EINA_TRUE is succesful or not in the list, EINA_FALSE otherwise.
  */
 EAPI Eina_Bool edje_edit_program_after_del(Evas_Object *obj, const char *prog, const char *after);
+EAPI const char*
+edje_edit_program_sound_name_get(
+	Evas_Object *obj,       ///< The edje object
+   const char *prog        ///< The program name
+);
+EAPI Eina_Bool         ///@return 1 on success or 0 on errors
+edje_edit_program_sound_name_set(
+   Evas_Object *obj,       ///< The edje object
+   const char *prog,       ///< The program name
+   const char *sound_name       ///< The sound_name to set 
+);
+EAPI const char*
+edje_edit_program_haptic_name_get(
+	Evas_Object *obj,       ///< The edje object
+   const char *prog        ///< The program name
+);
+EAPI Eina_Bool         ///@return 1 on success or 0 on errors
+edje_edit_program_haptic_name_set(
+   Evas_Object *obj,       ///< The edje object
+   const char *prog,       ///< The program name
+   const char *haptic_name       ///< The haptic_name to set 
+);
 
 /** Clear the 'afters' list of the given program.
  *

@@ -38,6 +38,7 @@ typedef struct _Part_Lookup Part_Lookup;
 typedef struct _Program_Lookup Program_Lookup;
 typedef struct _Group_Lookup Group_Lookup;
 typedef struct _Image_Lookup Image_Lookup;
+typedef struct _String_Lookup Sound_Lookup;
 typedef struct _Slave_Lookup Slave_Lookup;
 typedef struct _Code_Lookup Code_Lookup;
 
@@ -104,12 +105,15 @@ Eina_List *code_lookups = NULL;
 Eina_List *aliases = NULL;
 
 static Eet_Data_Descriptor *edd_edje_file = NULL;
+static Eet_Data_Descriptor *edd_edje_sound_directory = NULL;
+static Eet_Data_Descriptor *edd_edje_sound_info = NULL;
 static Eet_Data_Descriptor *edd_edje_part_collection = NULL;
 
 static Eina_List *part_lookups = NULL;
 static Eina_List *program_lookups = NULL;
 static Eina_List *group_lookups = NULL;
 static Eina_List *image_lookups = NULL;
+static Eina_List *sound_lookups = NULL;
 static Eina_List *part_slave_lookups = NULL;
 static Eina_List *image_slave_lookups= NULL;
 
@@ -135,6 +139,8 @@ void
 data_setup(void)
 {
    edd_edje_file = _edje_edd_edje_file;
+   edd_edje_sound_directory = _edje_edd_edje_sound_directory;
+   edd_edje_sound_info = _edje_edd_edje_sound_info;
    edd_edje_part_collection = _edje_edd_edje_part_collection;
 }
 
@@ -628,6 +634,65 @@ data_write_images(Eet_File *ef, int *image_num, int *input_bytes, int *input_raw
    return total_bytes;
 }
 
+//TODO: cleanup - AMIT
+static int
+data_write_sounds(Eet_File * ef, int *sound_num, int *input_bytes,
+		  int *input_raw_bytes)
+{
+   Eina_List *l;
+   long bytes = 0;
+   long total_bytes = 0;
+
+   if ((edje_file) && (edje_file->sound_dir))
+     {
+	Edje_Sound_Info *snd;
+	EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, snd)
+	{
+	   char *data = NULL;
+	   Eina_List *ll;
+	   char buf1[4096];
+	   char buf[4096];
+	   EINA_LIST_FOREACH(snd_dirs, ll, data)
+	   {
+	      void *fdata = NULL;
+	      long fsize = 0;
+	      FILE *f = NULL;
+	      struct stat st;
+	      long size = 0;
+	      snprintf(buf1, sizeof(buf1), "%s/%s", data, snd->name);
+	      f = fopen(buf1, "rb");
+	      if (f == NULL)
+		 continue;
+	      else
+		{
+		   stat(buf1, &st);
+		   size = st.st_size;
+		   snprintf(buf, sizeof(buf), "sounds/%i", snd->id);
+		   fdata = malloc(sizeof(char) * size);
+		   if (fdata)
+		     {
+			if (fread(fdata, size, 1, f) != 1)
+			   fsize = size;
+			bytes = eet_write(ef, buf, fdata, size, 1);
+			*sound_num += 1;
+			total_bytes += bytes;
+			*input_bytes += size;
+			*input_raw_bytes += fsize;
+			free(fdata);
+		     }
+		   if (verbose)
+		     {
+			printf
+			   ("%s: Wrote %9i bytes (%4iKb) for \"%s\" sound entry is  \"%s\" \n",
+			    progname, bytes, (bytes + 512) / 1024, buf, buf1);
+		     }
+		   fclose(f);
+		}
+	   }
+	}
+     }
+   return (total_bytes);
+}
 static void
 check_groups(Eet_File *ef)
 {
@@ -1017,6 +1082,7 @@ data_write(void)
    int fmap_bytes = 0;
    int input_raw_bytes = 0;
    int image_num = 0;
+   int sound_num = 0;
    int font_num = 0;
    int collection_num = 0;
 
@@ -1042,6 +1108,8 @@ data_write(void)
 				   &input_raw_bytes);
    total_bytes += data_write_images(ef, &image_num, &input_bytes,
 				    &input_raw_bytes);
+   total_bytes += data_write_sounds(ef, &sound_num, &input_bytes,
+				    &input_raw_bytes);
 
    total_bytes += data_write_groups(ef, &collection_num);
    data_write_scripts(ef);
@@ -1065,6 +1133,7 @@ data_write(void)
 	printf("Summary:\n"
 	       "  Wrote %i collections\n"
 	       "  Wrote %i images\n"
+	       "  Wrote %i sounds\n"
 	       "  Wrote %i fonts\n"
 	       "  Wrote %i bytes (%iKb) of original source data\n"
 	       "  Wrote %i bytes (%iKb) of original source font map\n"
@@ -1079,6 +1148,7 @@ data_write(void)
 	       ,
 	       collection_num,
 	       image_num,
+	       sound_num,
 	       font_num,
 	       src_bytes, (src_bytes + 512) / 1024,
 	       fmap_bytes, (fmap_bytes + 512) / 1024,
@@ -1139,6 +1209,16 @@ data_queue_image_lookup(char *name, int *dest, Eina_Bool *set)
    il->name = mem_strdup(name);
    il->dest = dest;
    il->set = set;
+}
+void
+data_queue_sound_lookup(char *name, int *dest)
+{
+   Sound_Lookup *il;
+   Eina_List *l;
+   il = mem_alloc(SZ(Sound_Lookup));
+   sound_lookups = eina_list_append(sound_lookups, il);
+   il->name = mem_strdup(name);
+   il->dest = dest;
 }
 
 void
@@ -1351,6 +1431,34 @@ data_process_lookups(void)
 
    EINA_LIST_FREE(image_slave_lookups, data)
      free(data);
+while (sound_lookups)
+     {
+	Sound_Lookup *il;
+	Edje_Sound_Info *de;
+	il = eina_list_data_get(sound_lookups);
+	if (!edje_file->sound_dir)
+	   l = NULL;
+	else
+	  {
+	     EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, de)
+	     {
+		if ((de->name) && (!strcmp(de->name, il->name)))
+		  {
+		     *(il->dest) = de->id;
+		     break;
+		  }
+	     }
+	  }
+	if (!l)
+	  {
+	     ERR("%s: Error. Unable to find sound name \"%s\".",
+		 progname, il->name);
+	     exit(-1);
+	  }
+	sound_lookups = eina_list_remove(sound_lookups, il);
+	free(il->name);
+	free(il);
+     }
 }
 
 static void

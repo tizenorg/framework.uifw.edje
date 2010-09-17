@@ -2,6 +2,11 @@
 
 #include "edje_private.h"
 
+#include <Ecore_File.h>
+#include <Ecore_Evas.h>
+
+static int sound_to_be_loaded = 1;
+
 #ifdef EDJE_PROGRAM_CACHE
 static Eina_Bool  _edje_collection_free_prog_cache_matches_free_cb(const Eina_Hash *hash, const void *key, void *data, void *fdata);
 #endif
@@ -343,6 +348,67 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 
    ed->load_error = EDJE_LOAD_ERROR_NONE;
    _edje_file_add(ed);
+   if (ed->file && ed->file->sound_dir && sound_to_be_loaded)
+     {
+	char out[PATH_MAX];
+	char out1[PATH_MAX];
+	char *p;
+	Eet_File *ef;
+	Edje_Sound_Info *snd_info;
+	const Eina_List *n;
+	sound_to_be_loaded = 0;
+	p = strrchr(file, '/');
+	if (p)
+	   ed->file->outdir_for_sound = strndup(file, p);
+	else
+	   ed->file->outdir_for_sound = strdup(file);
+	p = strrchr(ed->file->outdir_for_sound, '.');
+	if (p)
+	   *p = 0;
+	ecore_file_mkpath(ed->file->outdir_for_sound);
+	ef = eet_open(file, EET_FILE_MODE_READ);
+	if (!ef)
+	  {
+	     ERR("ERROR: cannot open %s", file);
+	     return 0;
+	  }
+	EINA_LIST_FOREACH(ed->file->sound_dir->entries, n, snd_info)
+	{
+	   void *sound_data;
+	   char *pp;
+	   long sound_data_size;
+	   char *tmp;
+	   int errno;
+	   snprintf(out, sizeof(out), "sounds/%i", snd_info->id);
+	   sound_data = eet_read(ef, out, &sound_data_size);
+	   if (sound_data)
+	     {
+		FILE *f;
+		snprintf(out1, sizeof(out1), "%s/%s",
+			 ed->file->outdir_for_sound, snd_info->name);
+		pp = strdup(out1);
+		p = strrchr(pp, '/');
+		*p = 0;
+		if (strstr(pp, "../"))
+		  {
+		     ERR("Potential security violation. attempt to write in parent dir.");
+		     exit(-1);
+		  }
+		ecore_file_mkpath(pp);
+		free(pp);
+		if (strstr(out, "../"))
+		  {
+		     ERR("Potential security violation. attempt to write in parent dir.");
+		     exit(-1);
+		  }
+		f = fopen(out1, "wb");
+		if (fwrite(sound_data, sound_data_size, 1, f) != 1)
+		   ERR("Could not write sound: %s", strerror(errno));
+		fclose(f);
+		free(sound_data);
+	     }
+	}
+     }
 
    if (ed->file && ed->file->external_dir)
      {

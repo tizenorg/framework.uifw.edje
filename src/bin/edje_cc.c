@@ -12,6 +12,7 @@
 int _edje_cc_log_dom = -1;
 static void main_help(void);
 
+Eina_List *snd_dirs = NULL;
 Eina_List *img_dirs = NULL;
 Eina_List *fnt_dirs = NULL;
 Eina_List *defines = NULL;
@@ -38,6 +39,7 @@ main_help(void)
       "\n"
       "-id image/directory      Add a directory to look in for relative path images\n"
       "-fd font/directory       Add a directory to look in for relative path fonts\n"
+      "-sd sound/directory      Add a directory to look in for relative path sounds\n"
       "-td temp/directory       Directory to store temporary files\n"
       "-v                       Verbose output\n"
       "-no-lossy                Do NOT allow images to be lossy\n"
@@ -105,6 +107,11 @@ main(int argc, char **argv)
 	     i++;
 	     fnt_dirs = eina_list_append(fnt_dirs, argv[i]);
 	  }
+	else if ((!strcmp(argv[i], "-sd") || !strcmp(argv[i], "--sound_dir")) && (i < (argc - 1)))
+      {
+         i++;
+         snd_dirs = eina_list_append(snd_dirs, argv[i]);
+      }
 	else if ((!strcmp(argv[i], "-td") || !strcmp(argv[i], "--tmp_dir")) && (i < (argc - 1)))
 	  {
 	     i++;

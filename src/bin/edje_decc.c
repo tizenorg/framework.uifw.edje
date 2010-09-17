@@ -31,6 +31,7 @@ int line = 0;
 int build_sh = 1;
 int new_dir = 1;
 
+#define PATH_MAX 1024
 int        decomp(void);
 void       output(void);
 static int compiler_cmd_is_sane();
@@ -361,6 +362,50 @@ output(void)
 
 	chmod(out, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP);
 
+     }
+
+     //TODO: cleanup - AMIT
+   if (edje_file->sound_dir)
+     {
+	Edje_Sound_Info *ei;
+	EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, ei)
+	{
+	   if (ei->name)
+	     {
+		void *sound_data;
+		char out[PATH_MAX];
+		char out1[PATH_MAX];
+		char *pp;
+		long sound_data_size;
+		snprintf(out, sizeof(out), "sounds/%i", ei->id);
+		sound_data = eet_read(ef, out, &sound_data_size);
+		if (sound_data)
+		  {
+		     FILE *f;
+		     snprintf(out1, sizeof(out1), "%s/%s", outdir, ei->name);
+		     pp = strdup(out1);
+		     p = strrchr(pp, '/');
+		     *p = 0;
+		     if (strstr(pp, "../"))
+		       {
+			  ERR("Potential security violation. attempt to write in parent dir.");
+			  exit(-1);
+		       }
+		     ecore_file_mkpath(pp);
+		     free(pp);
+		     if (strstr(out, "../"))
+		       {
+			  ERR("Potential security violation. attempt to write in parent dir.");
+			  exit(-1);
+		       }
+		     f = fopen(out1, "wb");
+		     if (fwrite(sound_data, sound_data_size, 1, f) != 1)
+			ERR("Could not write sound: %s", strerror(errno));
+		     fclose(f);
+		     free(sound_data);
+		  }
+	     }
+	}
      }
    eet_close(ef);
 }

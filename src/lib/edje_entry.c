@@ -3033,11 +3033,7 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
    /*if inputtin text is not allowed, dont allow text input*/
    if ((en->func) && !en->have_composition)
      if (en->func(en->data, preedit_string))
-       return 1;
-
-   // FIXME : check the maximum length of evas_textblock
-   if ( 0 /* check the maximum length of evas_textblock */ )
-     return ECORE_CALLBACK_PASS_ON;
+       return ECORE_CALLBACK_PASS_ON;
 
    if (en->have_selection)
      {
