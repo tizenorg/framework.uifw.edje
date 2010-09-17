@@ -106,78 +106,90 @@ struct _Anchor
 };
 
 static Eina_Bool
-_punctuation_check(Evas_Textblock_Cursor *cur1, Evas_Textblock_Cursor *cur2)
+_punctuation_check(Entry *en)
 {
-   char *prev_str;
+   Evas_Textblock_Cursor *tc;
+   char *str;
    Eina_Bool ret = EINA_FALSE;
    unsigned int len = 0;
 
-   prev_str = evas_textblock_cursor_range_text_get(cur1, cur2, EVAS_TEXTBLOCK_TEXT_MARKUP);
-   if (!prev_str) return EINA_FALSE;
-   len = strlen(prev_str);
+   if (!en || !en->rp || !en->rp->object) return EINA_FALSE;
 
-   if (len == 2)
+   tc = evas_object_textblock_cursor_new(en->rp->object);
+   evas_textblock_cursor_copy(en->cursor, tc);
+
+   if (!evas_textblock_cursor_char_prev(tc)) 
      {
-        if ( (prev_str[0] == '.' || prev_str[0] == '!' || prev_str[0] == '?') 
-             && prev_str[1] == ' ') 
+        ret = EINA_TRUE;
+        goto done;
+     }
+
+   str = evas_textblock_cursor_range_text_get(tc, en->cursor, EVAS_TEXTBLOCK_TEXT_MARKUP);
+   if (!str) goto done;
+
+   if (strlen(str) == 4 && !strcmp(str, "<ps>"))
+     {
+        ret = EINA_TRUE;
+     }
+   else
+     {
+        if (evas_textblock_cursor_char_prev(tc)) 
           {
-             ret = EINA_TRUE;
+             str = evas_textblock_cursor_range_text_get(tc, en->cursor, EVAS_TEXTBLOCK_TEXT_MARKUP);
+             if (!str) goto done;
+             len = strlen(str);
+
+             if (len == 2)
+               {
+                  if ( (str[0] == '.' || str[0] == '!' || str[0] == '?') 
+                       && str[1] == ' ') 
+                    {
+                       ret = EINA_TRUE;
+                    }
+               }
+
+             free(str);
           }
      }
 
-   free(prev_str);
+done:
+   evas_textblock_cursor_free(tc);
 
    return ret;
 }
 
 static void
-_caps_mode_check(Edje_Real_Part *rp)
+_caps_mode_check(Entry *en)
 {
-   Entry *en;
-   char *prev_str;
-   Evas_Textblock_Cursor *tc;
-
 #ifdef HAVE_ECORE_IMF
    Ecore_IMF_Input_Panel_Caps_Mode caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_OFF;
 
-   if (!rp) return;
-   en = rp->entry_data;
    if (!en || !en->autocapital) return;
 
-   tc = evas_object_textblock_cursor_new(rp->object);
-   evas_textblock_cursor_copy(en->cursor, tc);
-
-   if (evas_textblock_cursor_char_prev(tc)) 
+   if (_punctuation_check(en))
      {
-        prev_str = evas_textblock_cursor_range_text_get(tc, en->cursor, EVAS_TEXTBLOCK_TEXT_MARKUP);
-        if (prev_str)
-        {
-           if (strlen(prev_str) == 4 && !strcmp(prev_str, "<ps>"))
-             {
-                caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_ON;
-             }
-           else
-             {
-                if (evas_textblock_cursor_char_prev(tc)) 
-                  {
-                     if (_punctuation_check(tc, en->cursor))
-                       {
-                          caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_ON;
-                       }
-                  }
-             }
-           free(prev_str);
-        }
+        caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_ON;
      }
-   else 
-     {
-     	caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_ON;
-     }
-
-   evas_textblock_cursor_free(tc);
 
    ecore_imf_context_input_panel_caps_mode_set(en->imf_context, caps_mode);
 #endif
+}
+
+static void
+_text_prepend(Entry *en, const char *text)
+{
+   char *text2;
+
+   text2 = strdup(text);
+   if (!text2) return;
+
+   if (_punctuation_check(en))
+     {
+        text2[0] = toupper(text2[0]);
+     }
+
+   evas_textblock_cursor_text_prepend(en->cursor, text2);
+   free(text2);
 }
 
 #ifdef HAVE_ECORE_IMF   
@@ -229,7 +241,7 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
              ecore_imf_context_input_panel_show(en->imf_context);
           }
 
-        _caps_mode_check(rp);
+        _caps_mode_check(en);
      }
 }
 
@@ -1213,7 +1225,7 @@ _autoperiod_insert(Edje_Real_Part *rp)
    en = rp->entry_data;
    if (!en || !en->autoperiod) return;
 
-   if ((ecore_time_get() - en->space_key_time) > 1.0)
+   if ((ecore_time_get() - en->space_key_time) > 0.6)
      {
         goto done;
      }
@@ -1249,6 +1261,7 @@ done:
    en->space_key_time = ecore_time_get();
 }
 
+#if 0
 static void
 _get_autocapitalized_str(Evas_Textblock_Cursor *cur1, Evas_Textblock_Cursor *cur2, char *str)
 {
@@ -1271,6 +1284,8 @@ _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
    if (!en || !en->autocapital) return;
 
    commit_string = strdup(str);
+   if (!commit_string) return;
+
    len = strlen(str);
 
    if (len == 1 && islower(str[0])) 
@@ -1295,11 +1310,9 @@ _autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
 
    evas_textblock_cursor_text_prepend(en->cursor, commit_string);
 
-   if (commit_string) 
-     {
-        free(commit_string);
-     }
+   free(commit_string);
 }
+#endif
 
 static Eina_Bool 
 _select_mode_cb(void *data)
@@ -1669,8 +1682,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                 if (en->func(en->data, (void *)ev->string))
                    return;
 
-             _autocapitalized_text_prepend(rp, ev->string);
-             //evas_textblock_cursor_text_prepend(en->cursor, ev->string);	  
+             _text_prepend(en, ev->string);
+             //evas_textblock_cursor_text_prepend(en->cursor, ev->string);
              /*count characters*/
              if(en->func)
                 en->func(en->data, NULL);	    				
@@ -1690,7 +1703,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if ((evas_textblock_cursor_compare(tc, en->cursor)) && (!cursor_changed))
         _edje_emit(ed, "cursor,changed", rp->part->name);
 
-   _caps_mode_check(rp);
+   _caps_mode_check(en);
 
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
@@ -1893,7 +1906,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (evas_textblock_cursor_compare(tc, en->cursor))
      {
         _edje_emit(rp->edje, "cursor,changed", rp->part->name);
-        _caps_mode_check(rp);
+        _caps_mode_check(en);
      }
 
 #ifdef HAVE_ECORE_IMF
@@ -3104,8 +3117,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
       if (en->func(en->data,ev->str))
          return 1;
 
-   _autocapitalized_text_prepend(rp, ev->str);
-   //evas_textblock_cursor_text_prepend(en->cursor, ev->str);	  
+   _text_prepend(en, ev->str);
+   //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
+
    /*count characters*/
    if (en->func)
       en->func(en->data,NULL);				
@@ -3119,7 +3133,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_emit(ed, "cursor,changed", rp->part->name);
 
-   _caps_mode_check(rp);
+   _caps_mode_check(en);
 
    return ECORE_CALLBACK_DONE;
 }
