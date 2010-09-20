@@ -1906,7 +1906,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (evas_textblock_cursor_compare(tc, en->cursor))
      {
         _edje_emit(rp->edje, "cursor,changed", rp->part->name);
-        _caps_mode_check(en);
      }
 
 #ifdef HAVE_ECORE_IMF
@@ -1915,12 +1914,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_cursor_position_set(en->imf_context,
                                               evas_textblock_cursor_pos_get(en->cursor));
-
-        if (en->input_panel_enable)
-          {
-             keypad_show = EINA_TRUE;
-             ecore_imf_context_input_panel_show(en->imf_context);
-          }
      }
 #endif /* HAVE_ECORE_IMF */
 
@@ -1993,8 +1986,16 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_cursor_position_set(en->imf_context,
                                               evas_textblock_cursor_pos_get(en->cursor));
+
+        if (en->input_panel_enable)
+          {
+             keypad_show = EINA_TRUE;
+             ecore_imf_context_input_panel_show(en->imf_context);
+          }
      }
 #endif
+
+   _caps_mode_check(en);
    
    _edje_entry_real_part_configure(rp);
 
