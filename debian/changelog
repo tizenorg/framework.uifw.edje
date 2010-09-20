@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build07) unstable; urgency=low
+
+  * repackaging for endtry password 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build07
+
+ -- ChunEon Park <chuneon.park@samsung.com>  Mon, 20 Sep 2010 20:49:45 +0900
+
 edje (1.0.0.001+svn.51480slp2+build06) unstable; urgency=low
 
   * Support autoperiod, autocapital.
