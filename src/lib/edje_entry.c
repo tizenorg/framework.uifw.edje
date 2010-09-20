@@ -114,6 +114,7 @@ _punctuation_check(Entry *en)
    unsigned int len = 0;
 
    if (!en || !en->rp || !en->rp->object) return EINA_FALSE;
+   if (!en->autocapital) return EINA_FALSE;
 
    tc = evas_object_textblock_cursor_new(en->rp->object);
    evas_textblock_cursor_copy(en->cursor, tc);
