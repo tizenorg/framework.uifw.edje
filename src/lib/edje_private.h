@@ -488,7 +488,6 @@ struct _Edje_Program /* a conditional program to be run */
    const char *source; /* if part that emitted this (name) matches this glob */
    const char *sound_name;/*name of sound to be played*/
    int sound_iterations;
-   int sound_volume;
    char *haptic_name;
    int haptic_iterations;
 

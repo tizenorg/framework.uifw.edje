@@ -31,7 +31,6 @@ int line = 0;
 int build_sh = 1;
 int new_dir = 1;
 
-#define PATH_MAX 1024
 int        decomp(void);
 void       output(void);
 static int compiler_cmd_is_sane();
@@ -364,25 +363,32 @@ output(void)
 
      }
 
-     //TODO: cleanup - AMIT
    if (edje_file->sound_dir)
-     {
-	Edje_Sound_Info *ei;
-	EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, ei)
+    {
+	Edje_Sound_Info *sndinfo;
+	void *sound_data;
+	char out[PATH_MAX];
+	char out1[PATH_MAX];
+	char *pp;
+	long sound_data_size;
+	FILE *f;
+	Eina_List *l ;
+	int index = 0;
+	
+	EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, sndinfo)
 	{
-	   if (ei->name)
+	if (NULL == sndinfo)
+		continue;
+	   if(sndinfo!=NULL)
+	   {	
+	   if (sndinfo->name)
 	     {
-		void *sound_data;
-		char out[PATH_MAX];
-		char out1[PATH_MAX];
-		char *pp;
-		long sound_data_size;
-		snprintf(out, sizeof(out), "sounds/%i", ei->id);
+		snprintf(out, sizeof(out), "sounds/%i", index++);
+		printf("\n\n out=%s\n\n", out);
 		sound_data = eet_read(ef, out, &sound_data_size);
 		if (sound_data)
-		  {
-		     FILE *f;
-		     snprintf(out1, sizeof(out1), "%s/%s", outdir, ei->name);
+        	{
+		     snprintf(out1, sizeof(out1), "%s/%s\0", outdir, sndinfo->name);
 		     pp = strdup(out1);
 		     p = strrchr(pp, '/');
 		     *p = 0;
@@ -405,6 +411,7 @@ output(void)
 		     free(sound_data);
 		  }
 	     }
+		}
 	}
      }
    eet_close(ef);

@@ -644,10 +644,9 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI void                    edje_object_perspective_set     (Evas_Object *obj, Edje_Perspective *ps);
    EAPI const Edje_Perspective *edje_object_perspective_get     (const Evas_Object *obj);
 
-   /* edje_multisense_ui.c */
-   EAPI Eina_Bool               edje_multisense_ui_sound_play(const char* sound_name, unsigned int iterations, unsigned int volume) ;
-   EAPI Eina_Bool               edje_multisense_ui_haptic_play(const char* haptic_name, unsigned int iterations);
-   
+   EAPI Eina_Bool               edje_multisense_ui_sound_play(Evas_Object *obj, const char* sound_name, unsigned int iterations);
+   EAPI Eina_Bool               edje_multisense_ui_haptic_play(Evas_Object *obj, const char* haptic_name, unsigned int iterations);
+
 #ifdef __cplusplus
 }
 #endif

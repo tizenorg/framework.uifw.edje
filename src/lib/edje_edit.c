@@ -200,6 +200,134 @@ _edje_part_description_find_byname(Edje_Edit *eed, const char *part, const char 
 }
 
 static int
+_edje_sound_id_find(Evas_Object *obj, const char *sound_name)
+{
+   Eina_List *l ;
+   Edje_Sound_Info *sound ;
+   GET_ED_OR_RETURN(-1);
+   if (!ed->file) return -1;
+   if (!ed->file->sound_dir) return -1; 
+   EINA_LIST_FOREACH(ed->file->sound_dir->entries, l, sound)
+      {
+          if(!strcmp(sound->name,sound_name))
+             {
+	          return(sound->id) ;   
+		}
+   	}
+   return -1;
+}
+static const char *
+_edje_sound_name_find(Evas_Object *obj, int sound_id)
+{  
+   Eina_List *l ;
+   Edje_Sound_Info *sound ;
+   GET_ED_OR_RETURN(NULL);
+   if (!ed->file) return NULL;
+   if (!ed->file->sound_dir) return NULL ;
+  EINA_LIST_FOREACH(ed->file->sound_dir->entries, l, sound)
+      {
+          if(sound->id==sound_id)
+             {
+	          return(sound->name) ;   
+		}
+   	}
+   return -1;
+}
+static Edje_Sound_Info*
+_edje_edit_sound_info_get(Edje *ed, const char *sound_name)
+{
+   Eina_List *l;
+   Edje_Sound_Info *sound;
+   if (!ed || !ed->file || !ed->file->sound_dir|| !sound_name)
+      return NULL;
+   EINA_LIST_FOREACH(ed->file->sound_dir->entries, l, sound)
+      {
+         if (sound->name && !strcmp(sound->name, sound_name))
+         return sound;
+   	}
+   return NULL;
+}
+EAPI int
+edje_edit_sound_info_start_point_get(Evas_Object * obj, const char* sound_name)
+{
+	Edje_Sound_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_sound_info_get(ed, sound_name);
+	if (!s) return;
+	return (s->start_point);
+}
+EAPI Eina_Bool
+edje_edit_sound_start_point_set(Evas_Object * obj,const char *sound,int new_start_point)
+{
+   Edje_Sound_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_sound_info_get(ed, sound) ;
+   s->start_point = new_start_point;
+   return 1;
+}
+EAPI int
+edje_edit_sound_info_end_point_get(Evas_Object * obj, const char* sound_name)
+{
+	Edje_Sound_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_sound_info_get(ed, sound_name);
+	if (!s) return;
+	return (s->end_point);
+}
+EAPI Eina_Bool
+edje_edit_sound_end_point_set(Evas_Object * obj,const char *sound,int new_end_point)
+{
+   Edje_Sound_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_sound_info_get(ed, sound) ;
+   s->end_point = new_end_point;
+   return 1;
+}
+EAPI Eina_Bool
+edje_edit_sound_add(Evas_Object *obj, const char* path)
+{
+   Edje_Sound_Info *sound,*snd;
+   unsigned int i;
+   Eina_List *l ;
+   int free_id = 0;
+   char *name;
+   GET_ED_OR_RETURN(EINA_FALSE);
+   if (!path) return EINA_FALSE;
+   if (!ed->file) return EINA_FALSE;
+   if (!ed->path) return EINA_FALSE;
+   if (!ed->file->sound_dir)
+     {
+	ed->file->sound_dir = _alloc(sizeof(Edje_Sound_Directory));
+	if (!ed->file->sound_dir) return EINA_FALSE;
+     }
+
+   /* Sound name */
+   if ((name = strrchr(path, '/'))) name++;
+   else name = (char *)path;
+
+   /* Loop through sound directory to find if sound exist */
+      EINA_LIST_FOREACH(ed->file->sound_dir->entries, l, sound)
+      {  if(sound->name)
+   	     {
+                if (!strcmp(sound->name,name))
+                  {  
+	               return EINA_TRUE ;   
+		     }
+		  free_id++ ;	   	  
+   	     }
+   	}
+   /******Check The Implementation****************
+       snd = mem_alloc(SZ(Edje_Sound_Info));
+	snd->name = mem_alloc(SZ(name)) ;
+	strcpy(snd->name,name) ;
+	snd->id=free_id ;
+	ed->file->sound_dir->entries =
+      eina_list_append(ed->file->sound_dir->entries, snd);
+   	return EINA_TRUE;
+   	
+   /************	Check The Implementation*************/
+}
+static int
 _edje_image_id_find(Evas_Object *obj, const char *image_name)
 {
    unsigned int i;
@@ -750,6 +878,231 @@ _edje_edit_style_tag_get(Edje *ed, const char *style, const char *name)
    return NULL;
 }
 
+static Edje_Haptic_Info*
+_edje_edit_haptic_get(Edje *ed, const char *name)
+{
+   Eina_List *l;
+   Edje_Haptic_Info *s;
+   if (!ed || !ed->file || !ed->file->haptics|| !name)
+      return NULL;
+   EINA_LIST_FOREACH(ed->file->haptics, l, s)
+      if (s->name && !strcmp(s->name, name))
+         return s;
+   return NULL;
+}
+EAPI Eina_List *
+edje_edit_haptics_list_get(Evas_Object * obj)
+{
+   Eina_List *haptics = NULL;
+   Eina_List *l;
+   Edje_Style *s;
+   GET_ED_OR_RETURN(NULL);
+   if (!ed->file || !ed->file->haptics)
+      return NULL;
+   EINA_LIST_FOREACH(ed->file->haptics, l, s)
+     haptics = eina_list_append(haptics, eina_stringshare_add(s->name));
+   return haptics;
+}
+/*Check Implementation*/
+EAPI Eina_Bool
+edje_edit_haptic_add(Evas_Object * obj, const char* haptic)
+{
+   Edje_Haptic_Info *s;
+   GET_ED_OR_RETURN(EINA_FALSE);
+   s = _edje_edit_haptic_get(ed, haptic);
+   if (s) return EINA_FALSE;
+   s = _alloc(sizeof(Edje_Haptic_Info));
+   if (!s) return EINA_FALSE;
+   s->name = (char*)eina_stringshare_add(haptic);
+   s->pattern = NULL;
+/*??????????IS IT REQUIRED*???? */
+   s->type = 0;
+   s->attack_level = 0 ;
+   s->attack_time = 0 ;
+   s->duration = 0 ;
+   s->fade_level = 0 ;
+   s->fade_time = 0  ;/***TiLL Here i thinnk Not required***/
+   ed->file->haptics = eina_list_append(ed->file->haptics, s);
+   s->id = eina_list_count(ed->file->haptics) - 1;
+   return EINA_TRUE;
+}
+EAPI void
+edje_edit_haptic_del(Evas_Object * obj, const char* haptic)
+{
+   Edje_Haptic_Info *s;
+   GET_ED_OR_RETURN();
+   s = _edje_edit_haptic_get(ed, haptic);
+   if (!s) return;
+   ed->file->haptics = eina_list_remove(ed->file->haptics, s);
+   _edje_if_string_free(ed, s->name);
+   free(s->pattern) ;
+   free(s);
+   s = NULL;
+}
+EAPI const char *
+edje_edit_haptic_name_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return eina_stringshare_add(s->name);
+}
+EAPI Eina_Bool
+edje_edit_haptic_name_set(Evas_Object * obj,const char *haptic,const char *new_name)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic);
+   _edje_if_string_free(ed, s->name);
+   s->name = eina_stringshare_add(new_name);
+   return 1;
+}
+EAPI const char *
+edje_edit_haptic_pattern_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return eina_stringshare_add(s->pattern);
+}
+EAPI Eina_Bool
+edje_edit_haptic_pattern_set(Evas_Object * obj,const char *haptic,const char *new_pattern)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic);
+   _edje_if_string_free(ed, s->pattern);
+   s->pattern = eina_stringshare_add(new_pattern);
+   return 1;
+}
+EAPI int
+edje_edit_haptic_attack_level_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->attack_level);
+}
+EAPI Eina_Bool
+edje_edit_haptic_attack_level_set(Evas_Object * obj,const char *haptic,int new_attack_level)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->attack_level= new_attack_level;
+   return 1;
+}
+EAPI int
+edje_edit_haptic_attack_time_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->attack_time);
+}
+EAPI Eina_Bool
+edje_edit_haptic_attack_time_set(Evas_Object * obj,const char *haptic,int new_attack_time)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->attack_level= new_attack_time;
+   return 1;
+}
+EAPI int
+edje_edit_haptic_fade_level_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->fade_level);
+}
+EAPI Eina_Bool
+edje_edit_haptic_fade_level_set(Evas_Object * obj,const char *haptic,int new_fade_level)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->fade_level= new_fade_level;
+   return 1;
+}
+EAPI int
+edje_edit_haptic_fade_time_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->fade_time);
+}
+EAPI Eina_Bool
+edje_edit_haptic_fade_time_set(Evas_Object * obj,const char *haptic,int new_fade_time)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->fade_level= new_fade_time;
+   return 1;
+}
+EAPI int
+edje_edit_haptic_duration_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->duration);
+}
+EAPI Eina_Bool
+edje_edit_haptic_duration_set(Evas_Object * obj,const char *haptic,int new_duration)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->duration= new_duration;
+   return 1;
+}
+EAPI int
+edje_edit_haptic_magnitude_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->magnitude);	
+}
+EAPI Eina_Bool
+edje_edit_haptic_magnitude_set(Evas_Object * obj,const char *haptic,int new_magnitude)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->magnitude= new_magnitude;
+   return 1;
+}
+EAPI int
+edje_edit_haptic_type_get(Evas_Object * obj, const char* haptic_name)
+{
+	Edje_Haptic_Info *s ;
+	GET_ED_OR_RETURN();
+       s = _edje_edit_haptic_get(ed, haptic_name);
+	if (!s) return;
+	return (s->type);	
+}
+EAPI Eina_Bool
+edje_edit_haptic_type_set(Evas_Object * obj,const char *haptic,int new_type)
+{
+   Edje_Haptic_Info *s ;
+   GET_ED_OR_RETURN(0);
+   s = _edje_edit_haptic_get(ed, haptic) ;
+   s->type= new_type;
+   return 1;
+}
 static Edje_External_Directory_Entry *
 _edje_edit_external_get(Edje *ed, const char *name)
 {
@@ -4945,6 +5298,7 @@ edje_edit_program_sound_name_get(Evas_Object * obj, const char *prog)
       return NULL;
    return eina_stringshare_add(epr->sound_name);
 }
+
 EAPI Eina_Bool
 edje_edit_program_sound_name_set(Evas_Object * obj, const char *prog,
 				 const char *sound_name)
@@ -4955,6 +5309,25 @@ edje_edit_program_sound_name_set(Evas_Object * obj, const char *prog,
    epr->sound_name = eina_stringshare_add(sound_name);
    return 1;
 }
+
+EAPI int
+edje_edit_program_sound_iteration_get(Evas_Object * obj, const char *prog)
+{
+   GET_EPR_OR_RETURN(NULL);
+   if (!epr->sound_iterations)
+      return NULL;
+   return epr->sound_iterations ;
+}
+EAPI Eina_Bool
+edje_edit_program_sound_iteration_set(Evas_Object * obj, const char *prog,
+				 int  sound_iterations )
+{
+   GET_ED_OR_RETURN(0);
+   GET_EPR_OR_RETURN(0);
+   epr->sound_iterations = sound_iterations;
+   return 1;
+}
+
 EAPI const char *
 edje_edit_program_haptic_name_get(Evas_Object * obj, const char *prog)
 {
@@ -4963,6 +5336,7 @@ edje_edit_program_haptic_name_get(Evas_Object * obj, const char *prog)
       return NULL;
    return eina_stringshare_add(epr->haptic_name);
 }
+
 EAPI Eina_Bool
 edje_edit_program_haptic_name_set(Evas_Object * obj, const char *prog,
 				  const char *haptic_name)
@@ -4973,6 +5347,26 @@ edje_edit_program_haptic_name_set(Evas_Object * obj, const char *prog,
    epr->haptic_name = eina_stringshare_add(haptic_name);
    return 1;
 }
+
+EAPI int
+edje_edit_program_haptic_iterations_get(Evas_Object * obj, const char *prog)
+{
+   GET_EPR_OR_RETURN(NULL);
+   if (!epr->haptic_iterations)
+      return NULL;
+   return epr->haptic_iterations ;
+}
+
+EAPI Eina_Bool
+edje_edit_program_haptic_iterations_set(Evas_Object * obj, const char *prog,
+				 int  haptic_iterations )
+{
+   GET_ED_OR_RETURN(0);
+   GET_EPR_OR_RETURN(0);
+   epr->haptic_iterations = haptic_iterations;
+   return 1;
+}
+
 EAPI const char *
 edje_edit_program_state_get(Evas_Object *obj, const char *prog)
 {

@@ -359,6 +359,8 @@ doc/edje.dox
 src/Makefile
 src/lib/Makefile
 src/bin/Makefile
+src/modules/Makefile
+src/modules/slp_sound_haptic/Makefile
 utils/Makefile
 ])
 

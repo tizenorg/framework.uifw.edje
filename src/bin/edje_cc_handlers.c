@@ -1309,6 +1309,7 @@ st_sounds_sound(void)
    edje_file->sound_dir->entries =
       eina_list_append(edje_file->sound_dir->entries, snd);
    snd->id = eina_list_count(edje_file->sound_dir->entries) - 1;
+ 
 }
 
 /**
@@ -1809,6 +1810,7 @@ st_haptics_haptic_name(void)
         The Full pattern of Haptic - in HEX.
     @endproperty
 */
+
 static void
 st_haptics_haptic_pattern(void)
 {
@@ -1826,9 +1828,10 @@ st_haptics_haptic_pattern(void)
     @parameters
         [haptic magnitude]
     @effect
-        The magnitude of  the haptic to be used  in the theme.
+        The magnitude of  the haptic to be used  in the theme.The Magnitude of an effect corresponds to its strength, or the amplitude of the vibration.
     @endproperty
 */
+
 static void
 st_haptics_haptic_magnitude(void)
 {
@@ -1845,9 +1848,10 @@ st_haptics_haptic_magnitude(void)
     @parameters
         [haptic duration]
     @effect
-        The duration of  the haptic to be used  in the theme.
+        The duration of  the haptic to be used  in the theme.The Duration parameter specifies how long the effect lasts from start to finish including the envelope that is the means of shaping the strength of effect in time
     @endproperty
 */
+
 static void
 st_haptics_haptic_duration(void)
 {
@@ -1860,32 +1864,14 @@ st_haptics_haptic_duration(void)
 /**
     @page edcref
     @property
-        attack_time
-    @parameters
-        [haptic attack_time]
-    @effect
-        The attack_time of  the haptic to be used  in the theme.
-    @endproperty
-*/
-static void
-st_haptics_haptic_attack_time(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->attack_time = parse_int(0);
-}
-
-/**
-    @page edcref
-    @property
         attack_level
     @parameters
         [haptic attack_level]
     @effect
-        The attack_level of  the haptic to be used  in the theme.
+        The attack_level of  the haptic to be used  in the theme.The Attack Level specifies the initial strength of the effect
     @endproperty
 */
+
 static void
 st_haptics_haptic_attack_level(void)
 {
@@ -1899,13 +1885,34 @@ st_haptics_haptic_attack_level(void)
 /**
     @page edcref
     @property
+        attack_time
+    @parameters
+        [haptic attack_time]
+    @effect
+        The attack_time of  the haptic to be used  in the theme.The Attack Time specifies the amount of time, in milliseconds, for the effect to ramp from the Attack Level to the Magnitude
+    @endproperty
+*/
+
+static void
+st_haptics_haptic_attack_time(void)
+{
+   Edje_Haptic_Info *hinfo;
+
+   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
+   hinfo->attack_time = parse_int(0);
+}
+
+/**
+    @page edcref
+    @property
         fade_level
     @parameters
         [haptic fade_level]
     @effect
-        The fade_level of  the haptic to be used  in the theme.
+        The fade_level of  the haptic to be used  in the theme.It specifies the final strength of effect to be reduced to from magnitude at the end of effect's fade time
     @endproperty
 */
+
 static void
 st_haptics_haptic_fade_level(void)
 {
@@ -1923,9 +1930,10 @@ st_haptics_haptic_fade_level(void)
     @parameters
         [haptic fade_time]
     @effect
-        The fade_time of the haptic to be used  in the theme.
+        The fade_time of the haptic to be used  in the theme.The Fade Time corresponds to the amount of time before the end of the effect, for the vibration to ramp between the Magnitude and the Fade Level
     @endproperty
 */
+
 static void
 st_haptics_haptic_fade_time(void)
 {
@@ -7106,7 +7114,6 @@ st_collections_group_programs_program_action(void)
      {
 	ep->sound_name = parse_str(1);
 	ep->sound_iterations = parse_int(2);
-	ep->sound_volume = parse_int_range(3, 0, 100);
      }
    else if (ep->action == EDJE_ACTION_TYPE_TOUCH_HAPTIC)
      {
@@ -7179,10 +7186,10 @@ st_collections_group_programs_program_action(void)
 	 check_arg_count(4);
 	 break;
       case EDJE_ACTION_TYPE_TOUCH_SOUND:
- 	 check_arg_count(4);
+ 	 check_arg_count(3);
  	 break;
       case EDJE_ACTION_TYPE_TOUCH_HAPTIC:
- 	 check_arg_count(2);
+ 	 check_arg_count(3);
 	 break;
       default:
 	check_arg_count(3);
