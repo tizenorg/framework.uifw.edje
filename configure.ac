@@ -262,6 +262,8 @@ PKG_CHECK_MODULES([EDJE],
     ecore >= 1.0.0
     ecore-file >= 1.0.0
     embryo >= 1.0.0
+    mm-sound >= 1.0
+    vconf >= 0.2.12
    ])
 
 EDJE_LIBS="${EDJE_LIBS} ${LUA_LIBS} ${lua_libs}"

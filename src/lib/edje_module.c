@@ -34,10 +34,10 @@ void *alloca (size_t);
 #include "Edje.h"
 #include "edje_private.h"
 
-Eina_Hash *_registered_modules = NULL;
-Eina_List *_modules_paths = NULL;
+static Eina_Hash *_registered_modules = NULL;
+static Eina_List *_modules_paths = NULL;
 
-Eina_List *_modules_found = NULL;
+static Eina_List *_modules_found = NULL;
 
 #if defined(__CEGCC__) || defined(__MINGW32CE__)
 # define EDJE_MODULE_NAME "edje_%s.dll"
@@ -47,38 +47,45 @@ Eina_List *_modules_found = NULL;
 # define EDJE_MODULE_NAME "module.so"
 #endif
 
-EAPI Eina_Bool
+EAPI Eina_Module *
 edje_module_load(const char *module)
 {
    const char *path;
    Eina_List *l;
+   Eina_Module *em = NULL;
 
    EINA_SAFETY_ON_NULL_RETURN_VAL(module, EINA_FALSE);
 
-   if (eina_hash_find(_registered_modules, module))
-     return EINA_TRUE;
+   em = eina_hash_find(_registered_modules, module);
 
-   EINA_LIST_FOREACH(_modules_paths, l, path)
-     {
-	Eina_Module *em;
-	char tmp[PATH_MAX];
 
-	/* A warning is expected has the naming change under wince. */
-	snprintf(tmp, sizeof (tmp), "%s/%s/%s/" EDJE_MODULE_NAME, path, module, MODULE_ARCH, module);
-	em = eina_module_new(tmp);
-	if (!em) continue ;
+   if (!em)
+   {
 
-	if (!eina_module_load(em))
-	  {
-	     eina_module_free(em);
-	     continue ;
-	  }
+	   EINA_LIST_FOREACH(_modules_paths, l, path)
+		 {
 
-	return !!eina_hash_add(_registered_modules, module, em);
-     }
+		char tmp[PATH_MAX];
 
-   ERR("Could not find the module %s", module);
-   return EINA_FALSE;
+		/* A warning is expected has the naming change under wince. */
+		snprintf(tmp, sizeof (tmp), "%s/%s/%s/" EDJE_MODULE_NAME, path, module, MODULE_ARCH, module);
+		em = eina_module_new(tmp);
+		if (!em) continue ;
+
+		if (!eina_module_load(em))
+		  {
+			 eina_module_free(em);
+			 continue ;
+		  }
+
+		 eina_hash_add(_registered_modules, module, em);
+ 	 }
+   }
+
+   if(!em)
+	   ERR("Could not find the module %s", module);
+
+   return em;
 }
 
 void
@@ -173,3 +180,5 @@ edje_available_modules_get(void)
 
    return result;
 }
+
+

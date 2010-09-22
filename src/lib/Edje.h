@@ -629,7 +629,7 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI const Edje_External_Type       *edje_external_type_get         (const char *type_name);
 
    /* edje_module.c */
-   EAPI Eina_Bool               edje_module_load                (const char *module);
+   EAPI Eina_Module*               edje_module_load                (const char *module);
    EAPI const Eina_List        *edje_available_modules_get      (void);
 
    /* perspective info for maps inside edje objects */

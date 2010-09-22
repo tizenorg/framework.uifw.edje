@@ -903,6 +903,20 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
 	       }
 	  }
      }
+    else if (pr->action == EDJE_ACTION_TYPE_TOUCH_SOUND)
+       {
+  	   if (_edje_block_break(ed))
+  		   goto break_prog;
+        if(edje_multisense_ui_init()==EINA_TRUE)
+           edje_multisense_ui_sound_play(ed->obj, pr->sound_name, pr->sound_iterations );
+       }
+     else if (pr->action == EDJE_ACTION_TYPE_TOUCH_HAPTIC)
+       {
+  	   if (_edje_block_break(ed))
+  	      goto break_prog;
+  	   if(edje_multisense_ui_init()==EINA_TRUE)
+  	      edje_multisense_ui_haptic_play(ed->obj, pr->haptic_name, pr->haptic_iterations);
+       }
    else if (pr->action == EDJE_ACTION_TYPE_FOCUS_OBJECT)
      {
 	if (!pr->targets)

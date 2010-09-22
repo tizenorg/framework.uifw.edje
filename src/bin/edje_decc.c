@@ -373,22 +373,17 @@ output(void)
 	long sound_data_size;
 	FILE *f;
 	Eina_List *l ;
-	int index = 0;
 	
 	EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, sndinfo)
 	{
-	if (NULL == sndinfo)
-		continue;
-	   if(sndinfo!=NULL)
-	   {	
-	   if (sndinfo->name)
-	     {
-		snprintf(out, sizeof(out), "sounds/%i", index++);
-		printf("\n\n out=%s\n\n", out);
+	   if (NULL == sndinfo || NULL == sndinfo->name)
+		  continue;
+
+		snprintf(out, sizeof(out), "edje/sounds/%i", sndinfo->id);
 		sound_data = eet_read(ef, out, &sound_data_size);
 		if (sound_data)
         	{
-		     snprintf(out1, sizeof(out1), "%s/%s\0", outdir, sndinfo->name);
+		     snprintf(out1, sizeof(out1), "%s/%s", outdir, sndinfo->name);
 		     pp = strdup(out1);
 		     p = strrchr(pp, '/');
 		     *p = 0;
@@ -410,8 +405,7 @@ output(void)
 		     fclose(f);
 		     free(sound_data);
 		  }
-	     }
-		}
+
 	}
      }
    eet_close(ef);

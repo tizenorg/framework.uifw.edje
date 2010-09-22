@@ -297,16 +297,16 @@ New_Statement_Handler statement_handlers[] =
      {"collections.color_classes.color_class.color", st_color_class_color}, /* dup */
      {"collections.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.color_classes.color_class.color3", st_color_class_color3}, /* dup */
-     {"collections.sounds.sound", st_sounds_sound},	/* dup */
-     {"collections.haptics.haptic.name", st_haptics_haptic_name},	/* dup */
-     {"collections.haptics.haptic.pattern", st_haptics_haptic_pattern},	/* dup */
-     {"collections.haptics.haptic.magnitude", st_haptics_haptic_magnitude},	/* dup */
-     {"collections.haptics.haptic.duration", st_haptics_haptic_duration},	/* dup */
-     {"collections.haptics.haptic.attack_level", st_haptics_haptic_attack_level},	/* dup */
-     {"collections.haptics.haptic.attack_time", st_haptics_haptic_attack_time},	/* dup */
-     {"collections.haptics.haptic.fade_level", st_haptics_haptic_fade_level},	/* dup */
-     {"collections.haptics.haptic.fade_time", st_haptics_haptic_fade_time},	/* dup */
-     {"collections.haptics.haptic.type", st_haptics_haptic_type},	/* dup */
+     {"collections.sounds.sound", st_sounds_sound},
+     {"collections.haptics.haptic.name", st_haptics_haptic_name},
+     {"collections.haptics.haptic.pattern", st_haptics_haptic_pattern},
+     {"collections.haptics.haptic.magnitude", st_haptics_haptic_magnitude},
+     {"collections.haptics.haptic.duration", st_haptics_haptic_duration},
+     {"collections.haptics.haptic.attack_level", st_haptics_haptic_attack_level},
+     {"collections.haptics.haptic.attack_time", st_haptics_haptic_attack_time},
+     {"collections.haptics.haptic.fade_level", st_haptics_haptic_fade_level},
+     {"collections.haptics.haptic.fade_time", st_haptics_haptic_fade_time},
+     {"collections.haptics.haptic.type", st_haptics_haptic_type},
      {"collections.group.name", st_collections_group_name},
      {"collections.group.script_only", st_collections_group_script_only},
      {"collections.group.lua_script_only", st_collections_group_lua_script_only},
@@ -1293,8 +1293,6 @@ st_sounds_sound(void)
       edje_file->sound_dir = mem_alloc(SZ(Edje_Sound_Directory));
    snd = mem_alloc(SZ(Edje_Sound_Info));
    snd->name = parse_str(0);
-   snd->start_point = parse_int_range(1, 0, 100);
-   snd->end_point = parse_int_range(2, 0, 100);
 
    EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, lsnd)
    {
@@ -1305,11 +1303,11 @@ st_sounds_sound(void)
 	     return;
 	  }
    }
-
+   snd->start_point = parse_int_range(1, 0, 100);
+   snd->end_point = parse_int_range(2, 0, 100);
+   snd->id = eina_list_count(edje_file->sound_dir->entries);
    edje_file->sound_dir->entries =
       eina_list_append(edje_file->sound_dir->entries, snd);
-   snd->id = eina_list_count(edje_file->sound_dir->entries) - 1;
- 
 }
 
 /**

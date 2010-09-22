@@ -281,13 +281,11 @@ _edje_edd_init(void)
 
    /* Sound */
    EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Edje_Sound_Info);
-   _edje_edd_edje_sound_info =
-     eet_data_descriptor_file_new(&eddc);
+   _edje_edd_edje_sound_info =   eet_data_descriptor_file_new(&eddc);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info, Edje_Sound_Info, "name", name, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info, Edje_Sound_Info, "id", id, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info, Edje_Sound_Info, "start_point", start_point, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info, Edje_Sound_Info, "end_point", end_point, EET_T_INT);
-
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info, Edje_Sound_Info, "start_point", start_point, EET_T_UINT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info, Edje_Sound_Info, "end_point", end_point, EET_T_UINT);
 
    /* Sound List */
    EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Edje_Sound_Directory);
@@ -307,7 +305,7 @@ _edje_edd_init(void)
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_haptic_info, Edje_Haptic_Info, "fade_time", fade_time, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_haptic_info, Edje_Haptic_Info, "type", type, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_haptic_info, Edje_Haptic_Info, "pattern", pattern, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_sound_info,  Edje_Haptic_Info, "id", id, EET_T_INT);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_haptic_info,  Edje_Haptic_Info, "id", id, EET_T_INT);
 
    /* collection directory */
    EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Edje_Part_Collection_Directory_Entry);

@@ -665,8 +665,7 @@ data_write_sounds(Eet_File * ef, int *sound_num, int *input_bytes, int *input_ra
 
 			stat(snd_path, &st);
 			size = st.st_size;
-			snprintf(sndid_str, sizeof(sndid_str), "sounds/%i", snd_info->id);
-			//printf("\nsound_path=%s and snd_info->id=%dsndid_str=%s\n",snd_path,snd_info->id,sndid_str) ;
+			snprintf(sndid_str, sizeof(sndid_str), "edje/sounds/%i", snd_info->id);
 			fdata = malloc(sizeof(char) * size);
 			if(!fdata)
 			{
