@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build09) unstable; urgency=low
+
+  * repackaging. 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build09
+
+ -- ChunEon Park <chuneon.park@samsung.com>  Fri, 24 Sep 2010 19:53:54 +0900
+
 edje (1.0.0.001+svn.51480slp2+build08) unstable; urgency=low
 
   * repackaging for endtry password 
