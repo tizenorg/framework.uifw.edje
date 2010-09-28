@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build10) unstable; urgency=low
+
+  * [entry] Add feature related to the cancel of autocapital
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build10
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 28 Sep 2010 21:08:29 +0900
+
 edje (1.0.0.001+svn.51480slp2+build09) unstable; urgency=low
 
   * repackaging. 
