@@ -87,6 +87,7 @@ struct _Entry
    Eina_Bool double_clicked : 1;
    Eina_Bool had_sel : 1;
    Eina_Bool autocapital : 1;
+   Eina_Bool uppercase : 1;
    Eina_Bool autoperiod : 1;
    int select_dragging_state;
    double space_key_time;
@@ -127,7 +128,6 @@ _punctuation_check(Entry *en)
    Evas_Textblock_Cursor *tc;
    char *str;
    Eina_Bool ret = EINA_FALSE;
-   unsigned int len = 0;
 
    if (!en || !en->rp || !en->rp->object) return EINA_FALSE;
    if (!en->autocapital) return EINA_FALSE;
@@ -154,15 +154,12 @@ _punctuation_check(Entry *en)
           {
              str = evas_textblock_cursor_range_text_get(tc, en->cursor, EVAS_TEXTBLOCK_TEXT_MARKUP);
              if (!str) goto done;
-             len = strlen(str);
 
-             if (len == 2)
+             if (eina_str_has_suffix(str, ". ") ||
+                 eina_str_has_suffix(str, "! ") ||
+                 eina_str_has_suffix(str, "? "))
                {
-                  if ( (str[0] == '.' || str[0] == '!' || str[0] == '?') 
-                       && str[1] == ' ') 
-                    {
-                       ret = EINA_TRUE;
-                    }
+                  ret = EINA_TRUE;
                }
 
              free(str);
@@ -179,34 +176,47 @@ static void
 _caps_mode_check(Entry *en)
 {
 #ifdef HAVE_ECORE_IMF
-   Ecore_IMF_Input_Panel_Caps_Mode caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_OFF;
+   Ecore_IMF_Input_Panel_Caps_Mode caps_mode;
+   Eina_Bool uppercase;
 
    if (!en || !en->autocapital) return;
 
    if (_punctuation_check(en))
      {
         caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_ON;
+        uppercase = EINA_TRUE;
+     }
+   else
+     {
+        caps_mode = ECORE_IMF_INPUT_PANEL_CAPS_MODE_OFF;
+        uppercase = EINA_FALSE;
      }
 
-   ecore_imf_context_input_panel_caps_mode_set(en->imf_context, caps_mode);
+   if (en->uppercase != uppercase)
+     {
+        en->uppercase = uppercase;
+        ecore_imf_context_input_panel_caps_mode_set(en->imf_context, caps_mode);
+     }
 #endif
 }
 
 static void
 _text_prepend(Entry *en, const char *text)
 {
-   char *text2;
+   char *str;
 
-   text2 = strdup(text);
-   if (!text2) return;
+   if (!text) return;
 
-   if (_punctuation_check(en))
+   str = strdup(text);
+   if (!str) return;
+
+   if (en->uppercase)
      {
-        text2[0] = toupper(text2[0]);
+        str[0] = toupper(str[0]);
      }
 
-   evas_textblock_cursor_text_prepend(en->cursor, text2);
-   free(text2);
+   evas_textblock_cursor_text_prepend(en->cursor, str);
+   free(str);
 }
 
 #ifdef HAVE_ECORE_IMF   
@@ -1253,7 +1263,7 @@ _autoperiod_insert(Edje_Real_Part *rp)
 {
    Entry *en;
    Evas_Textblock_Cursor *tc;
-   char *prev_str;
+   char *str;
    unsigned int len = 0;
 
    if (!rp || !rp->entry_data || !rp->object) return;
@@ -1273,21 +1283,22 @@ _autoperiod_insert(Edje_Real_Part *rp)
      {
         if (evas_textblock_cursor_char_prev(tc))
           {
-             prev_str = evas_textblock_cursor_range_text_get(tc, en->cursor, EVAS_TEXTBLOCK_TEXT_MARKUP);
-             if (prev_str)
+             str = evas_textblock_cursor_range_text_get(tc, en->cursor, EVAS_TEXTBLOCK_TEXT_MARKUP);
+
+             if (str)
                {
-                  len = strlen(prev_str);
+                  len = strlen(str);
 
                   if (len >= 2 && 
-                      (prev_str[0] != ':' && prev_str[0] != ';' && prev_str[0] != '.' && 
-                       prev_str[0] != ',' && prev_str[0] != '?' && prev_str[0] != '!') &&
-                      prev_str[1] == ' ')
+                      (str[len-2] != ':' && str[len-2] != ';' && str[len-2] != '.' && 
+                       str[len-2] != ',' && str[0] != '?' && str[len-2] != '!' && str[len-2] != ' ') &&
+                      str[len-1] == ' ')
                     {
                        _backspace(en->cursor, rp->object, en);
                        evas_textblock_cursor_text_prepend(en->cursor, ".");
                     }
 
-                  free(prev_str);
+                  free(str);
                }
           }
      }
@@ -1296,59 +1307,6 @@ _autoperiod_insert(Edje_Real_Part *rp)
 done:
    en->space_key_time = ecore_time_get();
 }
-
-#if 0
-static void
-_get_autocapitalized_str(Evas_Textblock_Cursor *cur1, Evas_Textblock_Cursor *cur2, char *str)
-{
-   if (_punctuation_check(cur1, cur2))
-     {
-        str[0] = toupper(str[0]);		
-     }
-}
-
-static void
-_autocapitalized_text_prepend(Edje_Real_Part *rp, const char *str)
-{
-   Entry *en;
-   Evas_Textblock_Cursor *tc;
-   char *commit_string;
-   unsigned int len;
-   
-   if (!rp) return;
-   en = rp->entry_data;
-   if (!en || !en->autocapital) return;
-
-   commit_string = strdup(str);
-   if (!commit_string) return;
-
-   len = strlen(str);
-
-   if (len == 1 && islower(str[0])) 
-     {
-        tc = evas_object_textblock_cursor_new(rp->object);
-        evas_textblock_cursor_copy(en->cursor, tc);
-
-        if (evas_textblock_cursor_char_prev(tc)) 
-          {
-             if (evas_textblock_cursor_char_prev(tc)) 
-               {
-                  _get_autocapitalized_str(tc, en->cursor, commit_string);
-               }
-          }
-        else 
-          {
-             commit_string[0] = toupper(commit_string[0]);
-          }
-
-        evas_textblock_cursor_free(tc);
-     }
-
-   evas_textblock_cursor_text_prepend(en->cursor, commit_string);
-
-   free(commit_string);
-}
-#endif
 
 static Eina_Bool 
 _select_mode_cb(void *data)
@@ -1396,7 +1354,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (ecore_imf_context_filter_event(en->imf_context,
                                            ECORE_IMF_EVENT_KEY_DOWN,
                                            (Ecore_IMF_Event *)&ecore_ev))
-          return;
+           return;
      }
 #endif /* HAVE_ECORE_IMF */
    
@@ -1408,6 +1366,9 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
    multiline = rp->part->multiline;
    cursor_changed = EINA_FALSE;
+
+   //printf("[%s] key : %s, string : %s\n", __func__, ev->key, ev->string);
+
    if (!strcmp(ev->key, "Escape"))
      {
         // dead keys here. Escape for now (should emit these)
@@ -1431,6 +1392,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
         _edje_emit(ed, "entry,key,up", rp->part->name);
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "Down"))
      {
@@ -1449,6 +1411,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
         _edje_emit(ed, "entry,key,down", rp->part->name);
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "Left"))
      {
@@ -1464,6 +1427,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,left", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "Right"))
      {
@@ -1479,6 +1443,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,right", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "BackSpace"))
      {
@@ -1508,6 +1473,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _edje_emit(ed, "entry,changed", rp->part->name);
         _edje_emit(ed, "entry,key,backspace", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "Delete"))
      {
@@ -1537,6 +1503,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _edje_emit(ed, "entry,changed", rp->part->name);
         _edje_emit(ed, "entry,key,delete", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "Home"))
      {
@@ -1555,6 +1522,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,home", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "End"))
      {
@@ -1573,6 +1541,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,end", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if ((control) && (!strcmp(ev->key, "v")))
      {
@@ -1634,6 +1603,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
         _edje_emit(ed, "entry,key,tab", rp->part->name);
+        _caps_mode_check(en);
      }
    else if ((!strcmp(ev->key, "ISO_Left_Tab")) && (multiline))
      { 
@@ -1654,6 +1624,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,pgup", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if (!strcmp(ev->key, "Next"))
      {
@@ -1669,6 +1640,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,pgdn", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        _caps_mode_check(en);
      }
    else if ((!strcmp(ev->key, "Return")) || (!strcmp(ev->key, "KP_Enter")))
      {
@@ -1696,6 +1668,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              _edje_emit(ed, "cursor,changed", rp->part->name);
              cursor_changed = EINA_TRUE;
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+             _caps_mode_check(en);
           }
         _edje_emit(ed, "entry,key,enter", rp->part->name);
         /*count characters*/			
@@ -1734,12 +1707,12 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
              cursor_changed = EINA_TRUE;
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+             _caps_mode_check(en);
           }
      }
-   if ((evas_textblock_cursor_compare(tc, en->cursor)) && (!cursor_changed))
-        _edje_emit(ed, "cursor,changed", rp->part->name);
 
-   _caps_mode_check(en);
+   if ((evas_textblock_cursor_compare(tc, en->cursor)) && (!cursor_changed))
+      _edje_emit(ed, "cursor,changed", rp->part->name);
 
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
@@ -1778,6 +1751,14 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
           return;
      }
 #endif
+
+   //printf("[%s] key : %s, string : %s\n", __func__, ev->key, ev->string);
+
+   if (!strcmp(ev->key, "Shift_L") || !strcmp(ev->key, "Shift_R"))
+     {
+        // unset autocapital
+        en->uppercase = EINA_FALSE;
+     }
 }
 
 static int
@@ -2147,8 +2128,8 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         evas_object_geometry_get(rp->object, &x, &y, &w, &h);
         en->cx = ev->cur.canvas.x - x;
         en->cy = ev->cur.canvas.y - y;
-	
-		//printf( "[entry] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );   
+
+        //printf( "[entry] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );   
         if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
           {
              Evas_Coord lx, ly, lw, lh;
@@ -3291,6 +3272,11 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
         _preedit_clear(en);
 #endif
         en->have_composition = EINA_FALSE;
+     }
+
+   if (!strcmp(ev->str, " "))
+     {
+        _autoperiod_insert(rp);
      }
 
    /*if inputtin text is not allowed, dont allow text input*/
