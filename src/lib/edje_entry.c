@@ -34,6 +34,10 @@ static Eina_Bool _edje_entry_imf_event_changed_cb(void *data, int type, void *ev
 static Eina_Bool _edje_entry_imf_event_delete_surrounding_cb(void *data, int type, void *event);
 #endif
 
+static void _edje_entry_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info);
+static void _edje_entry_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info);
+static void _edje_entry_handler_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info);
+
 static Eina_Bool keypad_show = EINA_FALSE;
 static Ecore_Timer *hide_timer = NULL;
 
@@ -52,6 +56,7 @@ struct _Entry
 {
    Edje_Real_Part *rp;
    Evas_Coord cx, cy;
+   Evas_Coord ox, oy;
    Evas_Object *cursor_bg;
    Evas_Object *cursor_fg;
    Evas_Textblock_Cursor *cursor;
@@ -560,17 +565,16 @@ _sel_clear(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __UNUSED__, Entry
 	sel = en->sel->data;
 	en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
 	en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
+	if (sel->obj_bg) evas_object_del(sel->obj_bg);
+	if (sel->obj_fg) evas_object_del(sel->obj_fg);
+
 	if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
 	  {
 	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
 	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
 	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
 	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
-	  }
-	if (sel->obj_bg) evas_object_del(sel->obj_bg);
-	if (sel->obj_fg) evas_object_del(sel->obj_fg);
-	if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	  {
+	     
 	     if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
 	     if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
 	     if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
@@ -608,17 +612,16 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 	     sel = en->sel->data;
 	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
 	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
+	     if (sel->obj_bg) evas_object_del(sel->obj_bg);
+	     if (sel->obj_fg) evas_object_del(sel->obj_fg);
+
 	     if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
 	       {
 		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
 		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
 		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
 		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
-	       }
-	     if (sel->obj_bg) evas_object_del(sel->obj_bg);
-	     if (sel->obj_fg) evas_object_del(sel->obj_fg);
-	     if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	       {
+
 		  if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
 		  if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
 		  if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
@@ -659,42 +662,59 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 		  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_fg);
 		  if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
 		    {
+		       const char *bh_position;
+
 		       evas_object_hide(en->cursor_fg);
-		       ob = edje_object_add(en->rp->edje->evas);
-		       edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-		       evas_object_smart_member_add(ob, smart);
-		       evas_object_stack_above(ob, o);
-		       evas_object_clip_set(ob, clip);
-		       evas_object_pass_events_set(ob, EINA_TRUE);
-		       sel->obj_bh_top = ob;
-		       en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_top);
+			   ob = edje_object_add(en->rp->edje->evas);
+			   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+			   bh_position = edje_object_data_get(ob, "position");
+			   if (!bh_position || !strlen(bh_position)) bh_position = "BOTH";
+			   if (ob) evas_object_del(ob);
 
-		       ob = edje_object_add(en->rp->edje->evas);
-		       edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-		       evas_object_smart_member_add(ob, smart);
-		       evas_object_stack_above(ob, o);
-		       evas_object_clip_set(ob, clip);
-		       evas_object_pass_events_set(ob, EINA_TRUE);
-		       sel->obj_bh_btm = ob;
-		       en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_btm);
+			   if (!strcmp(bh_position, "TOP") || !strcmp(bh_position, "BOTH"))
+			   {
+				   ob = edje_object_add(en->rp->edje->evas);
+				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+				   evas_object_smart_member_add(ob, smart);
+				   evas_object_stack_above(ob, o);
+				   evas_object_clip_set(ob, clip);
+				   evas_object_pass_events_set(ob, EINA_TRUE);
+				   sel->obj_bh_top = ob;
+				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_top);
+		       
+				   ob = edje_object_add(en->rp->edje->evas);
+				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
+				   evas_object_smart_member_add(ob, smart);
+				   evas_object_stack_above(ob, o);
+				   evas_object_clip_set(ob, clip);
+				   evas_object_pass_events_set(ob, EINA_TRUE);
+				   sel->obj_bh_left = ob;
+				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_left);
+			   }
 
-		       ob = edje_object_add(en->rp->edje->evas);
-		       edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-		       evas_object_smart_member_add(ob, smart);
-		       evas_object_stack_above(ob, o);
-		       evas_object_clip_set(ob, clip);
-		       evas_object_pass_events_set(ob, EINA_TRUE);
-		       sel->obj_bh_left = ob;
-		       en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_left);
+			   if (!strcmp(bh_position, "BOTTOM") || !strcmp(bh_position, "BOTH"))
+			   {
+				   ob = edje_object_add(en->rp->edje->evas);
+				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+				   evas_object_smart_member_add(ob, smart);
+				   evas_object_stack_above(ob, o);
+				   evas_object_clip_set(ob, clip);
+				   //evas_object_pass_events_set(ob, EINA_TRUE);
+				   sel->obj_bh_btm = ob;
+				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_btm);
+				   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_handler_mouse_down_cb, en->rp);
+				   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_UP, _edje_entry_handler_mouse_up_cb, en->rp);
+				   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_handler_mouse_move_cb, en->rp);
 
-		       ob = edje_object_add(en->rp->edje->evas);
-		       edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-		       evas_object_smart_member_add(ob, smart);
-		       evas_object_stack_above(ob, o);
-		       evas_object_clip_set(ob, clip);
-		       evas_object_pass_events_set(ob, EINA_TRUE);
-		       sel->obj_bh_right = ob;
-		       en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_right);
+				   ob = edje_object_add(en->rp->edje->evas);
+				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
+				   evas_object_smart_member_add(ob, smart);
+				   evas_object_stack_above(ob, o);
+				   evas_object_clip_set(ob, clip);
+				   evas_object_pass_events_set(ob, EINA_TRUE);
+				   sel->obj_bh_right = ob;
+				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_right);
+			   }
 		    }
 	       }
 	  }
@@ -725,12 +745,10 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 	       }
 	     if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
 	       {
-		  if (sel->obj_bh_top && sel->obj_bh_btm)
+		  if (sel->obj_bh_top)
 		    {
 		       evas_object_hide(sel->obj_bh_top);
-		       evas_object_hide(sel->obj_bh_btm);
 		       evas_object_hide(sel->obj_bh_left);
-		       evas_object_hide(sel->obj_bh_right);
 
 		       if( list_idx == 1 )
 			 {
@@ -741,6 +759,12 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 			    evas_object_resize(sel->obj_bh_left, 3, r->h);
 			    evas_object_show(sel->obj_bh_left);
 			 }
+		    }
+		  if (sel->obj_bh_btm)
+		    {
+		       evas_object_hide(sel->obj_bh_btm);
+		       evas_object_hide(sel->obj_bh_right);
+
 		       if( list_idx == list_cnt )
 			 {
 			    evas_object_move(sel->obj_bh_btm, x + r->x + r->w, y + r->y + r->h);
@@ -750,7 +774,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 			    evas_object_resize(sel->obj_bh_right, 3, r->h);
 			    evas_object_show(sel->obj_bh_right);
 			 }
-		    }
+			}
 	       } 
 	     *(&(sel->rect)) = *r;
 	     range = eina_list_remove_list(range, range);
@@ -1786,6 +1810,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
    en->cx = ev->canvas.x - x;
    en->cy = ev->canvas.y - y;
+   //printf( "ev->canvas.x(%d) ev->canvas.y(%d) en->cx(%d) en->cy(%d) \n", ev->canvas.x, ev->canvas.y, en->cx, en->cy );
    if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
         if( en->select_dragging_state == _ENTRY_DRAGGING_STATE_READY )
@@ -1876,6 +1901,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
                     }
                   else
                      d = d * d;
+
                   if (d1 < d2)
                     {
                        if (d1 <= d)
@@ -1942,6 +1968,8 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
    en->cx = ev->canvas.x - x;
    en->cy = ev->canvas.y - y;
+
+   //printf( "[entry] ev->canvas.x = %d, ev->canvas.y = %d \n", ev->canvas.x, ev->canvas.y );
    if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
      {
         Evas_Coord lx, ly, lw, lh;
@@ -2034,6 +2062,8 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         evas_object_geometry_get(rp->object, &x, &y, &w, &h);
         en->cx = ev->cur.canvas.x - x;
         en->cy = ev->cur.canvas.y - y;
+	
+		//printf( "[entry] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );   
         if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
           {
              Evas_Coord lx, ly, lw, lh;
@@ -2087,6 +2117,68 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         _edje_entry_real_part_configure(rp);
      }
 }
+
+static void
+_edje_entry_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
+{
+	Edje_Real_Part *rp = data;
+	Entry *en;
+	en = rp->entry_data;
+   
+	Evas_Event_Mouse_Down *ev = event_info;
+	Evas_Coord x, y, w, h;
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	en->ox = ev->canvas.x - (x + w/2 - 2);
+	en->oy = ev->canvas.y - (y - 2);
+	
+	ev->canvas.x -= en->ox;
+	ev->canvas.y -= en->oy;
+
+	//printf("ox(%d) oy(%d) ev->canvas.x(%d) ev->canvas.y(%d) x(%d) y(%d) w(%d) h(%d) \n", en->ox, en->oy, ev->canvas.x, ev->canvas.y, x, y, w, h);
+
+	_edje_part_mouse_down_cb(data, e, obj, event_info);
+	return;
+}
+
+static void
+_edje_entry_handler_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
+{
+	Edje_Real_Part *rp = data;
+	Entry *en;
+	en = rp->entry_data;
+
+	Evas_Event_Mouse_Up *ev = event_info;
+	ev->canvas.x -= en->ox;
+	ev->canvas.y -= en->oy;
+
+	en->ox = 0;
+	en->oy = 0;
+
+	_edje_part_mouse_up_cb(data, e, obj, event_info);
+	return;
+}
+
+static void
+_edje_entry_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
+{
+	Edje_Real_Part *rp = data;
+	Entry *en;
+	en = rp->entry_data;
+
+	Evas_Event_Mouse_Move *ev = event_info;
+	
+	//printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );
+
+	ev->cur.canvas.x -= en->ox;
+	ev->cur.canvas.y -= en->oy;
+
+	//printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n\n\n", ev->cur.canvas.x, ev->cur.canvas.y );
+
+	_edje_part_mouse_move_cb(data, e, obj, event_info);
+	return;
+}
+
 
 static void
 _evas_focus_in_cb(void *data, Evas *e, __UNUSED__ void *event_info)
