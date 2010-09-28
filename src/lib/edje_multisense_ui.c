@@ -1,7 +1,9 @@
+#include <string.h>
 #include <Edje.h>
 #include "edje_private.h"
-#include <string.h>
 
+#define EMS_SOUND_PLAY_PLUGIN_API  "ems_ui_sound_play"
+#define EMS_HAPTIC_PLAY_PLUGIN_API "ems_ui_haptic_play"
 
 static Eina_Bool ems_ui_module_loaded = EINA_FALSE;
 
@@ -11,17 +13,17 @@ static Eina_Bool (*ems_ui_haptic_play) (Edje_Haptic_Info* , unsigned int ) = NUL
 Eina_Bool edje_multisense_ui_init()
 {
    if (!ems_ui_module_loaded )
-     {
-        char  *ems_ui_module_name = NULL ;
+   {
+    char  *ems_ui_module_name = NULL ;
 	Eina_Module *m = NULL;
 	ems_ui_module_name = getenv("EDJE_MULTISENSE_UI_MODULE");
 	if(!ems_ui_module_name)return EINA_FALSE;
 	m = edje_module_load(ems_ui_module_name);
 	if(!m)return EINA_FALSE ;
-	ems_ui_sound_play = eina_module_symbol_get(m, "ems_ui_sound_play");
-	ems_ui_haptic_play = eina_module_symbol_get(m, "ems_ui_haptic_play");
+	ems_ui_sound_play = eina_module_symbol_get(m, EMS_SOUND_PLAY_PLUGIN_API);
+	ems_ui_haptic_play = eina_module_symbol_get(m, EMS_HAPTIC_PLAY_PLUGIN_API);
 	ems_ui_module_loaded =  EINA_TRUE;
-     }
+    }
 
    return ems_ui_module_loaded;
 }

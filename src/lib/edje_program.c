@@ -27,6 +27,8 @@ void *alloca (size_t);
 
 #include "edje_private.h"
 
+extern Eina_Bool edje_multisense_ui_init();
+
 static void _edje_emit_cb(Edje *ed, const char *sig, const char *src);
 static void _edje_param_copy(Edje_Real_Part *src_part, const char *src_param, Edje_Real_Part *dst_part, const char *dst_param);
 static void _edje_param_set(Edje_Real_Part *part, const char *param, const char *value);

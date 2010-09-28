@@ -228,9 +228,6 @@ typedef struct _Edje_Image_Directory_Entry           Edje_Image_Directory_Entry;
 typedef struct _Edje_Image_Directory_Set             Edje_Image_Directory_Set;
 typedef struct _Edje_Image_Directory_Set_Entry       Edje_Image_Directory_Set_Entry;
 typedef struct _Edje_Sound_Directory                 Edje_Sound_Directory;
-typedef struct _Edje_Sound_Info                      Edje_Sound_Info;
-typedef struct _Edje_Sound_Data                      Edje_Sound_Data;
-typedef struct _Edje_Haptic_Info                     Edje_Haptic_Info;
 typedef struct _Edje_Program                         Edje_Program;
 typedef struct _Edje_Program_Target                  Edje_Program_Target;
 typedef struct _Edje_Program_After                   Edje_Program_After;
@@ -454,33 +451,6 @@ struct _Edje_Sound_Directory
 {
    Eina_List *entries; /* a list of Edje_Sound_Directory_Entry */
 };
-
-struct _Edje_Sound_Info
-{
-   char *name; /* the name of the sound */
-   unsigned int start_point;
-   unsigned int end_point;
-   int   id; /* the id no. of the sound */
-};
-struct _Edje_Sound_Data
-{
-   void *sound_data ;
-   int  sound_size ;
-} ; 
-struct _Edje_Haptic_Info
-{
-   char *name ;
-   int magnitude ;
-   int duration ;
-   int attack_time ;
-   int attack_level ;
-   int fade_level ;
-   int fade_time ;
-   int type ;
-   char* pattern ;
-   int id;
-};
-
 
 /*----------*/
 

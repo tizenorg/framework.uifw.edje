@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
 
 lib_LTLIBRARIES = libedje.la
 
-includes_HEADERS = Edje.h Edje_Edit.h
+includes_HEADERS = Edje.h Edje_Edit.h Edje_Multisense_Ui_Module.h
 includesdir = $(includedir)/edje-@VMAJ@
 
 base_sources = \

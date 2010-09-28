@@ -371,6 +371,39 @@ typedef struct _Edje_External_Param_Info Edje_External_Param_Info;
 
 #define EDJE_EXTERNAL_PARAM_INFO_SENTINEL {NULL, 0, {.s = {NULL, NULL, NULL}}}
 
+typedef struct _Edje_Sound_Info                      Edje_Sound_Info;
+typedef struct _Edje_Sound_Data                      Edje_Sound_Data;
+typedef struct _Edje_Haptic_Info                     Edje_Haptic_Info;
+
+struct _Edje_Sound_Info
+{
+   char *name; /* the name of the sound */
+   unsigned int start_point;
+   unsigned int end_point;
+   int   id; /* the id no. of the sound */
+};
+
+struct _Edje_Sound_Data
+{
+   void *sound_data ;
+   int  sound_size ;
+} ;
+
+struct _Edje_Haptic_Info
+{
+   char *name ;
+   int magnitude ;
+   int duration ;
+   int attack_time ;
+   int attack_level ;
+   int fade_level ;
+   int fade_time ;
+   int type ;
+   char* pattern ;
+   int id;
+};
+
+
 /**
  * @struct _Edje_External_Type information about an external type to be used.
  *
