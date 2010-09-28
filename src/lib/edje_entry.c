@@ -1785,6 +1785,8 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    Entry *en;
    if (!rp) return;
    en = rp->entry_data;
+
+   if (!en) return;
    en->double_clicked = EINA_TRUE;
 
    const char *ct = NULL;
@@ -1794,9 +1796,9 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
 
    ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
    block_type = _get_char_type(ct);
-   
-   evas_object_hide(en->cursor_fg);
-   evas_object_hide(en->cursor_bg);
+
+   if(en->cursor_fg) evas_object_hide(en->cursor_fg);
+   if(en->cursor_bg) evas_object_hide(en->cursor_bg);
 
    do	/* move cursor to the start point of the words */
    {
@@ -1806,20 +1808,24 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
 		   _edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN);
 		   break;
 	   }
-   } while( _edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN) );
+   } while (_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN));
 
    _edje_entry_select_begin(rp);
 
    do	/* move cursor to the end point of the words */
    {
 	   ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
-	   if (block_type != _get_char_type(ct)) break;
+	   if (block_type != _get_char_type(ct)) 
+	   {
+		   _edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
+		   break;
+	   }
 	   if (*ct == 0) break;
 	   
 	   eina_strbuf_append(str, ct);
 	   //printf( "ct : %s (%d) \n", ct, *ct );
    }
-   while( _edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN) );
+   while (_edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN));
 
    _edje_entry_select_extend(rp);
 
@@ -1828,7 +1834,7 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    en->had_sel = EINA_TRUE;
    en->selecting = EINA_FALSE;
  
-   //printf( " string : %s \n", eina_strbuf_string_get( str ) );
+   //printf("string : %s \n", eina_strbuf_string_get(str));
    eina_strbuf_free(str);
 }
 
@@ -2196,10 +2202,13 @@ _edje_entry_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *o
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
 
 	en->ox = ev->canvas.x - (x + w/2 - 2);
-	en->oy = ev->canvas.y - (y - 2);
+	en->oy = ev->canvas.y - (y - 20);
 	
 	ev->canvas.x -= en->ox;
 	ev->canvas.y -= en->oy;
+
+	evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+	//if (ev->canvas.y > (y + h)) ev->canvas.y = y + h - 20;
 
 	//printf("ox(%d) oy(%d) ev->canvas.x(%d) ev->canvas.y(%d) x(%d) y(%d) w(%d) h(%d) \n", en->ox, en->oy, ev->canvas.x, ev->canvas.y, x, y, w, h);
 
@@ -2214,12 +2223,17 @@ _edje_entry_handler_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj
 	Entry *en;
 	en = rp->entry_data;
 
+	Evas_Coord x, y, w, h;
+	evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+
 	Evas_Event_Mouse_Up *ev = event_info;
 	ev->canvas.x -= en->ox;
 	ev->canvas.y -= en->oy;
 
 	en->ox = 0;
 	en->oy = 0;
+
+	//if (ev->canvas.y > (y + h)) ev->canvas.y = y + h - 20;
 
 	_edje_part_mouse_up_cb(data, e, obj, event_info);
 	return;
@@ -2236,8 +2250,15 @@ _edje_entry_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *o
 	
 	//printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );
 
+	Evas_Coord x, y, w, h;
+	evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+	//printf ("x(%d) y(%d) w(%d) h(%d) \n", x, y, w, h);
+
 	ev->cur.canvas.x -= en->ox;
 	ev->cur.canvas.y -= en->oy;
+
+	//en->oy = ev->cur.canvas.y - (y + h - 20);
+	//if (ev->cur.canvas.y > (y + h)) ev->cur.canvas.y = y + h - 20;
 
 	//printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n\n\n", ev->cur.canvas.x, ev->cur.canvas.y );
 
@@ -3189,25 +3210,17 @@ _edje_entry_cursor_is_visible_format_get(Edje_Real_Part *rp, Edje_Cursor cur)
 const char *
 _edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur)
 {
-   Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
-   const char *s;
-   static char buf[16];
-   int pos, pos2, i;
-   if (!c) return NULL;
-   s = evas_textblock_node_format_text_get(evas_textblock_cursor_format_get(c));
-   if (s) return s;
-   s = evas_textblock_cursor_paragraph_text_get(c);
-   if (!s) return NULL;
-   pos = evas_textblock_cursor_pos_get(c);
-   /* Get the actual utf8 pos */
-   for (i = 0 ; pos > 0 ; pos--)
-     {
-        i = evas_string_char_next_get(s, i, NULL);
-     }
-   pos2 = evas_string_char_next_get(s, i, NULL);
-   strncpy(buf, s + i, pos2 - i);
-   buf[pos2 - i] = 0;
-   return buf;
+	static char *s = NULL;
+	Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
+
+	if (s)  
+	{  
+		free(s);  
+		s = NULL;  
+	}  
+
+	s = evas_textblock_cursor_content_get(c);  
+	return s; 
 }
 
 #ifdef HAVE_ECORE_IMF
