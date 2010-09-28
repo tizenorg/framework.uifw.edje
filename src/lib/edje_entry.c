@@ -52,6 +52,16 @@ enum _Entry_Dragging_State
    _ENTRY_DRAGGING_STATE_STARTED = 2
 };
 
+typedef enum _Entry_Char_Type
+{
+	_ENTRY_CHAR_ALPHABET,
+	_ENTRY_CHAR_NUMBER,
+	_ENTRY_CHAR_MARK,
+	_ENTRY_CHAR_SEPERATOR,
+	_ENTRY_CHAR_NONE
+} Entry_Char_Type;
+
+
 struct _Entry
 {
    Edje_Real_Part *rp;
@@ -74,6 +84,7 @@ struct _Entry
    Eina_Bool select_allow : 1;
    Eina_Bool select_mod_start : 1;
    Eina_Bool select_mod_end : 1;
+   Eina_Bool double_clicked : 1;
    Eina_Bool had_sel : 1;
    Eina_Bool autocapital : 1;
    Eina_Bool uppercase : 1;
@@ -1750,6 +1761,77 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
      }
 }
 
+static int
+_get_char_type(const char* str)
+{
+	if( *str == '\n' || *str == 0x20  )
+		return _ENTRY_CHAR_SEPERATOR;
+	else
+		return _ENTRY_CHAR_NONE;
+	/*	
+		if( *str > 0x2F && *str < 0x3A  )
+		return ELM_ENTRY_CHAR_NUMBER;
+		else if ( *str > 0x40 && *str < 0x7B )
+		return ELM_ENTRY_CHAR_ALPHABET;
+		else
+		return ELM_ENTRY_CHAR_MARK;
+	 */		
+}
+
+static void
+_edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
+{
+   Edje_Real_Part *rp = data;
+   Entry *en;
+   if (!rp) return;
+   en = rp->entry_data;
+   en->double_clicked = EINA_TRUE;
+
+   const char *ct = NULL;
+   int block_type;
+   Eina_Strbuf *str;
+   str = eina_strbuf_new();
+
+   ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+   block_type = _get_char_type(ct);
+   
+   evas_object_hide(en->cursor_fg);
+   evas_object_hide(en->cursor_bg);
+
+   do	/* move cursor to the start point of the words */
+   {
+	   ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+	   if (block_type != _get_char_type(ct))
+	   {
+		   _edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN);
+		   break;
+	   }
+   } while( _edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN) );
+
+   _edje_entry_select_begin(rp);
+
+   do	/* move cursor to the end point of the words */
+   {
+	   ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+	   if (block_type != _get_char_type(ct)) break;
+	   if (*ct == 0) break;
+	   
+	   eina_strbuf_append(str, ct);
+	   //printf( "ct : %s (%d) \n", ct, *ct );
+   }
+   while( _edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN) );
+
+   _edje_entry_select_extend(rp);
+
+   en->select_allow = EINA_TRUE;
+   en->select_mod_end = EINA_TRUE;
+   en->had_sel = EINA_TRUE;
+   en->selecting = EINA_FALSE;
+ 
+   //printf( " string : %s \n", eina_strbuf_string_get( str ) );
+   eina_strbuf_free(str);
+}
+
 static void
 _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
 {
@@ -1763,6 +1845,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (!rp) return;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return;
    en = rp->entry_data;
+   en->double_clicked = EINA_FALSE;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
      return;
@@ -1797,7 +1880,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         if( en->select_dragging_state == _ENTRY_DRAGGING_STATE_READY )
           {
              en->select_dragging_state = _ENTRY_DRAGGING_STATE_STARTED;
-             dosel = EINA_TRUE;
+             //dosel = EINA_TRUE;
           }
      }
    if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
@@ -1944,6 +2027,8 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
      return;
+   if (en->double_clicked) return;
+
    tc = evas_object_textblock_cursor_new(rp->object);
    evas_textblock_cursor_copy(en->cursor, tc);
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
@@ -2012,7 +2097,7 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    if(rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
         en->select_dragging_state = _ENTRY_DRAGGING_STATE_READY;
-        ecore_timer_add( 0.5, _select_mode_cb, en );
+        //ecore_timer_add( 0.5, _select_mode_cb, en );
      }
 }
 
@@ -2033,7 +2118,7 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
      {
         if( en->select_dragging_state == _ENTRY_DRAGGING_STATE_STARTED )
           {
-             en->select_allow = EINA_TRUE;
+             //en->select_allow = EINA_TRUE;
           }
      }
    if (en->selecting)
@@ -2322,6 +2407,8 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
      }
    done:
    en->cursor = (Evas_Textblock_Cursor *)evas_object_textblock_cursor_get(rp->object);
+   
+   edje_object_signal_callback_add(rp->edje->obj, "mouse,down,1,double", rp->part->name, _edje_entry_mouse_double_clicked, rp);
 }
 
 void
