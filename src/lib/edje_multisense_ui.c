@@ -17,11 +17,11 @@ Eina_Bool edje_multisense_ui_init()
     char  *ems_ui_module_name = NULL ;
 	Eina_Module *m = NULL;
 	ems_ui_module_name = getenv("EDJE_MULTISENSE_UI_MODULE");
-	if(!ems_ui_module_name)return EINA_FALSE;
+	if(!ems_ui_module_name) return EINA_FALSE;
 	m = edje_module_load(ems_ui_module_name);
-	if(!m)return EINA_FALSE ;
-	ems_ui_sound_play = eina_module_symbol_get(m, EMS_SOUND_PLAY_PLUGIN_API);
-	ems_ui_haptic_play = eina_module_symbol_get(m, EMS_HAPTIC_PLAY_PLUGIN_API);
+	if(!m) return EINA_FALSE ;
+	ems_ui_sound_play = eina_module_symbol_get(m, "ems_ui_sound_play");
+	ems_ui_haptic_play = eina_module_symbol_get(m, "ems_ui_haptic_play" );
 	ems_ui_module_loaded =  EINA_TRUE;
     }
 

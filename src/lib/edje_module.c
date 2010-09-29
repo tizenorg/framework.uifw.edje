@@ -75,6 +75,7 @@ edje_module_load(const char *module)
 		if (!eina_module_load(em))
 		  {
 			 eina_module_free(em);
+			 em = NULL;
 			 continue ;
 		  }
 

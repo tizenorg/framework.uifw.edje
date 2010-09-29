@@ -9,7 +9,6 @@ static int _edje_init_count = 0;
 int _edje_default_log_dom = -1;
 Eina_Mempool *_edje_real_part_mp = NULL;
 Eina_Mempool *_edje_real_part_state_mp = NULL;
-char  *sound_module_loaded = NULL ;
 
 /*============================================================================*
  *                                   API                                      *
@@ -112,7 +111,6 @@ edje_init(void)
 	ERR("Mempool for Edje_Real_Part_State cannot be allocated.");
 	goto shutdown_eet;
      }
-     sound_module_loaded = getenv("EDJE_MULTISENSE_UI_PLUGIN");
 
    return _edje_init_count;
 
@@ -125,8 +123,6 @@ edje_init(void)
 #ifndef LUA2
    _edje_lua_shutdown();
 #endif
-	if(!sound_module_loaded)
-      free(sound_module_loaded) ;
    _edje_module_shutdown();
    _edje_external_shutdown();
    _edje_box_shutdown();

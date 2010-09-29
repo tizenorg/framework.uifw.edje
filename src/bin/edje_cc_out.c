@@ -637,8 +637,8 @@ data_write_images(Eet_File *ef, int *image_num, int *input_bytes, int *input_raw
 static int
 data_write_sounds(Eet_File * ef, int *sound_num, int *input_bytes, int *input_raw_bytes)
 {
-   long bytes = 0;
-   long total_bytes = 0;
+   int bytes = 0;
+   int total_bytes = 0;
 
    if ((edje_file) && (edje_file->sound_dir))
    {
@@ -650,7 +650,7 @@ data_write_sounds(Eet_File * ef, int *sound_num, int *input_bytes, int *input_ra
       void *fdata = NULL;
       FILE *f = NULL;
       struct stat st;
-      long size = 0;
+      int size = 0;
 
       //Iterate through all the sound entries
       EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, snd_info)
@@ -670,7 +670,7 @@ data_write_sounds(Eet_File * ef, int *sound_num, int *input_bytes, int *input_ra
 			if(!fdata)
 			{
 				ERR("%s: Error. %s:%i while allocating memory to load file \"%s\"",
-				progname, file_in, line, snd_path, strerror(errno));
+				progname, file_in, line, snd_path);
 				exit(-1);
 			}
 
@@ -1219,7 +1219,6 @@ void
 data_queue_sound_lookup(char *name, int *dest)
 {
    Sound_Lookup *il;
-   Eina_List *l;
    il = mem_alloc(SZ(Sound_Lookup));
    sound_lookups = eina_list_append(sound_lookups, il);
    il->name = mem_strdup(name);
