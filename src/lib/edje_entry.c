@@ -2418,7 +2418,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         ecore_imf_context_client_canvas_set(en->imf_context, rp->edje->evas);
         
         ecore_imf_context_retrieve_surrounding_callback_set(en->imf_context, _edje_entry_imf_retrieve_surrounding_cb, rp);
-        en->imf_ee_handler_commit = ecore_event_handler_add(ECORE_IMF_EVENT_COMMIT, _edje_entry_imf_event_commit_cb, rp->edje);     
+        en->imf_ee_handler_commit = ecore_event_handler_add(ECORE_IMF_EVENT_COMMIT, _edje_entry_imf_event_commit_cb, rp->edje);
         en->imf_ee_handler_delete = ecore_event_handler_add(ECORE_IMF_EVENT_DELETE_SURROUNDING, _edje_entry_imf_event_delete_surrounding_cb, rp);
         en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_changed_cb, rp->edje);
         ecore_imf_context_input_mode_set(en->imf_context, 
@@ -3314,6 +3314,14 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    _edje_emit(ed, "cursor,changed", rp->part->name);
 
    _caps_mode_check(en);
+
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     {
+        ecore_imf_context_cursor_position_set(en->imf_context,
+                                              evas_textblock_cursor_pos_get(en->cursor));
+     }
+#endif
 
    return ECORE_CALLBACK_DONE;
 }

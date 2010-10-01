@@ -279,6 +279,15 @@ edje_input_panel_enabled_set(Eina_Bool enabled)
 {
    if (_edje_input_panel_enable == enabled) return;
    _edje_input_panel_enable = enabled;
+
+   /*
+   Eina_List *l;
+   Evas_Object *data;
+   EINA_LIST_FOREACH(_edje_edjes, l, data)
+     {
+        edje_object_part_text_input_panel_enabled_set(data, "elm.text", _edje_input_panel_enable);
+     }
+   */
 }
 
 /**
@@ -291,6 +300,16 @@ edje_autocapitalization_set(Eina_Bool autocap)
 {
    if (_edje_autocapital == autocap) return;
    _edje_autocapital = autocap;
+
+   /*
+   Eina_List *l;
+   Evas_Object *data;
+
+   EINA_LIST_FOREACH(_edje_edjes, l, data)
+     {
+        edje_object_part_text_autocapitalization_set(data, "elm.text", _edje_autocapital);
+     }
+   */
 }
 
 /**
@@ -303,6 +322,16 @@ edje_autoperiod_set(Eina_Bool autoperiod)
 {
    if (_edje_autoperiod == autoperiod) return;
    _edje_autoperiod = autoperiod;
+
+   /*
+   Eina_List *l;
+   Evas_Object *data;
+
+   EINA_LIST_FOREACH(_edje_edjes, l, data)
+     {
+        edje_object_part_text_autoperiod_set(data, "elm.text", _edje_autoperiod);
+     }
+   */
 }
 
 /**
@@ -1922,13 +1951,15 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
 {
    Edje *ed;
    Edje_Real_Part *rp;
-
+	
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_autocapitalization_set(rp, autocap);
+     {
+        _edje_entry_autocapitalization_set(rp, autocap);
+     }
 }
 
 /**
@@ -1949,7 +1980,9 @@ edje_object_part_text_autoperiod_set(const Evas_Object *obj, const char *part, E
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_autoperiod_set(rp, autoperiod);
+     {
+        _edje_entry_autoperiod_set(rp, autoperiod);
+     }
 }
 
 /**
@@ -5140,3 +5173,5 @@ edje_string_id_get(const Edje_String *es)
    if (!es) return NULL;
    return es->str;
 }
+
+/* vim:set ts=8 sw=3 sts=3 expandtab cino=>5n-2f0^-2{2(0W1st0 :*/
