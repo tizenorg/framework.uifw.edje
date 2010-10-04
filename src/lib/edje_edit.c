@@ -4288,7 +4288,7 @@ edje_edit_fonts_list_get(Evas_Object *obj)
    if (!it) return NULL;
 
    EINA_ITERATOR_FOREACH(it, f)
-     fonts = eina_list_append(fonts, f);
+     fonts = eina_list_append(fonts, eina_stringshare_add(f->entry));
 
    eina_iterator_free(it);
 
@@ -4354,6 +4354,8 @@ edje_edit_font_add(Evas_Object *obj, const char* path, const char* alias)
    if (!_edje_import_font_file(ed, path, entry))
      {
 	eina_hash_del(ed->file->fonts, fnt->entry, fnt);
+        eina_stringshare_del(fnt->file);
+        eina_stringshare_del(fnt->entry);
 	return EINA_FALSE;
      }
 
@@ -4377,7 +4379,7 @@ edje_edit_font_del(Evas_Object *obj, const char* alias)
    if (!fnt)
      {
 	WRN("Unable to find font entry part \"%s\"", alias);
-	return EINA_TRUE;
+	return EINA_FALSE;
      }
 
    /* Erase font to edje file */
@@ -4579,6 +4581,8 @@ edje_edit_image_del(Evas_Object *obj, const char* name)
 
    /* Create Image_Directory if not exist */
    if (!ed->file->image_dir)
+      goto invalid_image;
+
      return EINA_TRUE;
 
    for (i = 0; i < ed->file->image_dir->entries_count; ++i)
@@ -4591,10 +4595,7 @@ edje_edit_image_del(Evas_Object *obj, const char* name)
      }
 
    if (i == ed->file->image_dir->entries_count)
-     {
-	WRN("Unable to find image entry part \"%s\"", name);
-	return EINA_TRUE;
-     }
+      goto invalid_image;
 
    {
       char entry[PATH_MAX];
@@ -4631,6 +4632,10 @@ edje_edit_image_del(Evas_Object *obj, const char* name)
    de->entry = NULL;
 
    return EINA_TRUE;
+
+invalid_image:
+   WRN("Unable to find image entry part \"%s\"", name);
+   return EINA_FALSE;
 }
 
 EAPI Eina_Bool
@@ -6476,8 +6481,10 @@ _edje_generate_source(Evas_Object *obj)
    Eina_Strbuf *buf;
 
    Eina_List *l, *ll;
-   char *entry;
+   Eina_Iterator *it;
    Edje_Font_Directory_Entry *fnt;
+
+   char *entry;
    Eina_Bool ret = EINA_TRUE;
 
    GET_ED_OR_RETURN(NULL);
@@ -6524,23 +6531,24 @@ _edje_generate_source(Evas_Object *obj)
      }
 
    /* Fonts */
-   if ((ll = edje_edit_fonts_list_get(obj)))
+   it = eina_hash_iterator_data_new(ed->file->fonts);
+   if (it)
      {
-	BUF_APPEND(I0"fonts {\n");
+        BUF_APPEND(I0"fonts {\n");
 
-	EINA_LIST_FOREACH(ll, l, fnt)
-          BUF_APPENDF(I1"font: \"%s\" \"%s\";\n", fnt->file,
-			     fnt->entry);
+        EINA_ITERATOR_FOREACH(it, fnt)
+           BUF_APPENDF(I1"font: \"%s\" \"%s\";\n", fnt->file,
+                       fnt->entry);
 
-	BUF_APPEND(I0"}\n\n");
-	eina_list_free(ll);
+        BUF_APPEND(I0"}\n\n");
+        eina_list_free(ll);
 
-	if (!ret)
-	  {
-	     ERR("Generating EDC for Fonts");
-	     eina_strbuf_free(buf);
-	     return NULL;
-	  }
+        if (!ret)
+          {
+             ERR("Generating EDC for Fonts");
+             eina_strbuf_free(buf);
+             return NULL;
+          }
      }
 
    /* Data */

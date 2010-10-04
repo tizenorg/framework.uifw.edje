@@ -923,12 +923,13 @@ _edje_program_check(const char *name, Edje_Program *me, Edje_Program **pgrms, un
    unsigned int i;
 
    for (i = 0; i < count; ++i)
-     if (pgrms[i] != me && pgrms[i]->name && (!strcmp(name, pgrms[i]->name)))
-       {
-	  ERR("%s: Error. parse error %s:%i. There is already a program of the name %s\n",
-	      progname, file_in, line - 1, name);
-	  exit(-1);
-       }
+     if (pgrms[i]->name)
+       if (pgrms[i] != me && (!strcmp(name, pgrms[i]->name)))
+	 {
+	    ERR("%s: Error. parse error %s:%i. There is already a program of the name %s\n",
+		progname, file_in, line - 1, name);
+	    exit(-1);
+	 }
 }
 
 /*****/
@@ -7383,7 +7384,7 @@ ob_collections_group_programs_program_script(void)
 	       }
 	     cd->is_lua = 0;
 	     cd->programs = eina_list_append(cd->programs, cp);
-	     data_queue_program_lookup(pc, current_program->name, &(cp->id));
+	     data_queue_anonymous_lookup(pc, current_program, &(cp->id));
 
 	     set_verbatim(NULL, 0, 0);
 	     current_program->action = EDJE_ACTION_TYPE_SCRIPT;
@@ -7422,7 +7423,7 @@ ob_collections_group_programs_program_lua_script(void)
 	       }
 	     cd->is_lua = 1;
 	     cd->programs = eina_list_append(cd->programs, cp);
-	     data_queue_program_lookup(pc, current_program->name, &(cp->id));
+	     data_queue_anonymous_lookup(pc, current_program, &(cp->id));
 	     set_verbatim(NULL, 0, 0);
 	     current_program->action = EDJE_ACTION_TYPE_LUA_SCRIPT;
 	  }
