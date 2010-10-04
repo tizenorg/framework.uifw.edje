@@ -307,26 +307,24 @@ edje_edit_sound_add(Evas_Object *obj, const char* path)
 
    /* Loop through sound directory to find if sound exist */
       EINA_LIST_FOREACH(ed->file->sound_dir->entries, l, sound)
-      {  if(sound->name)
-   	     {
-                if (!strcmp(sound->name,name))
-                  {  
-	               return EINA_TRUE ;   
-		     }
-		  free_id++ ;	   	  
-   	     }
-   	}
-   /******Check The Implementation****************
-       snd = mem_alloc(SZ(Edje_Sound_Info));
-	snd->name = mem_alloc(SZ(name)) ;
-	strcpy(snd->name,name) ;
-	snd->id=free_id ;
-	ed->file->sound_dir->entries =
-      eina_list_append(ed->file->sound_dir->entries, snd);
-   	return EINA_TRUE;
-   	
-   ************	Check The Implementation*************/
+      {  if (sound->name)
+   	   {
+              if (!strcmp(sound->name,name))
+                {  
+	           return EINA_TRUE ;   
+		}
+	      free_id++ ;	   	  
+	   }
+       }
+   /******Check The Implementation****************/
+  /*   snd = mem_alloc(SZ(Edje_Sound_Info));
+       snd->name = mem_alloc( SZ(name ) ) ;
+       strcpy(snd->name, name) ;
+       snd->id=free_id ;
+       ed->file->sound_dir->entries = eina_list_append(ed->file->sound_dir->entries, snd);*/
+      return EINA_TRUE;   	
 }
+
 static int
 _edje_image_id_find(Evas_Object *obj, const char *image_name)
 {
@@ -955,7 +953,7 @@ edje_edit_haptic_name_set(Evas_Object * obj,const char *haptic,const char *new_n
    GET_ED_OR_RETURN(0);
    s = _edje_edit_haptic_get(ed, haptic);
    _edje_if_string_free(ed, s->name);
-   s->name = eina_stringshare_add(new_name);
+   s->name = (char* )eina_stringshare_add(new_name);
    return 1;
 }
 EAPI const char *
@@ -974,7 +972,7 @@ edje_edit_haptic_pattern_set(Evas_Object * obj,const char *haptic,const char *ne
    GET_ED_OR_RETURN(EINA_FALSE);
    s = _edje_edit_haptic_get(ed, haptic);
    _edje_if_string_free(ed, s->pattern);
-   s->pattern = eina_stringshare_add(new_pattern);
+   s->pattern =(char*)eina_stringshare_add(new_pattern);
    return EINA_TRUE;
 }
 EAPI int
@@ -4288,7 +4286,7 @@ edje_edit_fonts_list_get(Evas_Object *obj)
    if (!it) return NULL;
 
    EINA_ITERATOR_FOREACH(it, f)
-     fonts = eina_list_append(fonts, eina_stringshare_add(f->entry));
+     fonts = eina_list_append(fonts, f);
 
    eina_iterator_free(it);
 
@@ -4354,8 +4352,6 @@ edje_edit_font_add(Evas_Object *obj, const char* path, const char* alias)
    if (!_edje_import_font_file(ed, path, entry))
      {
 	eina_hash_del(ed->file->fonts, fnt->entry, fnt);
-        eina_stringshare_del(fnt->file);
-        eina_stringshare_del(fnt->entry);
 	return EINA_FALSE;
      }
 
@@ -4379,7 +4375,7 @@ edje_edit_font_del(Evas_Object *obj, const char* alias)
    if (!fnt)
      {
 	WRN("Unable to find font entry part \"%s\"", alias);
-	return EINA_FALSE;
+	return EINA_TRUE;
      }
 
    /* Erase font to edje file */
@@ -4581,8 +4577,6 @@ edje_edit_image_del(Evas_Object *obj, const char* name)
 
    /* Create Image_Directory if not exist */
    if (!ed->file->image_dir)
-      goto invalid_image;
-
      return EINA_TRUE;
 
    for (i = 0; i < ed->file->image_dir->entries_count; ++i)
@@ -4595,7 +4589,10 @@ edje_edit_image_del(Evas_Object *obj, const char* name)
      }
 
    if (i == ed->file->image_dir->entries_count)
-      goto invalid_image;
+     {
+	WRN("Unable to find image entry part \"%s\"", name);
+	return EINA_TRUE;
+     }
 
    {
       char entry[PATH_MAX];
@@ -4632,10 +4629,6 @@ edje_edit_image_del(Evas_Object *obj, const char* name)
    de->entry = NULL;
 
    return EINA_TRUE;
-
-invalid_image:
-   WRN("Unable to find image entry part \"%s\"", name);
-   return EINA_FALSE;
 }
 
 EAPI Eina_Bool
@@ -5346,11 +5339,11 @@ EAPI Eina_Bool
 edje_edit_program_haptic_name_set(Evas_Object * obj, const char *prog,
 				  const char *haptic_name)
 {
-   GET_ED_OR_RETURN(0);
-   GET_EPR_OR_RETURN(0);
-   _edje_if_string_free(ed, epr->haptic_name);
-   epr->haptic_name = eina_stringshare_add(haptic_name);
-   return 1;
+   GET_ED_OR_RETURN(0) ;
+   GET_EPR_OR_RETURN(0) ;
+   _edje_if_string_free(ed, epr->haptic_name) ;
+   epr->haptic_name = (char*)eina_stringshare_add(haptic_name) ;
+   return EINA_TRUE ;
 }
 
 EAPI int
@@ -6481,10 +6474,8 @@ _edje_generate_source(Evas_Object *obj)
    Eina_Strbuf *buf;
 
    Eina_List *l, *ll;
-   Eina_Iterator *it;
-   Edje_Font_Directory_Entry *fnt;
-
    char *entry;
+   Edje_Font_Directory_Entry *fnt;
    Eina_Bool ret = EINA_TRUE;
 
    GET_ED_OR_RETURN(NULL);
@@ -6531,24 +6522,23 @@ _edje_generate_source(Evas_Object *obj)
      }
 
    /* Fonts */
-   it = eina_hash_iterator_data_new(ed->file->fonts);
-   if (it)
+   if ((ll = edje_edit_fonts_list_get(obj)))
      {
-        BUF_APPEND(I0"fonts {\n");
+	BUF_APPEND(I0"fonts {\n");
 
-        EINA_ITERATOR_FOREACH(it, fnt)
-           BUF_APPENDF(I1"font: \"%s\" \"%s\";\n", fnt->file,
-                       fnt->entry);
+	EINA_LIST_FOREACH(ll, l, fnt)
+          BUF_APPENDF(I1"font: \"%s\" \"%s\";\n", fnt->file,
+			     fnt->entry);
 
-        BUF_APPEND(I0"}\n\n");
-        eina_list_free(ll);
+	BUF_APPEND(I0"}\n\n");
+	eina_list_free(ll);
 
-        if (!ret)
-          {
-             ERR("Generating EDC for Fonts");
-             eina_strbuf_free(buf);
-             return NULL;
-          }
+	if (!ret)
+	  {
+	     ERR("Generating EDC for Fonts");
+	     eina_strbuf_free(buf);
+	     return NULL;
+	  }
      }
 
    /* Data */
