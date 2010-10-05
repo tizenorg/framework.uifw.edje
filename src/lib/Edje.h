@@ -68,21 +68,21 @@ enum _Edje_Message_Type
 {
    EDJE_MESSAGE_NONE = 0,
 
-     EDJE_MESSAGE_SIGNAL = 1, /* DONT USE THIS */
+   EDJE_MESSAGE_SIGNAL = 1, /* DONT USE THIS */
 
-     EDJE_MESSAGE_STRING = 2,
-     EDJE_MESSAGE_INT = 3,
-     EDJE_MESSAGE_FLOAT = 4,
+   EDJE_MESSAGE_STRING = 2,
+   EDJE_MESSAGE_INT = 3,
+   EDJE_MESSAGE_FLOAT = 4,
 
-     EDJE_MESSAGE_STRING_SET = 5,
-     EDJE_MESSAGE_INT_SET = 6,
-     EDJE_MESSAGE_FLOAT_SET = 7,
+   EDJE_MESSAGE_STRING_SET = 5,
+   EDJE_MESSAGE_INT_SET = 6,
+   EDJE_MESSAGE_FLOAT_SET = 7,
 
-     EDJE_MESSAGE_STRING_INT = 8,
-     EDJE_MESSAGE_STRING_FLOAT = 9,
+   EDJE_MESSAGE_STRING_INT = 8,
+   EDJE_MESSAGE_STRING_FLOAT = 9,
 
-     EDJE_MESSAGE_STRING_INT_SET = 10,
-     EDJE_MESSAGE_STRING_FLOAT_SET = 11
+   EDJE_MESSAGE_STRING_INT_SET = 10,
+   EDJE_MESSAGE_STRING_FLOAT_SET = 11
 };
 typedef enum _Edje_Message_Type Edje_Message_Type;
 
@@ -147,7 +147,7 @@ typedef enum _Edje_Action_Type
    EDJE_ACTION_TYPE_DRAG_VAL_PAGE = 6,
    EDJE_ACTION_TYPE_SCRIPT        = 7,
    EDJE_ACTION_TYPE_FOCUS_SET     = 8,
-   EDJE_ACTION_TYPE_LUA_SCRIPT    = 9,
+   EDJE_ACTION_TYPE_RESERVED00    = 9,
    EDJE_ACTION_TYPE_FOCUS_OBJECT  = 10,
    EDJE_ACTION_TYPE_PARAM_COPY    = 11,
    EDJE_ACTION_TYPE_PARAM_SET     = 12,
@@ -309,34 +309,28 @@ struct _Edje_External_Param_Info
 {
    const char *name;
    Edje_External_Param_Type type;
-   union
-     {
-        struct
-          {
-             int def, min, max, step;
-          } i;
-        struct
-          {
-             double def, min, max, step;
-          } d;
-        struct
-          {
-             const char *def;
-             const char *accept_fmt;
-             const char *deny_fmt;
-          } s;
-        struct
-          {
-             int def;
-             const char *false_str;
-             const char *true_str;
-          } b;
-	struct
-	  {
-	     const char *def;
-	     const char **choices; /* NULL terminated array */
-	  } c;
-     } info;
+   union {  
+      struct {  
+         int def, min, max, step;  
+      } i;  
+      struct {  
+         double def, min, max, step;  
+      } d;  
+      struct {  
+         const char *def;  
+         const char *accept_fmt;  
+         const char *deny_fmt;  
+      } s;  
+      struct {  
+         int def;  
+         const char *false_str;  
+         const char *true_str;  
+      } b;  
+      struct {  
+         const char *def;  
+         const char **choices; /* NULL terminated array */  
+      } c;  
+   } info; 
 };
 typedef struct _Edje_External_Param_Info Edje_External_Param_Info;
 

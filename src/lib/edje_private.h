@@ -5,6 +5,20 @@
 # include <config.h>
 #endif
 
+#ifdef HAVE_ALLOCA_H  
+# include <alloca.h>  
+#elif defined __GNUC__  
+# define alloca __builtin_alloca  
+#elif defined _AIX  
+# define alloca __alloca  
+#elif defined _MSC_VER  
+# include <malloc.h>  
+# define alloca _alloca  
+#else  
+# include <stddef.h>  
+void *alloca (size_t);  
+#endif 		      
+
 #ifdef HAVE_EVIL
 # include <Evil.h>
 #endif
@@ -137,6 +151,10 @@ struct _Edje_Smart_Api
  * EETs cannot be loaded/used correctly anymore.
  */
 #define EDJE_FILE_VERSION 3
+/* increment this when you add new feature to edje file format without  
+ * breaking backward compatibility.  
+ */  
+#define EDJE_FILE_MINOR 0 
 
 /* FIXME:
  *
@@ -346,6 +364,7 @@ struct _Edje_File
    int                             references;
    const char                     *compiler;
    int                             version;
+   int				   minor;
    int                             feature_ver;
 
    Eina_Hash                      *data;
@@ -1362,6 +1381,10 @@ const Eina_List *edje_match_signal_source_hash_get(const char *signal,
 						   const Eina_Rbtree *tree);
 void edje_match_signal_source_free(Edje_Signal_Source_Char *key, void *data);
 
+// FIXME remove below 2 eapi decls wehn edje_convert goes  
+EAPI void _edje_edd_init(void);  
+EAPI void _edje_edd_shutdown(void); 
+
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_file;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_part_collection;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_directory;
@@ -1782,10 +1805,6 @@ edje_program_is_strrncmp(const char *str)
 EAPI void _edje_program_insert(Edje_Part_Collection *ed, Edje_Program *p);
 EAPI void _edje_program_remove(Edje_Part_Collection *ed, Edje_Program *p);
 
-// new lua stuff - supercedes the old
-#define LUA2 1
-
-#ifdef LUA2
 void _edje_lua2_error_full(const char *file, const char *fnc, int line, lua_State *L, int err_code);
 #define _edje_lua2_error(L, err_code) _edje_lua2_error_full(__FILE__, __FUNCTION__, __LINE__, L, err_code)
 void _edje_lua2_script_init(Edje *ed);
@@ -1800,7 +1819,6 @@ void _edje_lua2_script_func_move(Edje *ed);
 void _edje_lua2_script_func_resize(Edje *ed);
 void _edje_lua2_script_func_message(Edje *ed, Edje_Message *em);
 void _edje_lua2_script_func_signal(Edje *ed, const char *sig, const char *src);
-#endif
 
 const char *edje_string_get(const Edje_String *es);
 const char *edje_string_id_get(const Edje_String *es);
