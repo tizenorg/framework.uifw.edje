@@ -28,7 +28,7 @@ void *alloca (size_t);
 #ifdef HAVE_ECORE_IMF
 #include <Ecore_IMF_Evas.h>
 
-static int _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx, char **text, int *cursor_pos);
+static Eina_Bool _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx, char **text, int *cursor_pos);
 static Eina_Bool _edje_entry_imf_event_commit_cb(void *data, int type, void *event);
 static Eina_Bool _edje_entry_imf_event_changed_cb(void *data, int type, void *event);
 static Eina_Bool _edje_entry_imf_event_delete_surrounding_cb(void *data, int type, void *event);
@@ -38,12 +38,12 @@ static void _edje_entry_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Ev
 static void _edje_entry_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info);
 static void _edje_entry_handler_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info);
 
-static Eina_Bool keypad_show = EINA_FALSE;
-static Ecore_Timer *hide_timer = NULL;
-
 typedef struct _Entry Entry;
 typedef struct _Sel Sel;
 typedef struct _Anchor Anchor;
+
+static Eina_Bool keypad_show = EINA_FALSE;
+static Ecore_Timer *hide_timer = NULL;
 
 enum _Entry_Dragging_State
 {
@@ -54,11 +54,11 @@ enum _Entry_Dragging_State
 
 typedef enum _Entry_Char_Type
 {
-	_ENTRY_CHAR_ALPHABET,
-	_ENTRY_CHAR_NUMBER,
-	_ENTRY_CHAR_MARK,
-	_ENTRY_CHAR_SEPERATOR,
-	_ENTRY_CHAR_NONE
+   _ENTRY_CHAR_ALPHABET,
+   _ENTRY_CHAR_NUMBER,
+   _ENTRY_CHAR_MARK,
+   _ENTRY_CHAR_SEPERATOR,
+   _ENTRY_CHAR_NONE
 } Entry_Char_Type;
 
 
@@ -178,6 +178,8 @@ _caps_mode_check(Entry *en)
 #ifdef HAVE_ECORE_IMF
    Ecore_IMF_Input_Panel_Caps_Mode caps_mode;
    Eina_Bool uppercase;
+
+   //if (!edje_autocapitalization_allow_get()) return;
 
    if (!en || !en->autocapital) return;
 
@@ -786,16 +788,16 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 		       evas_object_hide(sel->obj_bh_btm);
 		       evas_object_hide(sel->obj_bh_right);
 
-		       if( list_idx == list_cnt )
-			 {
-			    evas_object_move(sel->obj_bh_btm, x + r->x + r->w, y + r->y + r->h);
-			    evas_object_show(sel->obj_bh_btm);
+                       if( list_idx == list_cnt )
+                         {
+                            evas_object_move(sel->obj_bh_btm, x + r->x + r->w, y + r->y + r->h);
+                            evas_object_show(sel->obj_bh_btm);
 
-			    evas_object_move(sel->obj_bh_right, x + r->x + r->w - 1, y + r->y);
-			    evas_object_resize(sel->obj_bh_right, 3, r->h);
-			    evas_object_show(sel->obj_bh_right);
-			 }
-			}
+                            evas_object_move(sel->obj_bh_right, x + r->x + r->w - 1, y + r->y);
+                            evas_object_resize(sel->obj_bh_right, 3, r->h);
+                            evas_object_show(sel->obj_bh_right);
+                         }
+                    }
 	       } 
 	     *(&(sel->rect)) = *r;
 	     range = eina_list_remove_list(range, range);
@@ -1269,6 +1271,8 @@ _autoperiod_insert(Edje_Real_Part *rp)
    unsigned int len = 0;
 
    if (!rp || !rp->entry_data || !rp->object) return;
+
+   //if (!edje_autoperiod_allow_get()) return;
 
    en = rp->entry_data;
    if (!en || !en->autoperiod) return;
@@ -2195,77 +2199,77 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 static void
 _edje_entry_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
 {
-	Edje_Real_Part *rp = data;
-	Entry *en;
-	en = rp->entry_data;
-   
-	Evas_Event_Mouse_Down *ev = event_info;
-	Evas_Coord x, y, w, h;
-	evas_object_geometry_get(obj, &x, &y, &w, &h);
+   Edje_Real_Part *rp = data;
+   Entry *en;
+   en = rp->entry_data;
 
-	en->ox = ev->canvas.x - (x + w/2 - 2);
-	en->oy = ev->canvas.y - (y - 20);
-	
-	ev->canvas.x -= en->ox;
-	ev->canvas.y -= en->oy;
+   Evas_Event_Mouse_Down *ev = event_info;
+   Evas_Coord x, y, w, h;
+   evas_object_geometry_get(obj, &x, &y, &w, &h);
 
-	evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-	//if (ev->canvas.y > (y + h)) ev->canvas.y = y + h - 20;
+   en->ox = ev->canvas.x - (x + w/2 - 2);
+   en->oy = ev->canvas.y - (y - 20);
 
-	//printf("ox(%d) oy(%d) ev->canvas.x(%d) ev->canvas.y(%d) x(%d) y(%d) w(%d) h(%d) \n", en->ox, en->oy, ev->canvas.x, ev->canvas.y, x, y, w, h);
+   ev->canvas.x -= en->ox;
+   ev->canvas.y -= en->oy;
 
-	_edje_part_mouse_down_cb(data, e, obj, event_info);
-	return;
+   evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+   //if (ev->canvas.y > (y + h)) ev->canvas.y = y + h - 20;
+
+   //printf("ox(%d) oy(%d) ev->canvas.x(%d) ev->canvas.y(%d) x(%d) y(%d) w(%d) h(%d) \n", en->ox, en->oy, ev->canvas.x, ev->canvas.y, x, y, w, h);
+
+   _edje_part_mouse_down_cb(data, e, obj, event_info);
+   return;
 }
 
 static void
 _edje_entry_handler_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
 {
-	Edje_Real_Part *rp = data;
-	Entry *en;
-	en = rp->entry_data;
+   Edje_Real_Part *rp = data;
+   Entry *en;
+   en = rp->entry_data;
 
-	Evas_Coord x, y, w, h;
-	evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+   Evas_Coord x, y, w, h;
+   evas_object_geometry_get(rp->object, &x, &y, &w, &h);
 
-	Evas_Event_Mouse_Up *ev = event_info;
-	ev->canvas.x -= en->ox;
-	ev->canvas.y -= en->oy;
+   Evas_Event_Mouse_Up *ev = event_info;
+   ev->canvas.x -= en->ox;
+   ev->canvas.y -= en->oy;
 
-	en->ox = 0;
-	en->oy = 0;
+   en->ox = 0;
+   en->oy = 0;
 
-	//if (ev->canvas.y > (y + h)) ev->canvas.y = y + h - 20;
+   //if (ev->canvas.y > (y + h)) ev->canvas.y = y + h - 20;
 
-	_edje_part_mouse_up_cb(data, e, obj, event_info);
-	return;
+   _edje_part_mouse_up_cb(data, e, obj, event_info);
+   return;
 }
 
 static void
 _edje_entry_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
 {
-	Edje_Real_Part *rp = data;
-	Entry *en;
-	en = rp->entry_data;
+   Edje_Real_Part *rp = data;
+   Entry *en;
+   en = rp->entry_data;
 
-	Evas_Event_Mouse_Move *ev = event_info;
-	
-	//printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );
+   Evas_Event_Mouse_Move *ev = event_info;
 
-	Evas_Coord x, y, w, h;
-	evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-	//printf ("x(%d) y(%d) w(%d) h(%d) \n", x, y, w, h);
+   //printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );
 
-	ev->cur.canvas.x -= en->ox;
-	ev->cur.canvas.y -= en->oy;
+   Evas_Coord x, y, w, h;
+   evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+   //printf ("x(%d) y(%d) w(%d) h(%d) \n", x, y, w, h);
 
-	//en->oy = ev->cur.canvas.y - (y + h - 20);
-	//if (ev->cur.canvas.y > (y + h)) ev->cur.canvas.y = y + h - 20;
+   ev->cur.canvas.x -= en->ox;
+   ev->cur.canvas.y -= en->oy;
 
-	//printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n\n\n", ev->cur.canvas.x, ev->cur.canvas.y );
+   //en->oy = ev->cur.canvas.y - (y + h - 20);
+   //if (ev->cur.canvas.y > (y + h)) ev->cur.canvas.y = y + h - 20;
 
-	_edje_part_mouse_move_cb(data, e, obj, event_info);
-	return;
+   //printf( "[block] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n\n\n", ev->cur.canvas.x, ev->cur.canvas.y );
+
+   _edje_part_mouse_move_cb(data, e, obj, event_info);
+   return;
 }
 
 
@@ -2438,6 +2442,7 @@ void
 _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
+   void *timer_data;
    if (!en) return;
    rp->entry_data = NULL;
    _sel_clear(en->cursor, rp->object, en);
@@ -2471,16 +2476,22 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                   en->imf_ee_handler_changed = NULL;
                }
 
-             ecore_imf_context_input_panel_hide(en->imf_context);
+             if (en->input_panel_enable)
+               {
+                  if (hide_timer)
+                    {
+                       timer_data = ecore_timer_del(hide_timer);
+                       hide_timer = NULL;
+
+                       if ((Entry *)timer_data == en)
+                         {
+                            ecore_imf_context_input_panel_hide(en->imf_context);
+                         }
+                    }
+               }
 
              ecore_imf_context_del(en->imf_context);
              en->imf_context = NULL;
-          }
-
-        if (hide_timer)
-          {
-             ecore_timer_del(hide_timer);
-             hide_timer = NULL;
           }
         
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,in", rp->part->name, _edje_entry_focus_in_cb);
@@ -3226,18 +3237,18 @@ _edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur)
 }
 
 #ifdef HAVE_ECORE_IMF
-static int
+static Eina_Bool
 _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx __UNUSED__, char **text, int *cursor_pos)
 {
    Edje_Real_Part *rp = data;
    Entry *en;
    const char *str;
    
-   if (!rp) return 0;
+   if (!rp) return EINA_FALSE;
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
-     return 0;
+     return EINA_FALSE;
    
    if (text)
      {
@@ -3250,7 +3261,7 @@ _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx __UNU
         *cursor_pos = evas_textblock_cursor_pos_get(en->cursor);
      }
    
-   return 1;
+   return EINA_TRUE;
 }
 
 static Eina_Bool

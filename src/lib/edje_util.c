@@ -29,8 +29,8 @@ int _edje_freeze_val = 0;
 int _edje_freeze_calc_count = 0;
 Eina_List *_edje_freeze_calc_list = NULL;
 Eina_Bool _edje_input_panel_enable = EINA_FALSE;
-Eina_Bool _edje_autocapital = EINA_FALSE;
-Eina_Bool _edje_autoperiod = EINA_FALSE;
+Eina_Bool _edje_autocapital_allow = EINA_FALSE;
+Eina_Bool _edje_autoperiod_allow = EINA_FALSE;
 
 typedef struct _Edje_List_Foreach_Data Edje_List_Foreach_Data;
 struct _Edje_List_Foreach_Data
@@ -296,20 +296,16 @@ edje_input_panel_enabled_set(Eina_Bool enabled)
  * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
  */
 EAPI void
-edje_autocapitalization_set(Eina_Bool autocap)
+edje_autocapitalization_allow_set(Eina_Bool autocap)
 {
-   if (_edje_autocapital == autocap) return;
-   _edje_autocapital = autocap;
+   if (_edje_autocapital_allow == autocap) return;
+   _edje_autocapital_allow = autocap;
+}
 
-   /*
-   Eina_List *l;
-   Evas_Object *data;
-
-   EINA_LIST_FOREACH(_edje_edjes, l, data)
-     {
-        edje_object_part_text_autocapitalization_set(data, "elm.text", _edje_autocapital);
-     }
-   */
+EAPI Eina_Bool
+edje_autocapitalization_allow_get(void)
+{
+   return _edje_autocapital_allow;
 }
 
 /**
@@ -318,20 +314,16 @@ edje_autocapitalization_set(Eina_Bool autocap)
  * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
  */
 EAPI void
-edje_autoperiod_set(Eina_Bool autoperiod)
+edje_autoperiod_allow_set(Eina_Bool autoperiod)
 {
-   if (_edje_autoperiod == autoperiod) return;
-   _edje_autoperiod = autoperiod;
+   if (_edje_autoperiod_allow == autoperiod) return;
+   _edje_autoperiod_allow = autoperiod;
+}
 
-   /*
-   Eina_List *l;
-   Evas_Object *data;
-
-   EINA_LIST_FOREACH(_edje_edjes, l, data)
-     {
-        edje_object_part_text_autoperiod_set(data, "elm.text", _edje_autoperiod);
-     }
-   */
+EAPI Eina_Bool
+edje_autoperiod_allow_get(void)
+{
+   return _edje_autoperiod_allow;
 }
 
 /**

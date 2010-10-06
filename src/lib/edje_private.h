@@ -151,10 +151,10 @@ struct _Edje_Smart_Api
  * EETs cannot be loaded/used correctly anymore.
  */
 #define EDJE_FILE_VERSION 3
-/* increment this when you add new feature to edje file format without  
- * breaking backward compatibility.  
- */  
-#define EDJE_FILE_MINOR 0 
+/* increment this when you add new feature to edje file format without
+ * breaking backward compatibility.
+ */
+#define EDJE_FILE_MINOR 0
 
 /* FIXME:
  *
