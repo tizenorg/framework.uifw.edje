@@ -682,7 +682,7 @@ struct _Edje_Part
 
    Edje_Part_Description_List    other; /* other possible descriptors */
 
-   const char           *source, *source2, *source3, *source4, *source5, *source6, *source7;
+   const char           *source, *source2, *source3, *source4, *source5, *source6;
    int                    id; /* its id number */
    int                    clip_to_id; /* the part id to clip this one to */
    Edje_Part_Dragable     dragable;
@@ -1381,7 +1381,7 @@ const Eina_List *edje_match_signal_source_hash_get(const char *signal,
 						   const Eina_Rbtree *tree);
 void edje_match_signal_source_free(Edje_Signal_Source_Char *key, void *data);
 
-// FIXME remove below 2 eapi decls wehn edje_convert goes  
+// FIXME remove below 2 eapi decls when edje_convert goes  
 EAPI void _edje_edd_init(void);  
 EAPI void _edje_edd_shutdown(void); 
 

@@ -162,7 +162,7 @@ _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Co
 	return NULL;
      }
 
-   if (edf->minor > EDJE_FILE_MINOR)  
+   if (edf->minor > EDJE_FILE_MINOR)
      {  
         WRN("`%s` may use feature from a newer edje and could not show up as expected.", file);  
      } 

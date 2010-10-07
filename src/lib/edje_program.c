@@ -704,9 +704,9 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
 	       }
 	     _edje_recalc(ed);
 	  }
-	break;
+        break;
      case EDJE_ACTION_TYPE_ACTION_STOP:
-        // _edje_emit(ed, "program,start", pr->name);	
+        // _edje_emit(ed, "program,start", pr->name);
         EINA_LIST_FOREACH(pr->targets, l, pt)
 	  {
 	     Eina_List *ll;

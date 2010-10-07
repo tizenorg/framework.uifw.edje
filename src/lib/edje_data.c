@@ -151,7 +151,7 @@ _edje_eina_hash_add_alloc(Eina_Hash  *hash,
    return hash;
 }
 
-// FIXME: remove EAPI wehn edje_convert goes 
+// FIXME: remove EAPI when edje_convert goes
 EAPI void
 _edje_edd_shutdown(void)
 {
@@ -219,7 +219,7 @@ _edje_edd_shutdown(void)
      EET_DATA_DESCRIPTOR_ADD_SUB(_edje_edd_edje_##Name##_pointer, Edje_##Type##_Pointer, "pointer", pointer, _edje_edd_edje_##Name); \
    }
 
-// FIXME: remove EAPI when edje_convert goes 
+// FIXME: remove EAPI when edje_convert goes
 EAPI void
 _edje_edd_init(void)
 {
@@ -774,7 +774,6 @@ _edje_edd_init(void)
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "source4", source4, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "source5", source5, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "source6", source6, EET_T_STRING);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "source7", source7, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "id", id, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "clip_to_id", clip_to_id, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "dragable.x", dragable.x, EET_T_CHAR);

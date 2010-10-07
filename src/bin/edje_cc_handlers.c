@@ -127,7 +127,6 @@ static void st_collections_group_parts_part_source3(void);
 static void st_collections_group_parts_part_source4(void);
 static void st_collections_group_parts_part_source5(void);
 static void st_collections_group_parts_part_source6(void);
-static void st_collections_group_parts_part_source7(void);
 static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
 static void st_collections_group_parts_part_multiline(void);
@@ -366,7 +365,6 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.source4", st_collections_group_parts_part_source4},
      {"collections.group.parts.part.source5", st_collections_group_parts_part_source5},
      {"collections.group.parts.part.source6", st_collections_group_parts_part_source6},
-     {"collections.group.parts.part.source7", st_collections_group_parts_part_source7},
      {"collections.group.parts.part.dragable.x", st_collections_group_parts_part_dragable_x},
      {"collections.group.parts.part.dragable.y", st_collections_group_parts_part_dragable_y},
      {"collections.group.parts.part.dragable.confine", st_collections_group_parts_part_dragable_confine},
@@ -896,7 +894,7 @@ _edje_part_description_alloc(unsigned char type, const char *collection, const c
 
    if (!result)
      {
-	ERR("%s: Error. Unknow type %i of part %s in collection %s.", progname, type, part, collection);
+	ERR("%s: Error. Unknown type %i of part %s in collection %s.", progname, type, part, collection);
 	exit(-1);
      }
 
@@ -983,7 +981,7 @@ st_externals_external(void)
 	       0, sizeof (Edje_External_Directory));
 	if (!edje_file->external_dir->entries)
 	  {
-	     ERR("%s: Error. not enought memory", progname);
+	     ERR("%s: Error. not enough memory", progname);
 	     exit(-1);
 	  }
 
@@ -1071,7 +1069,7 @@ st_images_image(void)
 	  0, sizeof (Edje_Image_Directory_Entry));
    if (!edje_file->image_dir->entries)
      {
-	ERR("%s: Error. No enought memory.", progname);
+	ERR("%s: Error. No enough memory.", progname);
 	exit(-1);
      }
 
@@ -1160,7 +1158,7 @@ ob_images_set(void)
 	  0, sizeof (Edje_Image_Directory_Set));
    if (!edje_file->image_dir->sets)
      {
-	ERR("%s: Error. Not enought memory.", progname);
+	ERR("%s: Error. Not enough memory.", progname);
 	exit(-1);
      }
    edje_file->image_dir->sets[edje_file->image_dir->sets_count - 1].id = edje_file->image_dir->sets_count - 1;
@@ -2359,7 +2357,7 @@ ob_collections_group_parts_part(void)
    pc->parts = realloc(pc->parts, pc->parts_count * sizeof (Edje_Part *));
    if (!pc->parts)
      {
-	ERR("%s: Error. Not enought memory.", progname);
+	ERR("%s: Error. Not enough memory.", progname);
 	exit(-1);
      }
    pc->parts[pc->parts_count - 1] = ep;
@@ -2855,32 +2853,6 @@ st_collections_group_parts_part_source6(void)
 
 /**
     @page edcref
-    @property
-        source7
-    @parameters
-        [another group's name]
-    @effect
-        Only available to TEXTBLOCK parts. It is used for the group to be 
-        loaded and used for the preedit string display.
-    @endproperty
-*/
-static void
-st_collections_group_parts_part_source7(void)
-{
-   Edje_Part_Collection *pc;
-   Edje_Part *ep;
-
-   check_arg_count(1);
-
-   pc = eina_list_data_get(eina_list_last(edje_collections));
-   ep = eina_list_data_get(eina_list_last(pc->parts));
-
-   //FIXME: validate this somehow (need to decide on the format also)
-   ep->source7 = parse_str(0);
-}
-
-/**
-    @page edcref
 
     @property
         effect
@@ -3217,7 +3189,7 @@ static void ob_collections_group_parts_part_box_items_item(void)
    ep->items = realloc(ep->items, sizeof (Edje_Pack_Element*) * ep->items_count);
    if (!ep->items)
      {
-	ERR("%s: Error. Not enought memory.", progname);
+	ERR("%s: Error. Not enough memory.", progname);
 	exit(-1);
      }
 
@@ -4408,7 +4380,7 @@ st_collections_group_parts_part_description_color3(void)
         [X axis] [Y axis]
     @effect
         Moves a corner to a relative position inside the container of the
-        relative "to" part. Values from 0.0 (0%, begining) to 1.0 (100%, end)
+        relative "to" part. Values from 0.0 (0%, beginning) to 1.0 (100%, end)
         of each axis.
     @endproperty
 */
@@ -4438,7 +4410,7 @@ st_collections_group_parts_part_description_rel1_relative(void)
     @parameters
         [X axis] [Y axis]
     @effect
-        Affects the corner postion a fixed number of pixels along each axis.
+        Affects the corner position a fixed number of pixels along each axis.
     @endproperty
 */
 static void

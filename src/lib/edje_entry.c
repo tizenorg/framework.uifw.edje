@@ -24,7 +24,6 @@ void *alloca (size_t);
 
 #include "edje_private.h"
 
-//#define USE_PREEDIT_BLOCK 1
 #ifdef HAVE_ECORE_IMF
 #include <Ecore_IMF_Evas.h>
 
@@ -3294,9 +3293,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
            _backspace(en->cursor, rp->object, en);
         _sel_clear(en->cursor, rp->object, en);
 
-#ifdef USE_PREEDIT_BLOCK
-        _preedit_clear(en);
-#endif
         en->have_composition = EINA_FALSE;
      }
 
@@ -3381,103 +3377,13 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
         // delete the composing characters
         for (i = 0;i < en->comp_len; i++)
            _backspace(en->cursor, rp->object, en);
-
-#ifdef USE_PREEDIT_BLOCK
-        _preedit_clear(en);
-#endif /* USE_PREEDIT_BLOCK */
      }
 
    en->comp_len = length;
    en->have_composition = EINA_TRUE;
 
-#ifdef USE_PREEDIT_BLOCK
-   int preedit_start_pos = 0;
-
-   if (length)
-      preedit_start_pos = evas_textblock_cursor_pos_get(en->cursor);
-#endif /* USE_PREEDIT_BLOCK */
-
    //xx
    evas_object_textblock_text_markup_prepend(en->cursor, preedit_string);
-
-#ifdef USE_PREEDIT_BLOCK
-   if (length)
-     {
-        Evas_Textblock_Cursor *pre_start, *pre_end;
-        pre_start = evas_object_textblock_cursor_new(rp->object);
-        pre_end = evas_object_textblock_cursor_new(rp->object);
-
-        evas_textblock_cursor_copy(en->cursor, pre_start);
-        evas_textblock_cursor_copy(en->cursor, pre_end);
-
-        /* set preedit start as previous cursor position */
-        evas_textblock_cursor_pos_set(pre_start, preedit_start_pos);
-
-#if 0
-        const char *text = NULL;
-        text = evas_textblock_cursor_node_text_get(pre_start);
-        if (!text) 
-          {
-             text = evas_textblock_cursor_node_format_get (pre_start);
-             printf ("pre_start format node: %s\n", text);
-          }
-        else
-          {
-             printf ("pre_start text node: %s pos: %d\n", text, preedit_start_pos);
-          }
-
-        int preedit_end_pos = evas_textblock_cursor_pos_get(pre_end);
-        text = evas_textblock_cursor_node_text_get (pre_end);
-        if (!text) 
-          {
-             text = evas_textblock_cursor_node_format_get (pre_end);
-             printf ("pre_end format node: %s\n", text);
-          }
-        else
-          {
-             printf ("pre_end text node: %s pos: %d\n", text, end_pos);
-          }
-#endif
-
-        Eina_List *range = evas_textblock_cursor_range_geometry_get(pre_start, pre_end);
-
-        if (range)
-          {
-             Evas_Textblock_Rectangle *r;
-             Eina_List *l;
-             Evas_Coord x, y, w, h;
-
-             _preedit_clear(en);
-
-             evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-
-             EINA_LIST_FOREACH(range, l, r)
-               {
-                  Evas_Object *obj;
-
-                  obj = edje_object_add(rp->edje->evas);
-                  edje_object_file_set(obj, rp->edje->path, rp->part->source7);
-                  evas_object_smart_member_add(obj, rp->edje->obj);
-                  evas_object_stack_below(obj, rp->object);
-                  evas_object_clip_set(obj, evas_object_clip_get(rp->object));
-                  evas_object_pass_events_set(obj, EINA_TRUE);
-                  rp->edje->subobjs = eina_list_append(rp->edje->subobjs, obj);
-                  evas_object_move(obj, x + r->x, y + r->y);
-                  evas_object_resize(obj, r->w, r->h);
-                  evas_object_show(obj);
-                  en->pre = eina_list_append(en->pre, obj);
-               }
-          }
-
-        while (range)
-          {
-             free(range->data);
-             range = eina_list_remove_list(range, range);
-          }
-        evas_textblock_cursor_free(pre_start);
-        evas_textblock_cursor_free(pre_end);
-     }
-#endif /* USE_PREEDIT_BLOCK */
 
    /*count characters*/			
    if (en->func)

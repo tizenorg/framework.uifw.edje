@@ -190,7 +190,7 @@ edje_fontset_append_get(void)
 EAPI void
 edje_scale_set(double scale)
 {
-  Eina_List *l;
+   Eina_List *l;
    Evas_Object *data;
 
    if (_edje_scale == FROM_DOUBLE(scale)) return;
@@ -3024,7 +3024,7 @@ edje_object_parts_extends_calc(Evas_Object *obj, Evas_Coord *x, Evas_Coord *y, E
  * @param restrictedw Do not allow object min width calc to be less than this
  * @param restrictedh Do not allow object min height calc to be less than this
  *
- * Calculates the object's minimum size ?! Be carefull the behaviour of this
+ * Calculates the object's minimum size ?! Be careful the behaviour of this
  * fonction is not really defined when a TEXTBLOCK part is present in the
  * Edje_Object. This may change in futur implementation.
  */
@@ -3405,8 +3405,8 @@ edje_object_part_drag_size_get(const Evas_Object *obj, const char *part, double 
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param dx The x step ammount
- * @param dy The y step ammount
+ * @param dx The x step amount
+ * @param dy The y step amount
  *
  * Sets the x,y step increments for a dragable object.
  */
@@ -3649,7 +3649,7 @@ _edje_box_shutdown(void)
  * @param child The object to append
  *
  * @return 1: Successfully added.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Appends child to the box indicated by part.
  */
@@ -3677,7 +3677,7 @@ edje_object_part_box_append(Evas_Object *obj, const char *part, Evas_Object *chi
  * @param child The object to prepend
  *
  * @return 1: Successfully added.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Prepends child to the box indicated by part.
  */
@@ -3706,7 +3706,7 @@ edje_object_part_box_prepend(Evas_Object *obj, const char *part, Evas_Object *ch
  * @param reference The object to be used as reference
  *
  * @return 1: Successfully added.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Inserts child in the box given by part, in the position marked by
  * reference.
@@ -3736,7 +3736,7 @@ edje_object_part_box_insert_before(Evas_Object *obj, const char *part, Evas_Obje
  * @param pos The position where to insert child
  *
  * @return 1: Successfully added.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Adds child to the box indicated by part, in the position given by
  * pos.
@@ -3820,7 +3820,7 @@ edje_object_part_box_remove_at(Evas_Object *obj, const char *part, unsigned int 
  * @param clear Delete objects on removal
  *
  * @return 1: Successfully cleared.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Removes all the external objects from the box indicated by part.
  * Elements created from the theme will not be removed.
@@ -4058,7 +4058,7 @@ edje_object_part_table_child_get(Evas_Object *obj, const char *part, unsigned in
  * @param rowspan Rows the child will take
  *
  * @return 1: Successfully added.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Packs an object into the table indicated by part.
  */
@@ -4086,7 +4086,7 @@ edje_object_part_table_pack(Evas_Object *obj, const char *part, Evas_Object *chi
  * @param child_obj The object to pack in
  *
  * @return 1: Successfully removed.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Removes an object from the table indicated by part.
  */
@@ -4115,7 +4115,7 @@ edje_object_part_table_unpack(Evas_Object *obj, const char *part, Evas_Object *c
  * @param rows Pointer where to store number of rows (can be NULL)
  *
  * @return 1: Successfully get some data.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Retrieves the size of the table in number of columns and rows.
  */
@@ -4144,7 +4144,7 @@ edje_object_part_table_col_row_size_get(const Evas_Object *obj, const char *part
  * @param clear If set, will delete subobjs on remove
  *
  * @return 1: Successfully clear table.\n
- * 0: An error occured.
+ * 0: An error occurred.
  *
  * Removes all object from the table indicated by part, except the
  * internal ones set from the theme.
