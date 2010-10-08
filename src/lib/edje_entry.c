@@ -43,6 +43,7 @@ typedef struct _Anchor Anchor;
 
 static Eina_Bool keypad_show = EINA_FALSE;
 static Ecore_Timer *hide_timer = NULL;
+static Entry *focused_entry = NULL;
 
 enum _Entry_Dragging_State
 {
@@ -72,7 +73,6 @@ struct _Entry
    Evas_Textblock_Cursor *sel_start, *sel_end;
    Evas_Textblock_Cursor *cursor_user, *cursor_user_extra;
    Evas_Textblock_Cursor *preedit_start, *preedit_end;
-   Eina_List *pre;
    Eina_List *sel;
    Eina_List *anchors;
    Eina_List *anchorlist;
@@ -244,6 +244,7 @@ _input_panel_hide_timer_start(void *data)
         ecore_timer_del(hide_timer);
      }
    hide_timer = ecore_timer_add(0.2, _hide_timer_handler, data);
+   focused_entry = (Entry *)data;
 }
 
 static void 
@@ -284,6 +285,8 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
 
    en = rp->entry_data;
    if (!en || !en->imf_context) return;
+
+   en->comp_len = 0;
 
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
@@ -348,6 +351,8 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
      return;
 
    if (!en->imf_context) return;
+
+   en->comp_len = 0;
 
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
@@ -814,20 +819,6 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 }
 
 static void
-_preedit_clear(Entry *en)
-{
-   Evas_Object *obj;
-
-   while (en->pre)
-     {
-        obj = en->pre->data;
-        en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, obj);
-        evas_object_del(obj);
-        en->pre = eina_list_remove_list(en->pre, en->pre);
-     }
-}
-
-static void
 _edje_anchor_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
 {
    Anchor *an = data;
@@ -991,15 +982,7 @@ _anchors_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 
              sel = calloc(1, sizeof(Sel));
              an->sel = eina_list_append(an->sel, sel);
-/*             
-             ob = evas_object_rectangle_add(en->rp->edje->evas);
-             evas_object_color_set(ob, 0, 0, 0, 0);
-             evas_object_smart_member_add(ob, smart);
-             evas_object_stack_above(ob, o);
-             evas_object_clip_set(ob, clip);
-             evas_object_pass_events_set(ob, EINA_TRUE);
-             evas_object_show(ob);
- */
+
              if (en->rp->edje->item_provider.func)
                {
                   ob = en->rp->edje->item_provider.func
@@ -1371,8 +1354,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
    multiline = rp->part->multiline;
    cursor_changed = EINA_FALSE;
-
-   //printf("[%s] key : %s, string : %s\n", __func__, ev->key, ev->string);
 
    if (!strcmp(ev->key, "Escape"))
      {
@@ -1756,8 +1737,6 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
           return;
      }
 #endif
-
-   //printf("[%s] key : %s, string : %s\n", __func__, ev->key, ev->string);
 
    if (!strcmp(ev->key, "Shift_L") || !strcmp(ev->key, "Shift_R"))
      {
@@ -2441,12 +2420,10 @@ void
 _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
-   void *timer_data;
    if (!en) return;
    rp->entry_data = NULL;
    _sel_clear(en->cursor, rp->object, en);
    _anchors_clear(en->cursor, rp->object, en);
-   _preedit_clear(en);
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_bg);
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_fg);
    evas_object_del(en->cursor_bg);
@@ -2477,13 +2454,13 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
 
              if (en->input_panel_enable)
                {
-                  if (hide_timer)
+                  if (focused_entry == en)
                     {
-                       timer_data = ecore_timer_del(hide_timer);
-                       hide_timer = NULL;
-
-                       if ((Entry *)timer_data == en)
+                       if (hide_timer)
                          {
+                            ecore_timer_del(hide_timer);
+                            hide_timer = NULL;
+
                             ecore_imf_context_input_panel_hide(en->imf_context);
                          }
                     }
@@ -3358,8 +3335,6 @@ _edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
    ecore_imf_context_preedit_string_get(en->imf_context, &preedit_string, &length);
-   //printf ("preedit string : %s\n", preedit_string);
-   //printf ("length : %d\n", length);
 
    /*if inputtin text is not allowed, dont allow text input*/
    if ((en->func) && !en->have_composition)

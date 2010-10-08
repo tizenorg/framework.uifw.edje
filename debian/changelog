@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build13) unstable; urgency=low
+
+  * [entry] reset composition when entry loses focus.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build13
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 08 Oct 2010 15:59:35 +0900
+
 edje (1.0.0.001+svn.51480slp2+build12) unstable; urgency=low
 
   * [entry] Bug fix about calling input_panel_hide more than one.
