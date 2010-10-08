@@ -1351,7 +1351,7 @@ _edje_part_recalc_single(Edje *ed,
       case EDJE_PART_TYPE_TEXT:
       case EDJE_PART_TYPE_TEXTBLOCK:
 	{
-	   Edje_Part_Description_Text *text_desc = (Edje_Part_Description_Text*) chosen_desc;
+	   Edje_Part_Description_Text *text_desc = (Edje_Part_Description_Text*) desc;
 
 	   /* text.align */
 	   if (flags & FLAG_X)
