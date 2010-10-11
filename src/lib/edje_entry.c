@@ -1900,13 +1900,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           }
         line = evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
      }
-   else
-     {
-        Evas_Coord lx, ly, lw, lh;
-        int line;
-
-        line = evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
-     }
    if (dosel)
      {
         if ((en->have_selection) && 
@@ -2029,13 +2022,28 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
      {
         Evas_Coord lx, ly, lw, lh;
-        
-        evas_textblock_cursor_line_coord_set(en->cursor, en->cy);
-        evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
-        if (en->cx <= lx)
-          _curs_lin_start(en->cursor, rp->object, en);
+        int line;
+
+        line = evas_textblock_cursor_line_coord_set(en->cursor, en->cy);
+        if (line == -1)
+          _curs_end(en->cursor, rp->object, en);
         else
-          _curs_lin_end(en->cursor, rp->object, en);
+          {
+             int lnum;
+             
+             lnum = evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
+             if (lnum < 0)
+               {
+                  _curs_lin_start(en->cursor, rp->object, en);
+               }
+             else
+               {
+                  if (en->cx <= lx)
+                    _curs_lin_start(en->cursor, rp->object, en);
+                  else
+                    _curs_lin_end(en->cursor, rp->object, en);
+               }
+          }
      }
    if ((rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_EXPLICIT)||(rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
      {  
@@ -2491,7 +2499,7 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
    x = y = w = h = -1;
    xx = yy = ww = hh = -1;
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-   evas_textblock_cursor_char_geometry_get(en->cursor, &xx, &yy, &ww, &hh);
+   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, EVAS_TEXTBLOCK_CURSOR_UNDER);
    if (ww < 1) ww = 1;
    if (hh < 1) ww = 1;
    if (en->cursor_bg)
@@ -2768,7 +2776,7 @@ _edje_entry_cursor_geometry_get(Edje_Real_Part *rp, Evas_Coord *cx, Evas_Coord *
    x = y = w = h = -1;
    xx = yy = ww = hh = -1;
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-   evas_textblock_cursor_char_geometry_get(en->cursor, &xx, &yy, &ww, &hh);
+   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, EVAS_TEXTBLOCK_CURSOR_UNDER);
    if (ww < 1) ww = 1;
    if (hh < 1) ww = 1;
    if (cx) *cx = x + xx;
