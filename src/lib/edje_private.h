@@ -1720,6 +1720,7 @@ void _edje_lua_script_only_message(Edje *ed, Edje_Message *em);
 void _edje_entry_init(Edje *ed);
 void _edje_entry_shutdown(Edje *ed);
 void _edje_entry_real_part_init(Edje_Real_Part *rp);
+void _edje_entry_hide_visible_password(Edje_Real_Part *rp);
 void _edje_entry_real_part_shutdown(Edje_Real_Part *rp);
 void _edje_entry_real_part_configure(Edje_Real_Part *rp);
 const char *_edje_entry_selection_get(Edje_Real_Part *rp);

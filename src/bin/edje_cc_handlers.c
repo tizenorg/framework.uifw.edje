@@ -2909,6 +2909,7 @@ st_collections_group_parts_part_effect(void)
         @li PLAIN
         @li EDITABLE
         @li PASSWORD
+        @li PASSWORD_SHOW_LAST_CHARACTER
         It causes the part be editable if the edje object has the keyboard
         focus AND the part has the edje focus (or selectable always
         regardless of focus) and in the event of password mode, not
