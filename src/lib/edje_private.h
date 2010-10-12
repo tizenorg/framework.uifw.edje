@@ -345,6 +345,9 @@ typedef struct _Edje_Patterns                        Edje_Patterns;
 
 #define EDJE_ENTRY_DOUBLE_SPACE_TIME 0.6
 
+#define EDJE_ENTRY_CURSOR_MODE_UNDER 0
+#define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
+
 #define EDJE_PART_PATH_SEPARATOR ':'
 #define EDJE_PART_PATH_SEPARATOR_STRING ":"
 #define EDJE_PART_PATH_SEPARATOR_INDEXL '['
@@ -701,6 +704,7 @@ struct _Edje_Part
    unsigned char          pointer_mode;
    unsigned char          entry_mode;
    unsigned char          select_mode;
+   unsigned char          cursor_mode;
    unsigned char          multiline;
    Edje_Part_Api          api;
 };
