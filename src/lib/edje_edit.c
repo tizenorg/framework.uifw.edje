@@ -4922,6 +4922,7 @@ edje_edit_programs_list_get(Evas_Object *obj)
 	Edje_Program *epr;
 
 	epr = ed->table_programs[i];
+	if (!epr->name) continue;
 	progs = eina_list_append(progs, eina_stringshare_add(epr->name));
      }
 
