@@ -179,7 +179,7 @@ _caps_mode_check(Entry *en)
    Ecore_IMF_Input_Panel_Caps_Mode caps_mode;
    Eina_Bool uppercase;
 
-   //if (!edje_autocapitalization_allow_get()) return;
+   if (!edje_autocapitalization_allow_get()) return;
 
    if (!en || !en->autocapital) return;
 
@@ -1256,7 +1256,7 @@ _autoperiod_insert(Edje_Real_Part *rp)
 
    if (!rp || !rp->entry_data || !rp->object) return;
 
-   //if (!edje_autoperiod_allow_get()) return;
+   if (!edje_autoperiod_allow_get()) return;
 
    en = rp->entry_data;
    if (!en || !en->autoperiod) return;
@@ -1726,7 +1726,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                }
              else
                {
-
                   /*if inputtin text is not allowed, dont allow text input*/
                   if (en->func)
                      if (en->func(en->data, (void *)ev->string))
@@ -3324,7 +3323,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
      {
         for (i = 0; i < en->comp_len; i++)
            _backspace(en->cursor, rp->object, en);
-        _sel_clear(en->cursor, rp->object, en);
 
         en->have_composition = EINA_FALSE;
      }
