@@ -589,27 +589,27 @@ _sel_clear(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __UNUSED__, Entry
    while (en->sel)
      {
         Sel *sel;
-	
-	sel = en->sel->data;
-	en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
-	en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
-	if (sel->obj_bg) evas_object_del(sel->obj_bg);
-	if (sel->obj_fg) evas_object_del(sel->obj_fg);
 
-	if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	  {
-	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
-	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
-	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
-	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
-	     
-	     if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
-	     if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
-	     if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
-	     if (sel->obj_bh_right) evas_object_del(sel->obj_bh_right);
-	  }
-	free(sel);
-	en->sel = eina_list_remove_list(en->sel, en->sel);
+        sel = en->sel->data;
+        en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
+        en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
+        if (sel->obj_bg) evas_object_del(sel->obj_bg);
+        if (sel->obj_fg) evas_object_del(sel->obj_fg);
+
+        if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+          {
+             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
+             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
+             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
+             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
+
+             if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
+             if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
+             if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
+             if (sel->obj_bh_right) evas_object_del(sel->obj_bh_right);
+          }
+        free(sel);
+        en->sel = eina_list_remove_list(en->sel, en->sel);
      }
    if (en->have_selection)
      {
@@ -626,172 +626,172 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
    Sel *sel;
    Evas_Coord x, y, w, h;
    Evas_Object *smart, *clip;
-   
+
    smart = evas_object_smart_parent_get(o);
    clip = evas_object_clip_get(o);
    if (en->sel_start)
-     range = evas_textblock_cursor_range_geometry_get(en->sel_start, en->sel_end);
+      range = evas_textblock_cursor_range_geometry_get(en->sel_start, en->sel_end);
    else
-     return;
+      return;
    if (eina_list_count(range) != eina_list_count(en->sel))
      {
-	while (en->sel)
-	  {
-	     sel = en->sel->data;
-	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
-	     en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
-	     if (sel->obj_bg) evas_object_del(sel->obj_bg);
-	     if (sel->obj_fg) evas_object_del(sel->obj_fg);
+        while (en->sel)
+          {
+             sel = en->sel->data;
+             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bg);
+             en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_fg);
+             if (sel->obj_bg) evas_object_del(sel->obj_bg);
+             if (sel->obj_fg) evas_object_del(sel->obj_fg);
 
-	     if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	       {
-		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
-		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
-		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
-		  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
+             if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+               {
+                  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_top);
+                  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_btm);
+                  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_left);
+                  en->rp->edje->subobjs = eina_list_remove(en->rp->edje->subobjs, sel->obj_bh_right);
 
-		  if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
-		  if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
-		  if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
-		  if (sel->obj_bh_right) evas_object_del(sel->obj_bh_right);
-	       }
-	     free(sel);
-	     en->sel = eina_list_remove_list(en->sel, en->sel);
-	  }
-	if (en->have_selection)
-	  {
-	     for (l = range; l; l = eina_list_next(l))
-	       {
-		  Evas_Object *ob;
-		  
-		  sel = calloc(1, sizeof(Sel));
-		  en->sel = eina_list_append(en->sel, sel);
-		  ob = edje_object_add(en->rp->edje->evas);
-		  edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source);
-		  evas_object_smart_member_add(ob, smart);
-		  evas_object_stack_below(ob, o);
-		  evas_object_clip_set(ob, clip);
-		  evas_object_pass_events_set(ob, EINA_TRUE);
-		  evas_object_show(ob);
-		  sel->obj_bg = ob;
-		  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bg);
+                  if (sel->obj_bh_top) evas_object_del(sel->obj_bh_top);
+                  if (sel->obj_bh_btm) evas_object_del(sel->obj_bh_btm);
+                  if (sel->obj_bh_left) evas_object_del(sel->obj_bh_left);
+                  if (sel->obj_bh_right) evas_object_del(sel->obj_bh_right);
+               }
+             free(sel);
+             en->sel = eina_list_remove_list(en->sel, en->sel);
+          }
+        if (en->have_selection)
+          {
+             for (l = range; l; l = eina_list_next(l))
+               {
+                  Evas_Object *ob;
 
-		  ob = edje_object_add(en->rp->edje->evas);
-		  if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-		     edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source6);
-		  else
-		     edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-		  evas_object_smart_member_add(ob, smart);
-		  evas_object_stack_above(ob, o);
-		  evas_object_clip_set(ob, clip);
-		  evas_object_pass_events_set(ob, EINA_TRUE);
-		  evas_object_show(ob);
-		  sel->obj_fg = ob;
-		  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_fg);
-		  if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-		    {
-		       const char *bh_position;
+                  sel = calloc(1, sizeof(Sel));
+                  en->sel = eina_list_append(en->sel, sel);
+                  ob = edje_object_add(en->rp->edje->evas);
+                  edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source);
+                  evas_object_smart_member_add(ob, smart);
+                  evas_object_stack_below(ob, o);
+                  evas_object_clip_set(ob, clip);
+                  evas_object_pass_events_set(ob, EINA_TRUE);
+                  evas_object_show(ob);
+                  sel->obj_bg = ob;
+                  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bg);
 
-		       evas_object_hide(en->cursor_fg);
-			   ob = edje_object_add(en->rp->edje->evas);
-			   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-			   bh_position = edje_object_data_get(ob, "position");
-			   if (!bh_position || !strlen(bh_position)) bh_position = "BOTH";
-			   if (ob) evas_object_del(ob);
+                  ob = edje_object_add(en->rp->edje->evas);
+                  if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+                     edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source6);
+                  else
+                     edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+                  evas_object_smart_member_add(ob, smart);
+                  evas_object_stack_above(ob, o);
+                  evas_object_clip_set(ob, clip);
+                  evas_object_pass_events_set(ob, EINA_TRUE);
+                  evas_object_show(ob);
+                  sel->obj_fg = ob;
+                  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_fg);
+                  if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+                    {
+                       const char *bh_position;
 
-			   if (!strcmp(bh_position, "TOP") || !strcmp(bh_position, "BOTH"))
-			   {
-				   ob = edje_object_add(en->rp->edje->evas);
-				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-				   evas_object_smart_member_add(ob, smart);
-				   evas_object_stack_above(ob, o);
-				   evas_object_clip_set(ob, clip);
-				   evas_object_pass_events_set(ob, EINA_TRUE);
-				   sel->obj_bh_top = ob;
-				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_top);
-		       
-				   ob = edje_object_add(en->rp->edje->evas);
-				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-				   evas_object_smart_member_add(ob, smart);
-				   evas_object_stack_above(ob, o);
-				   evas_object_clip_set(ob, clip);
-				   evas_object_pass_events_set(ob, EINA_TRUE);
-				   sel->obj_bh_left = ob;
-				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_left);
-			   }
+                       evas_object_hide(en->cursor_fg);
+                       ob = edje_object_add(en->rp->edje->evas);
+                       edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+                       bh_position = edje_object_data_get(ob, "position");
+                       if (!bh_position || !strlen(bh_position)) bh_position = "BOTH";
+                       if (ob) evas_object_del(ob);
 
-			   if (!strcmp(bh_position, "BOTTOM") || !strcmp(bh_position, "BOTH"))
-			   {
-				   ob = edje_object_add(en->rp->edje->evas);
-				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-				   evas_object_smart_member_add(ob, smart);
-				   evas_object_stack_above(ob, o);
-				   evas_object_clip_set(ob, clip);
-				   //evas_object_pass_events_set(ob, EINA_TRUE);
-				   sel->obj_bh_btm = ob;
-				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_btm);
-				   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_handler_mouse_down_cb, en->rp);
-				   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_UP, _edje_entry_handler_mouse_up_cb, en->rp);
-				   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_handler_mouse_move_cb, en->rp);
+                       if (!strcmp(bh_position, "TOP") || !strcmp(bh_position, "BOTH"))
+                         {
+                            ob = edje_object_add(en->rp->edje->evas);
+                            edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+                            evas_object_smart_member_add(ob, smart);
+                            evas_object_stack_above(ob, o);
+                            evas_object_clip_set(ob, clip);
+                            evas_object_pass_events_set(ob, EINA_TRUE);
+                            sel->obj_bh_top = ob;
+                            en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_top);
 
-				   ob = edje_object_add(en->rp->edje->evas);
-				   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-				   evas_object_smart_member_add(ob, smart);
-				   evas_object_stack_above(ob, o);
-				   evas_object_clip_set(ob, clip);
-				   evas_object_pass_events_set(ob, EINA_TRUE);
-				   sel->obj_bh_right = ob;
-				   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_right);
-			   }
-		    }
-	       }
-	  }
+                            ob = edje_object_add(en->rp->edje->evas);
+                            edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
+                            evas_object_smart_member_add(ob, smart);
+                            evas_object_stack_above(ob, o);
+                            evas_object_clip_set(ob, clip);
+                            evas_object_pass_events_set(ob, EINA_TRUE);
+                            sel->obj_bh_left = ob;
+                            en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_left);
+                         }
+
+                       if (!strcmp(bh_position, "BOTTOM") || !strcmp(bh_position, "BOTH"))
+                         {
+                            ob = edje_object_add(en->rp->edje->evas);
+                            edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+                            evas_object_smart_member_add(ob, smart);
+                            evas_object_stack_above(ob, o);
+                            evas_object_clip_set(ob, clip);
+                            //evas_object_pass_events_set(ob, EINA_TRUE);
+                            sel->obj_bh_btm = ob;
+                            en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_btm);
+                            evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_handler_mouse_down_cb, en->rp);
+                            evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_UP, _edje_entry_handler_mouse_up_cb, en->rp);
+                            evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_handler_mouse_move_cb, en->rp);
+
+                            ob = edje_object_add(en->rp->edje->evas);
+                            edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
+                            evas_object_smart_member_add(ob, smart);
+                            evas_object_stack_above(ob, o);
+                            evas_object_clip_set(ob, clip);
+                            evas_object_pass_events_set(ob, EINA_TRUE);
+                            sel->obj_bh_right = ob;
+                            en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_right);
+                         }
+                    }
+               }
+          }
      }
    x = y = w = h = -1;
    evas_object_geometry_get(o, &x, &y, &w, &h);
    if (en->have_selection)
      {
-	int list_cnt, list_idx;
+        int list_cnt, list_idx;
 
-	list_cnt = eina_list_count(en->sel);
-	list_idx = 0;
-	EINA_LIST_FOREACH(en->sel, l, sel)
-	  {
-	     Evas_Textblock_Rectangle *r;
-	     list_idx++;
+        list_cnt = eina_list_count(en->sel);
+        list_idx = 0;
+        EINA_LIST_FOREACH(en->sel, l, sel)
+          {
+             Evas_Textblock_Rectangle *r;
+             list_idx++;
 
-	     r = range->data;
-	     if (sel->obj_bg)
-	       {
-		  evas_object_move(sel->obj_bg, x + r->x, y + r->y);
-		  evas_object_resize(sel->obj_bg, r->w, r->h);
-	       }
-	     if (sel->obj_fg)
-	       {
-		  evas_object_move(sel->obj_fg, x + r->x, y + r->y);
-		  evas_object_resize(sel->obj_fg, r->w, r->h);
-	       }
-	     if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
-	       {
-		  if (sel->obj_bh_top)
-		    {
-		       evas_object_hide(sel->obj_bh_top);
-		       evas_object_hide(sel->obj_bh_left);
+             r = range->data;
+             if (sel->obj_bg)
+               {
+                  evas_object_move(sel->obj_bg, x + r->x, y + r->y);
+                  evas_object_resize(sel->obj_bg, r->w, r->h);
+               }
+             if (sel->obj_fg)
+               {
+                  evas_object_move(sel->obj_fg, x + r->x, y + r->y);
+                  evas_object_resize(sel->obj_fg, r->w, r->h);
+               }
+             if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+               {
+                  if (sel->obj_bh_top)
+                    {
+                       evas_object_hide(sel->obj_bh_top);
+                       evas_object_hide(sel->obj_bh_left);
 
-		       if( list_idx == 1 )
-			 {
-			    evas_object_move(sel->obj_bh_top, x + r->x, y + r->y);
-			    evas_object_show(sel->obj_bh_top);
+                       if( list_idx == 1 )
+                         {
+                            evas_object_move(sel->obj_bh_top, x + r->x, y + r->y);
+                            evas_object_show(sel->obj_bh_top);
 
-			    evas_object_move(sel->obj_bh_left, x + r->x - 1, y + r->y);
-			    evas_object_resize(sel->obj_bh_left, 3, r->h);
-			    evas_object_show(sel->obj_bh_left);
-			 }
-		    }
-		  if (sel->obj_bh_btm)
-		    {
-		       evas_object_hide(sel->obj_bh_btm);
-		       evas_object_hide(sel->obj_bh_right);
+                            evas_object_move(sel->obj_bh_left, x + r->x - 1, y + r->y);
+                            evas_object_resize(sel->obj_bh_left, 3, r->h);
+                            evas_object_show(sel->obj_bh_left);
+                         }
+                    }
+                  if (sel->obj_bh_btm)
+                    {
+                       evas_object_hide(sel->obj_bh_btm);
+                       evas_object_hide(sel->obj_bh_right);
 
                        if( list_idx == list_cnt )
                          {
@@ -803,11 +803,11 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                             evas_object_show(sel->obj_bh_right);
                          }
                     }
-	       } 
-	     *(&(sel->rect)) = *r;
-	     range = eina_list_remove_list(range, range);
-	     free(r);
-	  }
+               } 
+             *(&(sel->rect)) = *r;
+             range = eina_list_remove_list(range, range);
+             free(r);
+          }
      }
    else
      {
@@ -1147,87 +1147,87 @@ _anchors_get(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
         const char *s;
 
         evas_textblock_cursor_at_format_set(c1, node);
-	s = evas_textblock_node_format_text_get(node);
-	if (s)
-	  {
-	     if ((!strncmp(s, "+ a ", 4)) || (!strncmp(s, "+a ", 3)))
-	       {
-		  an = calloc(1, sizeof(Anchor));
-		  if (an)
-		    {
-		       char *p;
+        s = evas_textblock_node_format_text_get(node);
+        if (s)
+          {
+             if ((!strncmp(s, "+ a ", 4)) || (!strncmp(s, "+a ", 3)))
+               {
+                  an = calloc(1, sizeof(Anchor));
+                  if (an)
+                    {
+                       char *p;
 
-		       an->en = en;
-		       p = strstr(s, "href=");
-		       if (p)
-			 {
-			    an->name = strdup(p + 5);
-			 }
-		       en->anchors = eina_list_append(en->anchors, an);
-		       an->start = evas_object_textblock_cursor_new(o);
-		       an->end = evas_object_textblock_cursor_new(o);
-		       evas_textblock_cursor_copy(c1, an->start);
-		       evas_textblock_cursor_copy(c1, an->end);
-		    }
-	       }
-	     else if ((!strcmp(s, "- a")) || (!strcmp(s, "-a")))
-	       {
-		  /* Close the anchor, if the anchor was without text, free it as well */
-		  if (an)
-		    {
+                       an->en = en;
+                       p = strstr(s, "href=");
+                       if (p)
+                         {
+                            an->name = strdup(p + 5);
+                         }
+                       en->anchors = eina_list_append(en->anchors, an);
+                       an->start = evas_object_textblock_cursor_new(o);
+                       an->end = evas_object_textblock_cursor_new(o);
+                       evas_textblock_cursor_copy(c1, an->start);
+                       evas_textblock_cursor_copy(c1, an->end);
+                    }
+               }
+             else if ((!strcmp(s, "- a")) || (!strcmp(s, "-a")))
+               {
+                  /* Close the anchor, if the anchor was without text, free it as well */
+                  if (an)
+                    {
                        evas_textblock_cursor_at_format_set(an->end, node);
                        /* Go before the format */ 
                        evas_textblock_cursor_char_prev(an->end);
-		       if (!evas_textblock_cursor_compare(an->start, an->end))
-			 {
-			    if (an->name) free(an->name);
-			    evas_textblock_cursor_free(an->start);
-			    evas_textblock_cursor_free(an->end);
-			    en->anchors = eina_list_remove(en->anchors, an);
-			    free(an);
-			 }
-		       an = NULL;
-		    }
-	       }
-	     else if (!strncmp(s, "+ item ", 7))
-	       {
-		  an = calloc(1, sizeof(Anchor));
-		  if (an)
-		    {
-		       char *p;
+                       if (!evas_textblock_cursor_compare(an->start, an->end))
+                         {
+                            if (an->name) free(an->name);
+                            evas_textblock_cursor_free(an->start);
+                            evas_textblock_cursor_free(an->end);
+                            en->anchors = eina_list_remove(en->anchors, an);
+                            free(an);
+                         }
+                       an = NULL;
+                    }
+               }
+             else if (!strncmp(s, "+ item ", 7))
+               {
+                  an = calloc(1, sizeof(Anchor));
+                  if (an)
+                    {
+                       char *p;
 
-		       an->en = en;
+                       an->en = en;
                        an->item = 1;
-		       p = strstr(s, "href=");
-		       if (p)
-			 {
-			    an->name = strdup(p + 5);
-			 }
-		       en->anchors = eina_list_append(en->anchors, an);
-		       an->start = evas_object_textblock_cursor_new(o);
-		       an->end = evas_object_textblock_cursor_new(o);
-		       evas_textblock_cursor_copy(c1, an->start);
-		       evas_textblock_cursor_copy(c1, an->end);
-		    }
-	       }
-	     else if ((!strcmp(s, "- item")) || (!strcmp(s, "-item")))
-	       {
-		  if (an)
-		    {
-/* 
-		       if (!firsttext)
-			 {
-			    if (an->name) free(an->name);
-			    evas_textblock_cursor_free(an->start);
-			    evas_textblock_cursor_free(an->end);
-			    en->anchors = eina_list_remove(en->anchors, an);
-			    free(an);
-			 }
- */
-		       an = NULL;
-		    }
-	       }
-	  }
+                       p = strstr(s, "href=");
+                       if (p)
+                         {
+                            an->name = strdup(p + 5);
+                         }
+                       en->anchors = eina_list_append(en->anchors, an);
+                       an->start = evas_object_textblock_cursor_new(o);
+                       an->end = evas_object_textblock_cursor_new(o);
+                       evas_textblock_cursor_copy(c1, an->start);
+                       evas_textblock_cursor_copy(c1, an->end);
+                    }
+               }
+             else if ((!strcmp(s, "- item")) || (!strcmp(s, "-item")))
+               {
+                  if (an)
+                    {
+                       /* 
+                          if (!firsttext)
+                          {
+                          if (an->name) free(an->name);
+                          evas_textblock_cursor_free(an->start);
+                          evas_textblock_cursor_free(an->end);
+                          en->anchors = eina_list_remove(en->anchors, an);
+                          free(an);
+                          }
+                          */
+                       an = NULL;
+                    }
+               }
+          }
      }
    evas_textblock_cursor_free(c1);
 }
@@ -3374,14 +3374,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    _caps_mode_check(en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
    return ECORE_CALLBACK_DONE;
 }
 
@@ -3393,7 +3385,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    Entry *en;
    int length;
    Ecore_IMF_Event_Commit *ev = event;
-   int i;
+   int i=0;
    char *preedit_string;
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
