@@ -29,7 +29,7 @@ void *alloca (size_t);
 
 static Eina_Bool _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx, char **text, int *cursor_pos);
 static Eina_Bool _edje_entry_imf_event_commit_cb(void *data, int type, void *event);
-static Eina_Bool _edje_entry_imf_event_preedit_changed_cb(void *data, int type, void *event);
+static Eina_Bool _edje_entry_imf_event_changed_cb(void *data, int type, void *event);
 static Eina_Bool _edje_entry_imf_event_delete_surrounding_cb(void *data, int type, void *event);
 #endif
 
@@ -396,7 +396,7 @@ _curs_update_from_curs(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entr
 {
    Evas_Coord cx, cy, cw, ch;
    if (c != en->cursor) return;
-   evas_textblock_cursor_char_geometry_get(c, &cx, &cy, &cw, &ch);
+   evas_textblock_cursor_geometry_get(c, &cx, &cy, &cw, &ch, EVAS_TEXTBLOCK_CURSOR_UNDER);
    en->cx = cx + (cw / 2);
    en->cy = cy + (ch / 2);
 }
@@ -707,6 +707,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                             evas_object_stack_above(ob, o);
                             evas_object_clip_set(ob, clip);
                             evas_object_pass_events_set(ob, EINA_TRUE);
+                            evas_object_show(ob);
                             sel->obj_bh_top = ob;
                             en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_bh_top);
 
@@ -2468,7 +2469,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
                                                             _edje_entry_imf_retrieve_surrounding_cb, rp);
         en->imf_ee_handler_commit = ecore_event_handler_add(ECORE_IMF_EVENT_COMMIT, _edje_entry_imf_event_commit_cb, rp->edje);
         en->imf_ee_handler_delete = ecore_event_handler_add(ECORE_IMF_EVENT_DELETE_SURROUNDING, _edje_entry_imf_event_delete_surrounding_cb, rp);
-        en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_preedit_changed_cb, rp->edje);
+        en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_changed_cb, rp->edje);
         ecore_imf_context_input_mode_set(en->imf_context, 
                                          (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD || rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)? 
                                          ECORE_IMF_INPUT_MODE_INVISIBLE : ECORE_IMF_INPUT_MODE_FULL);
@@ -3323,7 +3324,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
      {
         for (i = 0; i < en->comp_len; i++)
            _backspace(en->cursor, rp->object, en);
-
+	    _sel_clear(en->cursor, rp->object, en);
         en->have_composition = EINA_FALSE;
      }
 
@@ -3374,11 +3375,19 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    _caps_mode_check(en);
 
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     {
+        ecore_imf_context_cursor_position_set(en->imf_context,
+                                              evas_textblock_cursor_pos_get(en->cursor));
+     }
+#endif
+
    return ECORE_CALLBACK_DONE;
 }
 
 static Eina_Bool
-_edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *event)
+_edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
 {
    Edje* ed = data;
    Edje_Real_Part *rp = ed->focused_part;
