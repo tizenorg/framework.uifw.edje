@@ -1834,6 +1834,8 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    str = eina_strbuf_new();
 
    ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+   if (!ct || strlen(ct) == 0) return;
+
    block_type = _get_char_type(ct);
 
    if(en->cursor_fg) evas_object_hide(en->cursor_fg);
@@ -3259,6 +3261,7 @@ _edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur)
    static char *s = NULL;
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
 
+   if (!c) return NULL;
    if (s)
      {
         free(s);
