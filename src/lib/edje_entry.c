@@ -1336,7 +1336,8 @@ _edje_entry_hide_visible_password(Edje_Real_Part *rp)
                }
           }
      }
-   _edje_entry_real_part_configure(rp);
+   _edje_entry_real_part_configure(rp);  
+   _edje_emit(rp->edje, "entry,changed", rp->part->name);
 }
 
 static Eina_Bool 
