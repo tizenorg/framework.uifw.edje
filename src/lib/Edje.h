@@ -309,28 +309,28 @@ struct _Edje_External_Param_Info
 {
    const char *name;
    Edje_External_Param_Type type;
-   union {  
-      struct {  
-         int def, min, max, step;  
-      } i;  
-      struct {  
-         double def, min, max, step;  
-      } d;  
-      struct {  
-         const char *def;  
-         const char *accept_fmt;  
-         const char *deny_fmt;  
-      } s;  
-      struct {  
-         int def;  
-         const char *false_str;  
-         const char *true_str;  
-      } b;  
-      struct {  
-         const char *def;  
-         const char **choices; /* NULL terminated array */  
-      } c;  
-   } info; 
+   union {
+      struct {
+         int def, min, max, step;
+      } i;
+      struct {
+         double def, min, max, step;
+      } d;
+      struct {
+         const char *def;
+         const char *accept_fmt;
+         const char *deny_fmt;
+      } s;
+      struct {
+         int def;
+         const char *false_str;
+         const char *true_str;
+      } b;
+      struct {
+         const char *def;
+         const char **choices; /* NULL terminated array */
+      } c;
+   } info;
 };
 typedef struct _Edje_External_Param_Info Edje_External_Param_Info;
 
@@ -570,15 +570,15 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI void             edje_object_part_text_select_begin            (const Evas_Object *obj, const char *part);
    EAPI void             edje_object_part_text_select_extend           (const Evas_Object *obj, const char *part);
        
-   EAPI Eina_Bool        edje_object_part_text_cursor_next                 (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI Eina_Bool        edje_object_part_text_cursor_prev                 (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI Eina_Bool        edje_object_part_text_cursor_up                   (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI Eina_Bool        edje_object_part_text_cursor_down                 (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI void             edje_object_part_text_cursor_begin_set            (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI void             edje_object_part_text_cursor_end_set              (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI void             edje_object_part_text_cursor_copy                 (const Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst);
-   EAPI void             edje_object_part_text_cursor_line_begin_set       (const Evas_Object *obj, const char *part, Edje_Cursor cur);
-   EAPI void             edje_object_part_text_cursor_line_end_set         (const Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI Eina_Bool        edje_object_part_text_cursor_next                 (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI Eina_Bool        edje_object_part_text_cursor_prev                 (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI Eina_Bool        edje_object_part_text_cursor_up                   (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI Eina_Bool        edje_object_part_text_cursor_down                 (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI void             edje_object_part_text_cursor_begin_set            (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI void             edje_object_part_text_cursor_end_set              (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI void             edje_object_part_text_cursor_copy                 (Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst);
+   EAPI void             edje_object_part_text_cursor_line_begin_set       (Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI void             edje_object_part_text_cursor_line_end_set         (Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI Eina_Bool        edje_object_part_text_cursor_coord_set            (Evas_Object *obj, const char *part, Edje_Cursor cur, Evas_Coord x, Evas_Coord y);
    EAPI Eina_Bool        edje_object_part_text_cursor_is_format_get        (const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI Eina_Bool        edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur);

@@ -2061,7 +2061,7 @@ edje_object_part_text_input_panel_enabled_get(const Evas_Object *obj, const char
  * @param part The part name
  */
 EAPI Eina_Bool
-edje_object_part_text_cursor_next(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_next(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2084,7 +2084,7 @@ edje_object_part_text_cursor_next(const Evas_Object *obj, const char *part, Edje
  * @param part The part name
  */
 EAPI Eina_Bool
-edje_object_part_text_cursor_prev(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_prev(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2107,7 +2107,7 @@ edje_object_part_text_cursor_prev(const Evas_Object *obj, const char *part, Edje
  * @param part The part name
  */
 EAPI Eina_Bool
-edje_object_part_text_cursor_up(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_up(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2130,7 +2130,7 @@ edje_object_part_text_cursor_up(const Evas_Object *obj, const char *part, Edje_C
  * @param part The part name
  */
 EAPI Eina_Bool
-edje_object_part_text_cursor_down(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_down(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2153,7 +2153,7 @@ edje_object_part_text_cursor_down(const Evas_Object *obj, const char *part, Edje
  * @param part The part name
  */
 EAPI void
-edje_object_part_text_cursor_begin_set(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_begin_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2175,7 +2175,7 @@ edje_object_part_text_cursor_begin_set(const Evas_Object *obj, const char *part,
  * @param part The part name
  */
 EAPI void
-edje_object_part_text_cursor_end_set(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_end_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2197,7 +2197,7 @@ edje_object_part_text_cursor_end_set(const Evas_Object *obj, const char *part, E
  * @param part The part name
  */
 EAPI void
-edje_object_part_text_cursor_copy(const Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst)
+edje_object_part_text_cursor_copy(Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2219,7 +2219,7 @@ edje_object_part_text_cursor_copy(const Evas_Object *obj, const char *part, Edje
  * @param part The part name
  */
 EAPI void
-edje_object_part_text_cursor_line_begin_set(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_line_begin_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2241,7 +2241,7 @@ edje_object_part_text_cursor_line_begin_set(const Evas_Object *obj, const char *
  * @param part The part name
  */
 EAPI void
-edje_object_part_text_cursor_line_end_set(const Evas_Object *obj, const char *part, Edje_Cursor cur)
+edje_object_part_text_cursor_line_end_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2346,7 +2346,7 @@ edje_object_part_text_cursor_content_get(const Evas_Object *obj, const char *par
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -5165,5 +5165,6 @@ edje_string_id_get(const Edje_String *es)
    if (!es) return NULL;
    return es->str;
 }
+
 
 /* vim:set ts=8 sw=3 sts=3 expandtab cino=>5n-2f0^-2{2(0W1st0 :*/

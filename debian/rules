@@ -9,8 +9,8 @@ DEB_DH_STRIP_ARGS := --dbg-package=libedje-dbg
 DEB_CONFIGURE_EXTRA_FLAGS := 
 #DEB_SOURCE_VERSION := $(shell grep AC_INIT $(DEB_SRCDIR)/configure.ac | cut -d, -f2 | tr -d ' []')
 DEB_SOURCE_VERSION := $(shell )
-CFLAGS += -fvisibility=hidden -ffast-math
-LDFLAGS += -fvisibility=hidden
+CFLAGS += -fvisibility=hidden -ffast-math -fPIC
+LDFLAGS += -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed
 
 build/libedje-doc::
 	cd $(DEB_SRCDIR)/doc && make doc
