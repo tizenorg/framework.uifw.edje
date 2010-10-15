@@ -29,7 +29,7 @@ void *alloca (size_t);
 
 static Eina_Bool _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx, char **text, int *cursor_pos);
 static Eina_Bool _edje_entry_imf_event_commit_cb(void *data, int type, void *event);
-static Eina_Bool _edje_entry_imf_event_changed_cb(void *data, int type, void *event);
+static Eina_Bool _edje_entry_imf_event_preedit_changed_cb(void *data, int type, void *event);
 static Eina_Bool _edje_entry_imf_event_delete_surrounding_cb(void *data, int type, void *event);
 #endif
 
@@ -1322,7 +1322,6 @@ _delete(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSED_
 void
 _edje_entry_hide_visible_password(Edje_Real_Part *rp)
 {
-   Entry *en = rp->entry_data;
    const Evas_Object_Textblock_Node_Format *node;
    node = evas_textblock_node_format_first_get(rp->object);
    for (; node ; node = evas_textblock_node_format_next_get(node))
@@ -2469,7 +2468,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
                                                             _edje_entry_imf_retrieve_surrounding_cb, rp);
         en->imf_ee_handler_commit = ecore_event_handler_add(ECORE_IMF_EVENT_COMMIT, _edje_entry_imf_event_commit_cb, rp->edje);
         en->imf_ee_handler_delete = ecore_event_handler_add(ECORE_IMF_EVENT_DELETE_SURROUNDING, _edje_entry_imf_event_delete_surrounding_cb, rp);
-        en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_changed_cb, rp->edje);
+        en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_preedit_changed_cb, rp->edje);
         ecore_imf_context_input_mode_set(en->imf_context, 
                                          (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD || rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)? 
                                          ECORE_IMF_INPUT_MODE_INVISIBLE : ECORE_IMF_INPUT_MODE_FULL);
@@ -3334,7 +3333,8 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
         /*if inputtin text is not allowed, dont allow text input*/
         if (en->func)
            if (en->func(en->data, (void *)ev->str))
-              return;
+              return ECORE_CALLBACK_PASS_ON;
+
         evas_object_textblock_text_markup_prepend(en->cursor, "<password=off>");
         evas_object_textblock_text_markup_prepend(en->cursor, ev->str);
         evas_object_textblock_text_markup_prepend(en->cursor, "</password>");
@@ -3387,7 +3387,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 }
 
 static Eina_Bool
-_edje_entry_imf_event_changed_cb(void *data, int type __UNUSED__, void *event)
+_edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *event)
 {
    Edje* ed = data;
    Edje_Real_Part *rp = ed->focused_part;
