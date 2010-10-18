@@ -93,8 +93,8 @@ struct _Entry
    double space_key_time;
 
 #ifdef HAVE_ECORE_IMF   
-   int	comp_len;
-   Eina_Bool have_composition : 1;
+   int	preedit_len;
+   Eina_Bool have_preedit : 1;
    Eina_Bool input_panel_enable : 1;
    Ecore_IMF_Context *imf_context;
 
@@ -287,7 +287,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    en = rp->entry_data;
    if (!en || !en->imf_context) return;
 
-   en->comp_len = 0;
+   en->preedit_len = 0;
 
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
@@ -353,7 +353,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
 
    if (!en->imf_context) return;
 
-   en->comp_len = 0;
+   en->preedit_len = 0;
 
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
@@ -1714,7 +1714,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                   /*if inputtin text is not allowed, dont allow text input*/
                   if (en->func)
                      if (en->func(en->data, (void *)ev->string))
-                        return;             	
+                        return;
                   evas_object_textblock_text_markup_prepend(en->cursor, "<password=off>");
                   evas_object_textblock_text_markup_prepend(en->cursor, ev->string);
                   evas_object_textblock_text_markup_prepend(en->cursor, "</password>");
@@ -3323,12 +3323,11 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
         _sel_clear(en->cursor, rp->object, en);
      }
 
-   if (en->have_composition)
+   if (en->have_preedit)
      {
-        for (i = 0; i < en->comp_len; i++)
+        for (i = 0; i < en->preedit_len; i++)
            _backspace(en->cursor, rp->object, en);
-	    _sel_clear(en->cursor, rp->object, en);
-        en->have_composition = EINA_FALSE;
+        en->have_preedit = EINA_FALSE;
      }
 
    if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
@@ -3415,7 +3414,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    ecore_imf_context_preedit_string_get(en->imf_context, &preedit_string, &length);
 
    /*if inputtin text is not allowed, dont allow text input*/
-   if ((en->func) && !en->have_composition)
+   if ((en->func) && !en->have_preedit)
      {
         if (en->func(en->data, preedit_string))
           {
@@ -3430,15 +3429,15 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
         _sel_clear(en->cursor, rp->object, en);
      }
 
-   if (en->have_composition)
+   if (en->have_preedit)
      {
-        // delete the composing characters
-        for (i = 0;i < en->comp_len; i++)
+        // delete the preedit characters
+        for (i = 0;i < en->preedit_len; i++)
            _backspace(en->cursor, rp->object, en);
      }
 
-   en->comp_len = length;
-   en->have_composition = EINA_TRUE;
+   en->preedit_len = length;
+   en->have_preedit = EINA_TRUE;
 
    //xx
    evas_object_textblock_text_markup_prepend(en->cursor, preedit_string);
