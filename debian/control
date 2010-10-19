@@ -1,7 +1,7 @@
 Source: edje
 Section: libs
 Priority: optional
-Maintainer: Jaehwan Kim <jae.hwan.kim@samsung.com>, Jihoon Kim <jihoon48.kim@samsung.com>, Myungjae Lee <mjae.lee@samsung.com>, Juyung Seo <juyung.seo@samsung.com>, ChunEon Park <chuneon.park@samsung.com>
+Maintainer: Jaehwan Kim <jae.hwan.kim@samsung.com>, Jihoon Kim <jihoon48.kim@samsung.com>, Myungjae Lee <mjae.lee@samsung.com>, Juyung Seo <juyung.seo@samsung.com>, ChunEon Park <chuneon.park@samsung.com>, WooHyun Jung <wh0705.jung>
 Original-Maintainer: Debian Pkg-e Team <pkg-e-devel@lists.alioth.debian.org>
 Uploaders: Albin Tonnerre <albin.tonnerre@gmail.com>
  Xavier Oswald <x.oswald@free.fr>, Jan Lübbe <jluebbe@debian.org>
