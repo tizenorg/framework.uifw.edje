@@ -2224,7 +2224,7 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 		{
              int lnum;
              lnum = evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
-             _curs_lin_end(en->cursor, rp->object, en);
+             _curs_lin_start(en->cursor, rp->object, en);
 		}
 	}
 
