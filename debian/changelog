@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build19) unstable; urgency=low
+
+  * [entry] added copy paste feature - 2 handler selection
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build19
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 20 Oct 2010 23:00:00 +0900
+
 edje (1.0.0.001+svn.51480slp2+build18) unstable; urgency=low
 
   * repackaging because of e-mail address violation 
