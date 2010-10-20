@@ -295,11 +295,12 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    en = rp->entry_data;
    if (!en || !en->imf_context) return;
 
-   en->preedit_len = 0;
-
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
+
+   en->preedit_len = 0;
+   en->have_preedit = EINA_FALSE;
 
    if (en->input_panel_enable)
      {
@@ -361,11 +362,12 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
 
    if (!en->imf_context) return;
 
-   en->preedit_len = 0;
-
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
+
+   en->preedit_len = 0;
+   en->have_preedit = EINA_FALSE;
 
    if (en->input_panel_enable)
      {
@@ -562,7 +564,9 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
 
-#ifdef HAVE_ECORE_IMF   
+#ifdef HAVE_ECORE_IMF
+   ecore_imf_context_reset(en->imf_context);
+
    if (en->input_panel_enable)
      {
 		ecore_imf_context_input_panel_hide(en->imf_context);
@@ -584,7 +588,9 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
    
-#ifdef HAVE_ECORE_IMF   
+#ifdef HAVE_ECORE_IMF
+   ecore_imf_context_reset(en->imf_context);
+
    if (en->input_panel_enable)
      {
 		ecore_imf_context_input_panel_hide(en->imf_context);
@@ -2459,7 +2465,6 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    evas_object_pass_events_set(en->cursor_fg, EINA_TRUE);
    rp->edje->subobjs = eina_list_append(rp->edje->subobjs, en->cursor_fg);
 
-
    if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
    {
 	   const char *bh_position;
@@ -2501,8 +2506,6 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
 		   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_bottom_handler_mouse_move_cb, en->rp);
 	   }
    }
-
-
 
    if (rp->part->entry_mode >= EDJE_ENTRY_EDIT_MODE_EDITABLE)
      {
