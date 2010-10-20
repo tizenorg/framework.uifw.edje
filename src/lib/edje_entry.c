@@ -561,6 +561,13 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
         en->selection = NULL;
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
+
+#ifdef HAVE_ECORE_IMF   
+   if (en->input_panel_enable)
+     {
+		ecore_imf_context_input_panel_hide(en->imf_context);
+     }
+#endif
 }
 
 static void
@@ -576,6 +583,13 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
         en->selection = NULL;
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
+   
+#ifdef HAVE_ECORE_IMF   
+   if (en->input_panel_enable)
+     {
+		ecore_imf_context_input_panel_hide(en->imf_context);
+     }
+#endif
 }
 
 static void
