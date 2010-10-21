@@ -49,13 +49,6 @@ static Eina_Bool keypad_show = EINA_FALSE;
 static Ecore_Timer *hide_timer = NULL;
 static Entry *focused_entry = NULL;
 
-enum _Entry_Dragging_State
-{
-   _ENTRY_DRAGGING_STATE_NONE = 0,
-   _ENTRY_DRAGGING_STATE_READY = 1,
-   _ENTRY_DRAGGING_STATE_STARTED = 2
-};
-
 typedef enum _Entry_Char_Type
 {
    _ENTRY_CHAR_ALPHABET,
@@ -556,6 +549,13 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
    if (!en->sel_end) return;
    _sel_enable(c, o, en);
    if (!evas_textblock_cursor_compare(c, en->sel_end)) return;
+   
+   if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+     {
+        if (evas_textblock_cursor_compare(en->sel_start, c) > 0)
+			evas_textblock_cursor_copy(en->sel_start, c);
+     }
+
    evas_textblock_cursor_copy(c, en->sel_end);
    if (en->selection)
      {
@@ -580,6 +580,13 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
    if (!en->sel_end) return;
    _sel_enable(c, o, en);
    if (!evas_textblock_cursor_compare(c, en->sel_start)) return;
+
+   if(en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
+     {
+        if (evas_textblock_cursor_compare(c, en->sel_end) > 0)
+			evas_textblock_cursor_copy(en->sel_end, c);
+     }
+
    evas_textblock_cursor_copy(c, en->sel_start);
    if (en->selection)
      {
@@ -651,7 +658,11 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
    smart = evas_object_smart_parent_get(o);
    clip = evas_object_clip_get(o);
    if (en->sel_start)
+   {
       range = evas_textblock_cursor_range_geometry_get(en->sel_start, en->sel_end);
+	  if (!range) 
+		  return;
+   }
    else
       return;
    if (eina_list_count(range) != eina_list_count(en->sel))
@@ -1236,22 +1247,6 @@ done:
    en->space_key_time = ecore_time_get();
 }
 
-/*
-static Eina_Bool 
-_select_mode_cb(void *data)
-{	
-   Entry *en = (Entry *)data;
-   if (!en) return EINA_FALSE;
-
-   if( en->select_dragging_state == _ENTRY_DRAGGING_STATE_STARTED )
-     return EINA_FALSE;
-
-   en->select_dragging_state = _ENTRY_DRAGGING_STATE_NONE;
-
-   return EINA_FALSE;
-}
-*/
-
 static void
 _delete(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSED__)
 {
@@ -1811,8 +1806,8 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    _edje_entry_select_extend(rp);
 
    en->select_allow = EINA_TRUE;
-   en->select_mod_end = EINA_TRUE;
-   en->had_sel = EINA_TRUE;
+   //en->select_mod_end = EINA_TRUE;
+   //en->had_sel = EINA_TRUE;
    en->selecting = EINA_FALSE;
  
    //printf("string : %s \n", eina_strbuf_string_get(str));
@@ -1995,7 +1990,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    en->cx = ev->canvas.x - x;
    en->cy = ev->canvas.y - y;
 
-   //printf( "[entry] ev->canvas.x = %d, ev->canvas.y = %d \n", ev->canvas.x, ev->canvas.y );
    if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
      {
         Evas_Coord lx, ly, lw, lh;
@@ -2100,7 +2094,6 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 			en->cx = ev->cur.canvas.x - x;
 			en->cy = ev->cur.canvas.y - y;
 
-			//printf( "[entry] ev->cur.canvas.x = %d, ev->cur.canvas.y = %d \n", ev->cur.canvas.x, ev->cur.canvas.y );   
 			if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
 			  {
 				 Evas_Coord lx, ly, lw, lh;
@@ -2922,7 +2915,13 @@ _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow)
    Entry *en = rp->entry_data;
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_DEFAULT)
       return;
+
    en->select_allow = allow;
+   
+   if ((allow) && (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
+   {
+		_edje_entry_mouse_double_clicked(rp, NULL, NULL, NULL);
+   }
 }
 
 Eina_Bool
