@@ -3555,10 +3555,10 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
    cursor_pos = evas_textblock_cursor_pos_get(en->cursor);
 
    del_start = evas_object_textblock_cursor_new(en->rp->object);
-   evas_textblock_cursor_pos_set(del_start, cursor_pos+ev->offset);
+   evas_textblock_cursor_pos_set(del_start, cursor_pos + ev->offset);
 
    del_end = evas_object_textblock_cursor_new(en->rp->object);
-   evas_textblock_cursor_pos_set(del_end, cursor_pos+ev->offset+ev->n_chars);
+   evas_textblock_cursor_pos_set(del_end, cursor_pos + ev->offset + ev->n_chars);
 
    evas_textblock_cursor_range_delete(del_start, del_end);
 
