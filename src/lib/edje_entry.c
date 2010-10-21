@@ -1753,15 +1753,11 @@ _get_char_type(const char* str)
 }
 
 static void
-_edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
+_edje_entry_select_word(Edje_Real_Part *rp)
 {
-   Edje_Real_Part *rp = data;
    Entry *en;
    if (!rp) return;
    en = rp->entry_data;
-
-   if (!en) return;
-   en->double_clicked = EINA_TRUE;
 
    const char *ct = NULL;
    int block_type;
@@ -1806,12 +1802,25 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    _edje_entry_select_extend(rp);
 
    en->select_allow = EINA_TRUE;
-   //en->select_mod_end = EINA_TRUE;
-   //en->had_sel = EINA_TRUE;
+   en->had_sel = EINA_TRUE;
    en->selecting = EINA_FALSE;
  
    //printf("string : %s \n", eina_strbuf_string_get(str));
    eina_strbuf_free(str);
+}
+
+static void
+_edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
+{
+   Edje_Real_Part *rp = data;
+   Entry *en;
+   if (!rp) return;
+   en = rp->entry_data;
+
+   if (!en) return;
+   en->double_clicked = EINA_TRUE;
+
+   _edje_entry_select_word(rp);
 }
 
 static void
@@ -2920,7 +2929,7 @@ _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow)
    
    if ((allow) && (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
    {
-		_edje_entry_mouse_double_clicked(rp, NULL, NULL, NULL);
+		_edje_entry_select_word(rp);
    }
 }
 
