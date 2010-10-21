@@ -1236,6 +1236,7 @@ done:
    en->space_key_time = ecore_time_get();
 }
 
+/*
 static Eina_Bool 
 _select_mode_cb(void *data)
 {	
@@ -1249,6 +1250,7 @@ _select_mode_cb(void *data)
 
    return EINA_FALSE;
 }
+*/
 
 static void
 _delete(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSED__)
@@ -2469,7 +2471,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    {
 	   const char *bh_position;
 	   Evas_Object *ob;
-	   Evas_Object *smart, *clip;
+	   Evas_Object *smart;
 	   smart = evas_object_smart_parent_get(rp->object);
 
 	   evas_object_hide(en->cursor_fg);
@@ -2540,8 +2542,8 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
 
         if (!en->imf_context) goto done;
 
-        ecore_imf_context_client_window_set(en->imf_context, rp->object);
-        ecore_imf_context_client_canvas_set(en->imf_context, rp->edje->evas);
+        ecore_imf_context_client_window_set(en->imf_context, (void *)rp->object);
+        ecore_imf_context_client_canvas_set(en->imf_context, (void *)rp->edje->evas);
 
         ecore_imf_context_retrieve_surrounding_callback_set(en->imf_context, 
                                                             _edje_entry_imf_retrieve_surrounding_cb, rp);
@@ -3471,9 +3473,9 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    Edje* ed = data;
    Edje_Real_Part *rp = ed->focused_part;
    Entry *en;
-   int length;
+   int length = 0;
    Ecore_IMF_Event_Commit *ev = event;
-   int i=0;
+   int i = 0;
    char *preedit_string;
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
@@ -3539,6 +3541,8 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
    Edje_Real_Part *rp = ed->focused_part;
    Entry *en;
    Ecore_IMF_Event_Delete_Surrounding *ev = event;
+   Evas_Textblock_Cursor *del_start, *del_end;
+   int cursor_pos;
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
    en = rp->entry_data;
@@ -3547,6 +3551,19 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
       return ECORE_CALLBACK_PASS_ON;
 
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
+
+   cursor_pos = evas_textblock_cursor_pos_get(en->cursor);
+
+   del_start = evas_object_textblock_cursor_new(en->rp->object);
+   evas_textblock_cursor_pos_set(del_start, cursor_pos+ev->offset);
+
+   del_end = evas_object_textblock_cursor_new(en->rp->object);
+   evas_textblock_cursor_pos_set(del_end, cursor_pos+ev->offset+ev->n_chars);
+
+   evas_textblock_cursor_range_delete(del_start, del_end);
+
+   evas_textblock_cursor_free(del_start);
+   evas_textblock_cursor_free(del_end);
 
    return ECORE_CALLBACK_DONE;
 }
