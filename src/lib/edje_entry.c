@@ -2163,6 +2163,7 @@ _edje_entry_top_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 {
 	Evas_Event_Mouse_Down *ev = event_info;
 	Evas_Coord ox, oy, ow, oh;
+	Evas_Coord lx, ly, lw, lh;
 	Edje_Real_Part *rp = data;
 	Entry *en = rp->entry_data;
 
@@ -2173,9 +2174,10 @@ _edje_entry_top_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 
 	evas_object_geometry_get(obj, &ox, &oy, NULL, NULL);
 	edje_object_size_min_calc(obj, &ow, &oh);
+	evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
 
 	en->ox = ox + ow/2 - en->rx;
-	en->oy = oy + oh - en->ry;
+	en->oy = oy + oh - en->ry + lh/2;
 
 
     en->select_mod_start = EINA_TRUE;
@@ -2219,8 +2221,6 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 	if (en->cy < 0) en->cy = 0;
 	if (en->cx < 0) en->cx = 0;
     
-	Evas_Coord lx, ly, lw, lh;
-
 	if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
 	{
         int line;
@@ -2232,8 +2232,6 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 		}
 		else
 		{
-             int lnum;
-             lnum = evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
              _curs_lin_start(en->cursor, rp->object, en);
 		}
 	}
@@ -2247,10 +2245,6 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
                 _sel_preextend(en->cursor, rp->object, en);
 			}
 		}
-		else
-		{
-			_sel_extend(en->cursor, rp->object, en);
-		}
 	}
 
 	_edje_entry_real_part_configure(rp);
@@ -2262,6 +2256,7 @@ _edje_entry_bottom_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Ob
 {
 	Evas_Event_Mouse_Down *ev = event_info;
 	Evas_Coord ox, oy, ow, oh;
+	Evas_Coord lx, ly, lw, lh;
 	Edje_Real_Part *rp = data;
 	Entry *en = rp->entry_data;
 
@@ -2272,9 +2267,10 @@ _edje_entry_bottom_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Ob
 
 	evas_object_geometry_get(obj, &ox, &oy, NULL, NULL);
 	edje_object_size_min_calc(obj, &ow, &oh);
+	evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
 
 	en->ox = ox + ow/2 - en->rx;
-	en->oy = oy - en->ry;
+	en->oy = oy - en->ry - lh/2;
 
     en->select_mod_end = EINA_TRUE;
     en->selecting = EINA_TRUE;
@@ -2316,8 +2312,6 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
 
 	if (en->cy < 0) en->cy = 0;
 	if (en->cx < 0) en->cx = 0;
-    
-	Evas_Coord lx, ly, lw, lh;
 
 	if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
 	{
@@ -2326,12 +2320,10 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
 
 		if (line == -1)
 		{
-			_curs_end(en->cursor, rp->object, en);
+			//_curs_end(en->cursor, rp->object, en);
 		}
 		else
 		{
-			int lnum;
-			lnum = evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
 			_curs_lin_end(en->cursor, rp->object, en);
 		}
 	}
@@ -2344,10 +2336,6 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
 			{
 				_sel_extend(en->cursor, rp->object, en);
 			}
-		}
-		else
-		{
-			_sel_extend(en->cursor, rp->object, en);
 		}
 	}
 
