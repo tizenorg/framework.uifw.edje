@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build20) unstable; urgency=low
+
+  * [entry] changed the size of handler detection area
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build20
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 22 Oct 2010 15:45:00 +0900
+
 edje (1.0.0.001+svn.51480slp2+build19) unstable; urgency=low
 
   * [entry] added copy paste feature - 2 handler selection
