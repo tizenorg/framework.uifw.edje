@@ -27,7 +27,7 @@ void *alloca (size_t);
 
 #include "edje_private.h"
 
-extern Eina_Bool edje_multisense_ui_init();
+
 
 static void _edje_emit_cb(Edje *ed, const char *sig, const char *src);
 static void _edje_param_copy(Edje_Real_Part *src_part, const char *src_param, Edje_Real_Part *dst_part, const char *dst_param);
@@ -862,13 +862,13 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
      case EDJE_ACTION_TYPE_TOUCH_SOUND:
   	if (_edje_block_break(ed))
   	   goto break_prog;
-        if(edje_multisense_ui_init()==EINA_TRUE)
+        if(_edje_multisense_ui_init()==EINA_TRUE)
            edje_multisense_ui_sound_play(ed->obj, pr->sound_name, pr->sound_iterations );
         break;
      case EDJE_ACTION_TYPE_TOUCH_HAPTIC:
   	if (_edje_block_break(ed))
   	   goto break_prog;
-  	if(edje_multisense_ui_init()==EINA_TRUE)
+  	if(_edje_multisense_ui_init()==EINA_TRUE)
   	   edje_multisense_ui_haptic_play(ed->obj, pr->haptic_name, pr->haptic_iterations);
 	break;
      case EDJE_ACTION_TYPE_FOCUS_OBJECT:

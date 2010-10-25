@@ -10,7 +10,7 @@ static Eina_Bool ems_ui_module_loaded = EINA_FALSE;
 static Eina_Bool (*ems_ui_sound_play) (Edje_Sound_Info* , Edje_Sound_Data*, unsigned int ) = NULL;
 static Eina_Bool (*ems_ui_haptic_play) (Edje_Haptic_Info* , unsigned int ) = NULL;
 
-Eina_Bool edje_multisense_ui_init()
+Eina_Bool _edje_multisense_ui_init()
 {
    if (!ems_ui_module_loaded )
    {

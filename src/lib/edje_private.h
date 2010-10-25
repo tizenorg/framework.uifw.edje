@@ -1389,7 +1389,7 @@ EAPI extern Eet_Data_Descriptor *_edje_edd_edje_file;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_part_collection;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_directory;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_info;
-
+Eina_Bool _edje_multisense_ui_init() ;
 extern int              _edje_anim_count;
 extern Ecore_Animator  *_edje_timer;
 extern Eina_List       *_edje_animators;

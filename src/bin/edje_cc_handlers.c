@@ -48,6 +48,8 @@
  * @anchor sec_quickaccess Quick access to block descriptions:
  * <ul>
  *    <li>@ref sec_toplevel "Top-Level"</li>
+ *    <li>@ref sec_group "Sounds"</li>
+ *    <li>@ref sec_group "Haptics"</li>
  *    <li>@ref sec_group "Group"</li>
  *    <li>@ref sec_description "State description"</li>
  *    <ul>
@@ -1257,46 +1259,6 @@ st_images_set_image_size(void)
 
 /**
     @page edcref
-    @block
-        Sound
-    @context
-        sounds {
-			sound: "sound_file.wav" START_POINT  ENDPOINT
-            ..
-        }
-    @description
-        The " sounds" block contains a list of one or more " sound" items.
-    @endblock
-*/
-static void
-st_sounds_sound(void)
-{
-   Edje_Sound_Info *snd, *lsnd;
-   Eina_List *l;
-
-   if (!edje_file->sound_dir)
-      edje_file->sound_dir = mem_alloc(SZ(Edje_Sound_Directory));
-   snd = mem_alloc(SZ(Edje_Sound_Info));
-   snd->name = parse_str(0);
-
-   EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, lsnd)
-   {
-	  if (!strcmp(lsnd->name, snd->name))
-	  {
-	     free(snd->name);
-	     free(snd);
-	     return;
-	  }
-   }
-   snd->start_point = parse_int_range(1, 0, 100);
-   snd->end_point = parse_int_range(2, 0, 100);
-   snd->id = eina_list_count(edje_file->sound_dir->entries);
-   edje_file->sound_dir->entries =
-      eina_list_append(edje_file->sound_dir->entries, snd);
-}
-
-/**
-    @page edcref
 
     @block
         fonts
@@ -1729,16 +1691,95 @@ st_styles_style_tag(void)
 /**
     @page edcref
     @block
+        collections
+    @context
+        collections {
+            ..
+            sounds { }
+            haptics { }
+            group { }
+            group { }
+            ..
+        }
+    @description
+        The "collections" block is used to list the groups that compose the
+        theme. The "sounds" block comprises of all sound definitions while "haptics" block comprise of all haptic definitions to be used in theme.Additional "collections" blocks do not prevent overriding group
+        names.
+    @endblock
+*/
+static void
+ob_collections(void)
+{
+   if (!edje_file->collection)
+     edje_file->collection = eina_hash_string_small_new(NULL);
+}
+/**
+    @page edcref
+    @block
+        sounds
+    @context
+        sounds {
+			sound: "sound_file1.ext" [0-100][0-100] ;
+			sound: "sound_file2.ext" [0-100][0-100] ;
+     
+        }
+    @description
+        The " sounds" block contains a list of one or more " sound" items.
+    @endblock
+     @property
+        sound
+    @parameters
+        [sound file name] [start point percentage] [end point percentage] 
+    @effect
+        Used to include each sound file. The full path to the directory holding
+        the sounds can be defined later with edje_cc's "-sd" option.
+        start point percentage :start point expressed as percentage(the "%" is omitted)
+        end point percentage :end point expressed as percentage(the "%" is omitted)
+    @endproperty
+ */
+
+static void
+st_sounds_sound(void)
+{
+   Edje_Sound_Info *snd, *lsnd;
+   Eina_List *l;
+
+   if (!edje_file->sound_dir)
+      edje_file->sound_dir = mem_alloc(SZ(Edje_Sound_Directory));
+   snd = mem_alloc(SZ(Edje_Sound_Info));
+   snd->name = parse_str(0);
+
+   EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, lsnd)
+   {
+	  if (!strcmp(lsnd->name, snd->name))
+	  {
+	     free(snd->name);
+	     free(snd);
+	     return;
+	  }
+   }
+   snd->start_point = parse_int_range(1, 0, 100);
+   snd->end_point = parse_int_range(2, 0, 100);
+   snd->id = eina_list_count(edje_file->sound_dir->entries);
+   edje_file->sound_dir->entries =
+      eina_list_append(edje_file->sound_dir->entries, snd);
+}
+
+/**
+    @page edcref
+    @block
         haptics
     @context
          haptics {
-           haptic {
-                name: " hapticname";
-                duration: "500";  //500 MS
-                ...
-               
-            }
-            ..
+           haptic_name:"haptic_name" ;
+           haptic_magnitude: UNSIGNED INT_VALUE ;
+           haptic_duration: UNSIGNED INT_VALUE ;
+           haptic_attack_level: UNSIGNED INT_VALUE ;
+           haptic_attack_time: UNSIGNED INT_VALUE ;
+           haptic_fade_level: UNSIGNED INT_VALUE;
+           haptic_fade_time: UNSIGNED INT_VALUE ;
+           haptic_type: EDJE_HAPTIC_EFFECT_PERIODIC or EDJE_HAPTIC_EFFECT_MAGSWEEP ;
+           haptic_pattern :COMMA SEPARATED HEX_STRING
         }
     @description
         The " haptics" block contains a list of one or more " haptic" items.
@@ -1790,7 +1831,7 @@ st_haptics_haptic_name(void)
     @parameters
         [haptic Pattern]
     @effect
-        The Full pattern of Haptic - in HEX.
+        The Full pattern of Haptic - in HEX(the "ox" are omitted).
     @endproperty
 */
 
@@ -1947,30 +1988,6 @@ st_haptics_haptic_type(void)
 		    "PERIODIC", EDJE_HAPTIC_EFFECT_PERIODIC,
 		    "MAGSWEEP", EDJE_HAPTIC_EFFECT_MAGSWEEP,
              NULL);
-}
-
-/**
-    @page edcref
-    @block
-        collections
-    @context
-        collections {
-            ..
-            group { }
-            group { }
-            ..
-        }
-    @description
-        The "collections" block is used to list the groups that compose the
-        theme. Additional "collections" blocks do not prevent overriding group
-        names.
-    @endblock
-*/
-static void
-ob_collections(void)
-{
-   if (!edje_file->collection)
-     edje_file->collection = eina_hash_string_small_new(NULL);
 }
 
 /**
@@ -7010,7 +7027,7 @@ st_collections_group_programs_program_in(void)
     @effect
         Action to be performed by the program. Valid actions are: STATE_SET,
         ACTION_STOP, SIGNAL_EMIT, DRAG_VAL_SET, DRAG_VAL_STEP, DRAG_VAL_PAGE,
-        FOCUS_SET, PARAM_COPY, PARAM_SET
+        FOCUS_SET, PARAM_COPY, PARAM_SET,TOUCH_SOUND,TOUCH_HAPTIC
         Only one action can be specified per program. Examples:\n
            action: STATE_SET "statename" 0.5;\n
            action: ACTION_STOP;\n
@@ -7021,7 +7038,9 @@ st_collections_group_programs_program_in(void)
            action: FOCUS_SET;\n
            action: FOCUS_OBJECT;\n
            action: PARAM_COPY "src_part" "src_param" "dst_part" "dst_param";\n
-	   action: PARAM_SET "part" "param" "value";\n
+	    action: PARAM_SET "part" "param" "value";\n
+	    action: TOUCH_SOUND "sound_file_name" 1;\n
+	    action: TOUCH_HAPTIC "haptic_definition_name" 1;\n
     @endproperty
 */
 static void
