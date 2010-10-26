@@ -1331,7 +1331,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _edje_emit(ed, "entry,key,escape", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
-   else if (!strcmp(ev->key, "Up"))
+   else if (!strcmp(ev->key, "Up") || !strcmp(ev->key, "KP_Up"))
      {
         if (multiline)
           {
@@ -1350,7 +1350,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _edje_emit(ed, "entry,key,up", rp->part->name);
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "Down"))
+   else if (!strcmp(ev->key, "Down") || !strcmp(ev->key, "KP_Down"))
      {
         if (multiline)
           {
@@ -1369,7 +1369,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _edje_emit(ed, "entry,key,down", rp->part->name);
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "Left"))
+   else if (!strcmp(ev->key, "Left") || !strcmp(ev->key, "KP_Left"))
      {
         if (en->select_allow)
           {
@@ -1385,7 +1385,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "Right"))
+   else if (!strcmp(ev->key, "Right") || !strcmp(ev->key, "KP_Right"))
      {
         if (en->select_allow)
           {
@@ -1431,7 +1431,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "Delete"))
+   else if (!strcmp(ev->key, "Delete") || !strcmp(ev->key, "KP_Delete"))
      {
         if (control)
           {
@@ -1461,7 +1461,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "Home"))
+   else if (!strcmp(ev->key, "Home") || !strcmp(ev->key, "KP_Home"))
      {
         if (en->select_allow)
           {
@@ -1480,7 +1480,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "End"))
+   else if (!strcmp(ev->key, "End") || !strcmp(ev->key, "KP_End"))
      {
         if (en->select_allow)
           {
@@ -1566,7 +1566,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         // remove a tab
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
-   else if (!strcmp(ev->key, "Prior"))
+   else if (!strcmp(ev->key, "Prior") || !strcmp(ev->key, "KP_Prior"))
      {
         if (en->select_allow)
           {
@@ -1582,7 +1582,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         _caps_mode_check(en);
      }
-   else if (!strcmp(ev->key, "Next"))
+   else if (!strcmp(ev->key, "Next") || !strcmp(ev->key, "KP_Next"))
      {
         if (en->select_allow)
           {
