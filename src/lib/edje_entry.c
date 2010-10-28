@@ -89,7 +89,7 @@ struct _Entry
    Eina_Bool had_sel : 1;
    Eina_Bool autocapital : 1;
    Eina_Bool uppercase : 1;
-   Eina_Bool autoperiod : 1;
+//   Eina_Bool autoperiod : 1;
    int select_dragging_state;
    double space_key_time;
 
@@ -1208,9 +1208,9 @@ _autoperiod_insert(Edje_Real_Part *rp)
    if (!edje_autoperiod_allow_get()) return;
 
    en = rp->entry_data;
-   if (!en || !en->autoperiod) return;
+//   if (!en->autoperiod) return;
 
-   if ((ecore_time_get() - en->space_key_time) > 0.6)
+   if ((ecore_time_get() - en->space_key_time) > EDJE_ENTRY_DOUBLE_SPACE_TIME)
      {
         goto done;
      }
@@ -2563,6 +2563,7 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_fg);
    evas_object_del(en->cursor_bg);
    evas_object_del(en->cursor_fg);
+
    if (en->pw_timer)
      {
         ecore_timer_del(en->pw_timer);
@@ -2964,16 +2965,19 @@ void
 _edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool autocap)
 {
    Entry *en = rp->entry_data;
-   if (!en) return;   
+   if (!en) return;
+
    en->autocapital = autocap;
 }
 
 void
 _edje_entry_autoperiod_set(Edje_Real_Part *rp, Eina_Bool autoperiod)
 {
+   /*
    Entry *en = rp->entry_data;
    if (!en) return;   
    en->autoperiod = autoperiod;
+   */
 }
 
 #ifdef HAVE_ECORE_IMF
@@ -2981,7 +2985,6 @@ Ecore_IMF_Context *
 _edje_entry_imf_context_get(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
-
    if (!en) return NULL;
 
    return en->imf_context;
@@ -3499,13 +3502,15 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    if (en->have_selection)
      {
+        /* delete selection block */
         _range_del(en->cursor, rp->object, en);
         _sel_clear(en->cursor, rp->object, en);
      }
 
+
    if (en->have_preedit)
      {
-        // delete the preedit characters
+        /* delete the preedit characters */
         for (i = 0;i < en->preedit_len; i++)
            _backspace(en->cursor, rp->object, en);
      }

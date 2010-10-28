@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build21) unstable; urgency=low
+
+  * [entry] process the key events of keypad 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build21
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 26 Oct 2010 14:13:50 +0900
+
 edje (1.0.0.001+svn.51480slp2+build20) unstable; urgency=low
 
   * [entry] changed the size of handler detection area
