@@ -3425,6 +3425,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
       return ECORE_CALLBACK_PASS_ON;
 
+   if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
    //printf("[%s] commit str : '%s'\n", __func__, ev->str);
@@ -3599,6 +3600,7 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
       return ECORE_CALLBACK_PASS_ON;
 
+   if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
    cursor_pos = evas_textblock_cursor_pos_get(en->cursor);
