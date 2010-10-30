@@ -54,7 +54,7 @@ typedef enum _Entry_Char_Type
    _ENTRY_CHAR_ALPHABET,
    _ENTRY_CHAR_NUMBER,
    _ENTRY_CHAR_MARK,
-   _ENTRY_CHAR_SEPERATOR,
+   _ENTRY_CHAR_SEPARATOR,
    _ENTRY_CHAR_NONE
 } Entry_Char_Type;
 
@@ -1771,8 +1771,8 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
 static int
 _get_char_type(const char* str)
 {
-   if( *str == '\n' || *str == 0x20  )
-      return _ENTRY_CHAR_SEPERATOR;
+   if( *str == '\n' || *str == 0x20 || *str == 0x70  ) 	/* 0x70 : paragraph separator */
+      return _ENTRY_CHAR_SEPARATOR;
    else
       return _ENTRY_CHAR_NONE;
 	/*	
