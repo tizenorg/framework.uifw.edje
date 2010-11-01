@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build22) unstable; urgency=low
+
+  * [entry] modify autoperiod policy
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build22
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 02 Nov 2010 08:48:06 +0900
+
 edje (1.0.0.001+svn.51480slp2+build21) unstable; urgency=low
 
   * [entry] process the key events of keypad 
