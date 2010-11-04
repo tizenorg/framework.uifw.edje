@@ -29,6 +29,7 @@ int _edje_freeze_val = 0;
 int _edje_freeze_calc_count = 0;
 Eina_List *_edje_freeze_calc_list = NULL;
 Eina_Bool _edje_input_panel_enable = EINA_FALSE;
+Eina_Bool _edje_input_panel_allow = EINA_FALSE;
 Eina_Bool _edje_autocapital_allow = EINA_FALSE;
 Eina_Bool _edje_autoperiod_allow = EINA_FALSE;
 
@@ -288,6 +289,19 @@ edje_input_panel_enabled_set(Eina_Bool enabled)
         edje_object_part_text_input_panel_enabled_set(data, "elm.text", _edje_input_panel_enable);
      }
    */
+}
+
+EAPI void
+edje_input_panel_allow_set(Eina_Bool enabled)
+{
+   if (_edje_input_panel_allow == enabled) return;
+   _edje_input_panel_allow = enabled;
+}
+
+EAPI Eina_Bool
+edje_input_panel_allow_get(void)
+{
+   return _edje_input_panel_allow;
 }
 
 /**

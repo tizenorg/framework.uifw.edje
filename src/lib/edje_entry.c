@@ -3468,11 +3468,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
         _sel_clear(en->cursor, rp->object, en);
      }
 
-#if 0
    /* delete preedit characters */
    _preedit_del(en);
    _preedit_clear(en);
-#endif
 
    //printf("[%s] commit str : '%s'\n", __func__, ev->str);
    

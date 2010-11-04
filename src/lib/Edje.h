@@ -475,6 +475,8 @@ typedef void (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Mess
    EAPI Eina_Bool    edje_object_scale_set           (Evas_Object *obj, double scale);
    EAPI double       edje_object_scale_get           (const Evas_Object *obj);
    EAPI void         edje_input_panel_enabled_set    (Eina_Bool enabled);
+   EAPI void         edje_input_panel_allow_set      (Eina_Bool enabled);
+   EAPI Eina_Bool    edje_input_panel_allow_get      (void);   
    
    EAPI void         edje_autocapitalization_allow_set     (Eina_Bool autocap);
    EAPI Eina_Bool    edje_autocapitalization_allow_get     (void);
