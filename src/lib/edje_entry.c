@@ -278,11 +278,10 @@ _preedit_del(Entry *en)
    if (!en->preedit_start || !en->preedit_end) return;
    if (!evas_textblock_cursor_compare(en->preedit_start, en->preedit_end)) return;
 
-   /*
-   printf("delete range from %d to %d\n", evas_textblock_cursor_pos_get(en->preedit_start), evas_textblock_cursor_pos_get(en->preedit_end));
+   //printf("delete range from %d to %d\n", evas_textblock_cursor_pos_get(en->preedit_start), evas_textblock_cursor_pos_get(en->preedit_end));
 
-   evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
-   */
+   //evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
+
    tc = evas_object_textblock_cursor_new(en->rp->object);
    evas_textblock_cursor_copy(en->preedit_start, tc);
 
@@ -2035,7 +2034,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      {
-        //printf("[%s] call context_reset\n", __func__);
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_cursor_position_set(en->imf_context,
                                               evas_textblock_cursor_pos_get(en->cursor));
@@ -2043,7 +2041,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 #endif /* HAVE_ECORE_IMF */
 
    _edje_entry_real_part_configure(rp);
-   //printf("[%s] cursor pos : %d\n", __func__, evas_textblock_cursor_pos_get(en->cursor));
 }
 
 static void
@@ -2074,8 +2071,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
            return;
      }
 #endif
-
-   //printf("[%s] cursor pos : %d\n", __func__, evas_textblock_cursor_pos_get(en->cursor));
 
    tc = evas_object_textblock_cursor_new(rp->object);
    evas_textblock_cursor_copy(en->cursor, tc);
@@ -2156,8 +2151,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
           }
      }
 #endif
-
-   //printf("[%s] cursor pos : %d\n", __func__, evas_textblock_cursor_pos_get(en->cursor));
 
    _caps_mode_check(en);
    
@@ -3589,6 +3582,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    int cursor_pos;
    int preedit_start_pos, preedit_end_pos;
    char *preedit_string;
+   int i;
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
 
@@ -3639,19 +3633,22 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    /* set preedit start cursor */ 
    if (!en->preedit_start)
       en->preedit_start = evas_object_textblock_cursor_new(rp->object);
-
-   evas_textblock_cursor_pos_set(en->preedit_start, preedit_start_pos);
+   evas_textblock_cursor_copy(en->cursor, en->preedit_start);
 
    /* set preedit end cursor */
    if (!en->preedit_end)
       en->preedit_end = evas_object_textblock_cursor_new(rp->object);
+   evas_textblock_cursor_copy(en->cursor, en->preedit_end);
    
    preedit_end_pos = evas_textblock_cursor_pos_get(en->cursor);
-   evas_textblock_cursor_pos_set(en->preedit_end, preedit_end_pos);
+
+   for (i = 0; i < (preedit_end_pos - preedit_start_pos); i++)
+    {
+        evas_textblock_cursor_char_prev(en->preedit_start);
+    }
 
    if (!strcmp(preedit_string, ""))
      {
-        //printf("[%s] finish preedit\n", __func__);
         _preedit_clear(en);
         en->have_preedit = EINA_FALSE;
      }
