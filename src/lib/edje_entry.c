@@ -3463,9 +3463,11 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    if (en->have_selection)
      {
-        /* delete selected characters */
-        _range_del(en->cursor, rp->object, en);
-        _sel_clear(en->cursor, rp->object, en);
+        if (strcmp(ev->str, "")) {
+           /* delete selected characters */
+           _range_del(en->cursor, rp->object, en);
+           _sel_clear(en->cursor, rp->object, en);
+        }
      }
 
    /* delete preedit characters */
@@ -3571,9 +3573,11 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    if (en->have_selection)
      {
-        /* delete selected characters */
-        _range_del(en->cursor, rp->object, en);
-        _sel_clear(en->cursor, rp->object, en);
+        if (strcmp(preedit_string, "")) {
+           /* delete selected characters */
+           _range_del(en->cursor, rp->object, en);
+           _sel_clear(en->cursor, rp->object, en);
+        }
      }
 
    /* delete preedit characters */
