@@ -1901,6 +1901,19 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         return;
      }
    if (ev->button != 1) return;
+
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     {
+        Ecore_IMF_Event_Mouse_Down ecore_ev;
+        ecore_imf_evas_event_mouse_down_wrap(ev, &ecore_ev);
+        if (ecore_imf_context_filter_event(en->imf_context,
+                                           ECORE_IMF_EVENT_MOUSE_DOWN,
+                                           (Ecore_IMF_Event *)&ecore_ev))
+           return;
+     }
+#endif
+   
    en->select_mod_start = EINA_FALSE;
    en->select_mod_end = EINA_FALSE;
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_DEFAULT)
@@ -2016,9 +2029,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           }
      }
    if (evas_textblock_cursor_compare(tc, en->cursor))
-     {
-        _edje_emit(rp->edje, "cursor,changed", rp->part->name);
-     }
+      _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    evas_textblock_cursor_free(tc);
 
 #ifdef HAVE_ECORE_IMF
@@ -2051,6 +2062,18 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
       return;
    if (en->double_clicked) return;
+
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     {
+        Ecore_IMF_Event_Mouse_Up ecore_ev;
+        ecore_imf_evas_event_mouse_up_wrap(ev, &ecore_ev);
+        if (ecore_imf_context_filter_event(en->imf_context,
+                                           ECORE_IMF_EVENT_MOUSE_UP,
+                                           (Ecore_IMF_Event *)&ecore_ev))
+           return;
+     }
+#endif
 
    //printf("[%s] cursor pos : %d\n", __func__, evas_textblock_cursor_pos_get(en->cursor));
 
@@ -2154,6 +2177,19 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
      return;
+
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     {
+        Ecore_IMF_Event_Mouse_Move ecore_ev;
+        ecore_imf_evas_event_mouse_move_wrap(ev, &ecore_ev);
+        if (ecore_imf_context_filter_event(en->imf_context,
+                                           ECORE_IMF_EVENT_MOUSE_MOVE,
+                                           (Ecore_IMF_Event *)&ecore_ev))
+           return;
+     }
+#endif
+
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
        _edje_entry_real_part_configure(rp);
@@ -2413,9 +2449,10 @@ _evas_focus_in_cb(void *data, Evas *e, __UNUSED__ void *event_info)
 {
    Edje *ed = (Edje *)data;
 
-   if (evas_focus_get(e) == ed->obj) {
+   if (evas_focus_get(e) == ed->obj) 
+     {
         _edje_focus_in_cb(data, NULL, NULL, NULL);
-   }
+     }
 }
 
 static void
@@ -2423,9 +2460,10 @@ _evas_focus_out_cb(void *data, Evas *e, __UNUSED__ void *event_info)
 {
    Edje *ed = (Edje *)data;
 
-   if (evas_focus_get(e) == ed->obj) {
+   if (evas_focus_get(e) == ed->obj) 
+     {
         _edje_focus_out_cb(data, NULL, NULL, NULL);
-   }
+     }
 }
 
 /***************************************************************/
@@ -2608,6 +2646,11 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         ecore_imf_context_input_mode_set(en->imf_context, 
                                          (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD || rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)? 
                                          ECORE_IMF_INPUT_MODE_INVISIBLE : ECORE_IMF_INPUT_MODE_FULL);
+
+        if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD || rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+          {
+             ecore_imf_context_input_panel_language_set(en->imf_context, ECORE_IMF_INPUT_PANEL_LANG_ALPHABET);
+          }
 #endif /* HAVE_ECORE_IMF */
      }
    done:
@@ -3463,11 +3506,12 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    if (en->have_selection)
      {
-        if (strcmp(ev->str, "")) {
-           /* delete selected characters */
-           _range_del(en->cursor, rp->object, en);
-           _sel_clear(en->cursor, rp->object, en);
-        }
+        if (strcmp(ev->str, "")) 
+          {
+             /* delete selected characters */
+             _range_del(en->cursor, rp->object, en);
+             _sel_clear(en->cursor, rp->object, en);
+          }
      }
 
    /* delete preedit characters */
@@ -3573,11 +3617,12 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    if (en->have_selection)
      {
-        if (strcmp(preedit_string, "")) {
-           /* delete selected characters */
-           _range_del(en->cursor, rp->object, en);
-           _sel_clear(en->cursor, rp->object, en);
-        }
+        if (strcmp(preedit_string, "")) 
+          {
+             /* delete selected characters */
+             _range_del(en->cursor, rp->object, en);
+             _sel_clear(en->cursor, rp->object, en);
+          }
      }
 
    /* delete preedit characters */
