@@ -1793,7 +1793,7 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
 static int
 _get_char_type(const char* str)
 {
-   if( *str == '\n' || *str == 0x20 || *str == 0x70  ) 	/* 0x70 : paragraph separator */
+   if( *str == '\n' || *str == 0x20 || !strcmp(str, "ps") ) 	/* paragraph separator */
       return _ENTRY_CHAR_SEPARATOR;
    else
       return _ENTRY_CHAR_NONE;
@@ -2388,7 +2388,7 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
    Evas_Event_Mouse_Move *ev = event_info;
    Edje_Real_Part *rp = data;
    Entry *en = rp->entry_data;
-   Evas_Coord x, y, tx, ty;
+   Evas_Coord x, y, tx, ty, tw, th;
 
    if (ev->buttons != 1) return;
 
@@ -2400,13 +2400,14 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
    en->sx = ev->cur.canvas.x;
    en->sy = ev->cur.canvas.y;
 
-   evas_object_geometry_get(rp->object, &tx, &ty, NULL, NULL);
+   evas_object_geometry_get(rp->object, &tx, &ty, &tw, &th);
 
    en->cx = en->rx + en->ox - tx;
    en->cy = en->ry + en->oy - ty;
 
-   if (en->cy < 0) en->cy = 0;
    if (en->cx < 0) en->cx = 0;
+   if (en->cy < 0) en->cy = 0;
+   if (en->cy > th) en->cy = th - 1;
 
    if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
      {
