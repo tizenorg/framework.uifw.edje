@@ -3561,14 +3561,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    _caps_mode_check(en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
    return ECORE_CALLBACK_DONE;
 }
 
