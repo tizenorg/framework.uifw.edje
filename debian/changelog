@@ -1,3 +1,12 @@
+edje (1.0.0.001+svn.51480slp2+build26) unstable; urgency=low
+
+  * [debian/control] add the dependency libmpfr-0, libgmp-0 for i386
+    build edje.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build26
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Fri, 12 Nov 2010 09:26:34 +0900
+
 edje (1.0.0.001+svn.51480slp2+build25) unstable; urgency=low
 
   * [entry] bug fix : delete first character in preediting
