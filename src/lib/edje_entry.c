@@ -340,7 +340,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
 
-   _preedit_clear(en);
+//   _preedit_clear(en);
 
    if (en->input_panel_enable)
      {
@@ -406,7 +406,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
 
-   _preedit_clear(en);
+//   _preedit_clear(en);
 
    if (en->input_panel_enable)
      {
