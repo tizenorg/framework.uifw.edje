@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build27) unstable; urgency=low
+
+  * [entry] bug fix : last preedit string is inserted twice on focus-out
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build27
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 16 Nov 2010 19:26:55 +0900
+
 edje (1.0.0.001+svn.51480slp2+build26) unstable; urgency=low
 
   * [debian/control] add the dependency libmpfr-0, libgmp-0 for i386
