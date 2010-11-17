@@ -1,6 +1,6 @@
 edje (1.0.0.001+svn.51480slp2+build28) unstable; urgency=low
 
-  * [textblock] apply tom wordwrap patch
+  * version up
   * Git: 165.213.180.234:/git/slp/pkgs/edje
   * Tag: edje_1.0.0.001+svn.51480slp2+build28
 
