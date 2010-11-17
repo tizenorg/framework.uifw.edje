@@ -4,7 +4,7 @@ edje (1.0.0.001+svn.51480slp2+build28) unstable; urgency=low
   * Git: 165.213.180.234:/git/slp/pkgs/edje
   * Tag: edje_1.0.0.001+svn.51480slp2+build28
 
- -- root <jihoon48.kim@samsung.com>  Wed, 17 Nov 2010 20:30:09 +0900
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Wed, 17 Nov 2010 20:30:09 +0900
 
 edje (1.0.0.001+svn.51480slp2+build27) unstable; urgency=low
 
