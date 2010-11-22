@@ -3634,9 +3634,12 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    preedit_start_pos = evas_textblock_cursor_pos_get(en->cursor);
 
-   EINA_LIST_FOREACH(attrs, l, attr)
+   if (attrs)
      {
-        //printf("attribute type : %d, start : %d, end : %d\n", attr->preedit_type, attr->start_index, attr->end_index);
+        EINA_LIST_FOREACH(attrs, l, attr)
+          {
+             //printf("attribute type : %d, start : %d, end : %d\n", attr->preedit_type, attr->start_index, attr->end_index);
+          }
      }
 
    /* insert preedit character(s) */
@@ -3681,8 +3684,11 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    _edje_emit(ed, "cursor,changed", rp->part->name);
 
    /* delete attribute list */
-   EINA_LIST_FREE(attrs, attr)
-      free(attr);
+   if (attrs)
+     {
+        EINA_LIST_FREE(attrs, attr)
+           free(attr);
+     }
 
    free(preedit_string);
 
