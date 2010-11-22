@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build30) unstable; urgency=low
+
+  * Add preedit tag
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build30 
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Mon, 22 Nov 2010 20:45:42 +0900
+
 edje (1.0.0.001+svn.51480slp2+build29) unstable; urgency=low
 
   * fixing multibyte char ellipsis bug
