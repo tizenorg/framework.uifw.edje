@@ -3635,39 +3635,33 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    preedit_start_pos = evas_textblock_cursor_pos_get(en->cursor);
 
-   if (attrs)
-     {
-        EINA_LIST_FOREACH(attrs, l, attr)
-          {
-             //printf("attribute type : %d, start : %d, end : %d\n", attr->preedit_type, attr->start_index, attr->end_index);
-          }
-     }
-
    /* insert preedit character(s) */
    //xx
    if (strlen(preedit_string) > 0) 
      {
         buf = eina_strbuf_new();
-        EINA_LIST_FOREACH(attrs, l, attr)     
+        if (attrs)
           {
-             if (attr->preedit_type == ECORE_IMF_PREEDIT_TYPE_SUB1)
+             EINA_LIST_FOREACH(attrs, l, attr)     
                {
-                  eina_strbuf_append(buf, "<preedit>");
-                  eina_strbuf_append_n(buf, preedit_string + attr->start_index, attr->end_index - attr->start_index + 1);
-                  eina_strbuf_append(buf, "</>");
-               }
+                  if (attr->preedit_type == ECORE_IMF_PREEDIT_TYPE_SUB1)
+                    {
+                       eina_strbuf_append(buf, "<preedit>");
+                       eina_strbuf_append_n(buf, preedit_string + attr->start_index, attr->end_index - attr->start_index + 1);
+                       eina_strbuf_append(buf, "</>");
+                    }
 
-             else if (attr->preedit_type == ECORE_IMF_PREEDIT_TYPE_SUB2)
-               {
-                  eina_strbuf_append(buf, "<preedit_sel>");
-                  eina_strbuf_append_n(buf, preedit_string + attr->start_index, attr->end_index - attr->start_index + 1);
-                  eina_strbuf_append(buf, "</>");
+                  else if (attr->preedit_type == ECORE_IMF_PREEDIT_TYPE_SUB2)
+                    {
+                       eina_strbuf_append(buf, "<preedit_sel>");
+                       eina_strbuf_append_n(buf, preedit_string + attr->start_index, attr->end_index - attr->start_index + 1);
+                       eina_strbuf_append(buf, "</>");
+                    }
                }
           }        
         evas_object_textblock_text_markup_prepend(en->cursor, eina_strbuf_string_get(buf));
         eina_strbuf_free(buf);
      }
-   //evas_object_textblock_text_markup_prepend(en->cursor, preedit_string);
 
    if (!preedit_end_state)
      {
