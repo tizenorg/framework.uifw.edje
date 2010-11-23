@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build31) unstable; urgency=low
+
+  * Bug fix : password problem
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build31
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 23 Nov 2010 10:40:17 +0900
+
 edje (1.0.0.001+svn.51480slp2+build30) unstable; urgency=low
 
   * Add preedit tag
