@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build32) unstable; urgency=low
+
+  * [entry] bug fix about commit position
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build32
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 24 Nov 2010 17:35:37 +0900
+
 edje (1.0.0.001+svn.51480slp2+build31) unstable; urgency=low
 
   * Bug fix : password problem
