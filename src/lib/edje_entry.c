@@ -1677,7 +1677,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (en->func)
            en->func(en->data, NULL);
      }
-   else if (!strcmp(ev->key, "space"))
+   else if ((!strcmp(ev->key, "space")) && edje_autoperiod_allow_get() && en->autoperiod)
      {
         _autoperiod_insert(rp);
      }
@@ -3476,7 +3476,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    Edje_Real_Part *rp = ed->focused_part;
    Entry *en;
    Ecore_IMF_Event_Commit *ev = event;
-//   Evas_Textblock_Cursor *tc;
+   Evas_Textblock_Cursor *tc;
    Eina_Bool cursor_move = EINA_FALSE;
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
@@ -3499,24 +3499,20 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
           }
      }
 
-//   tc = evas_object_textblock_cursor_new(rp->object);
+   tc = evas_object_textblock_cursor_new(rp->object);
 
    /* calculate the cursor position to insert commit string */
-   /*
    if (en->preedit_start)
       evas_textblock_cursor_copy(en->preedit_start, tc);
    else
       evas_textblock_cursor_copy(en->cursor, tc);
-   */
 
    /* delete preedit characters */
    _preedit_del(en);
    _preedit_clear(en);
 
-   /*
    if (evas_textblock_cursor_compare(en->cursor, tc))
       cursor_move = EINA_TRUE;
-   */
 
    if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
      {			  			
@@ -3535,7 +3531,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
              ecore_timer_del(en->pw_timer);
              en->pw_timer = NULL;
           }
-        en->pw_timer = ecore_timer_add(2.0, _password_timer_cb, en);	
+        en->pw_timer = ecore_timer_add(2.0, _password_timer_cb, en);
      }
    else
      {
@@ -3549,28 +3545,26 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
            if (en->func(en->data, ev->str))
               return ECORE_CALLBACK_PASS_ON;
 
-        _text_prepend(en, en->cursor, ev->str);
+        _text_prepend(en, tc, ev->str);
         //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
 
         /*count characters*/
         if (en->func)
            en->func(en->data, NULL);
+
 #if 0
         //yy
         evas_textblock_cursor_text_prepend(en->cursor, ev->str);
 #endif
-     }
 
-
-#if 0
-   if (!cursor_move)
-     {
-        /* move cursor to the end of commit string */
-        evas_textblock_cursor_copy(tc, en->cursor);
+        if (!cursor_move)
+          {
+             /* move cursor to the end of commit string */
+             evas_textblock_cursor_copy(tc, en->cursor);
+          }
      }
 
    evas_textblock_cursor_free(tc);
-#endif
    
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);
