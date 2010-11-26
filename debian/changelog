@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build33) unstable; urgency=low
+
+  * Package Upload due to EFL merge.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build33
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Fri, 26 Nov 2010 15:47:03 +0900
+
 edje (1.0.0.001+svn.51480slp2+build32) unstable; urgency=low
 
   * [entry] bug fix about commit position
