@@ -268,20 +268,18 @@ _preedit_clear(Entry *en)
 static void
 _preedit_del(Entry *en)
 {
-   int preedit_len;
-   int i;
-   Evas_Textblock_Cursor *tc;
-
    if (!en || !en->have_preedit) return;
 
    /* delete the preedit characters */
    if (!en->preedit_start || !en->preedit_end) return;
    if (!evas_textblock_cursor_compare(en->preedit_start, en->preedit_end)) return;
 
-   //printf("delete range from %d to %d\n", evas_textblock_cursor_pos_get(en->preedit_start), evas_textblock_cursor_pos_get(en->preedit_end));
+   evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
 
-   //evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
-
+   /*
+   int preedit_len;
+   int i;
+   Evas_Textblock_Cursor *tc;
    tc = evas_object_textblock_cursor_new(en->rp->object);
    evas_textblock_cursor_copy(en->preedit_start, tc);
 
@@ -293,6 +291,7 @@ _preedit_del(Entry *en)
      }
 
    evas_textblock_cursor_free(tc);
+   */
 }
 
 static void 
