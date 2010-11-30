@@ -1834,7 +1834,7 @@ _edje_entry_select_word(Edje_Real_Part *rp)
       ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
       if (block_type != _get_char_type(ct)) 
         {
-           _edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
+           //_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
            break;
         }
       if (*ct == 0) break;
