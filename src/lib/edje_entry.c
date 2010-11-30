@@ -268,20 +268,18 @@ _preedit_clear(Entry *en)
 static void
 _preedit_del(Entry *en)
 {
-   int preedit_len;
-   int i;
-   Evas_Textblock_Cursor *tc;
-
    if (!en || !en->have_preedit) return;
 
    /* delete the preedit characters */
    if (!en->preedit_start || !en->preedit_end) return;
    if (!evas_textblock_cursor_compare(en->preedit_start, en->preedit_end)) return;
 
-   //printf("delete range from %d to %d\n", evas_textblock_cursor_pos_get(en->preedit_start), evas_textblock_cursor_pos_get(en->preedit_end));
+   evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
 
-   //evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
-
+   /*
+   int preedit_len;
+   int i;
+   Evas_Textblock_Cursor *tc;
    tc = evas_object_textblock_cursor_new(en->rp->object);
    evas_textblock_cursor_copy(en->preedit_start, tc);
 
@@ -293,6 +291,7 @@ _preedit_del(Entry *en)
      }
 
    evas_textblock_cursor_free(tc);
+   */
 }
 
 static void 
@@ -1833,7 +1832,7 @@ _edje_entry_select_word(Edje_Real_Part *rp)
       ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
       if (block_type != _get_char_type(ct)) 
         {
-           _edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
+           //_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
            break;
         }
       if (*ct == 0) break;
@@ -3618,14 +3617,11 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
           }
      }
 
-   if (en->have_selection)
+   if (en->have_selection && !preedit_end_state)
      {
-        if (strcmp(preedit_string, "")) 
-          {
-             /* delete selected characters */
-             _range_del(en->cursor, rp->object, en);
-             _sel_clear(en->cursor, rp->object, en);
-          }
+        /* delete selected characters */
+        _range_del(en->cursor, rp->object, en);
+        _sel_clear(en->cursor, rp->object, en);
      }
 
    /* delete preedit characters */
