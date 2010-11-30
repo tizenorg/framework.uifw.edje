@@ -3619,14 +3619,11 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
           }
      }
 
-   if (en->have_selection)
+   if (en->have_selection && !preedit_end_state)
      {
-        if (strcmp(preedit_string, "")) 
-          {
-             /* delete selected characters */
-             _range_del(en->cursor, rp->object, en);
-             _sel_clear(en->cursor, rp->object, en);
-          }
+        /* delete selected characters */
+        _range_del(en->cursor, rp->object, en);
+        _sel_clear(en->cursor, rp->object, en);
      }
 
    /* delete preedit characters */
