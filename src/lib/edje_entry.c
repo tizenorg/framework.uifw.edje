@@ -85,6 +85,7 @@ struct _Entry
    Eina_Bool select_mod_start : 1;
    Eina_Bool select_mod_end : 1;
    Eina_Bool double_clicked : 1;
+   Eina_Bool long_pressed : 1;
    Eina_Bool had_sel : 1;
    Eina_Bool autocapital : 1;
    Eina_Bool uppercase : 1;
@@ -102,6 +103,7 @@ struct _Entry
    Ecore_Event_Handler *imf_ee_handler_changed;
 #endif
 
+   Ecore_Timer *longpress_timer;
    Edje_elm_function func;  
    void *data;
 };
@@ -1863,6 +1865,25 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    en->double_clicked = EINA_TRUE;
 
    _edje_entry_select_word(rp);
+   _edje_emit(en->rp->edje, "selection,end", en->rp->part->name);
+}
+
+static Eina_Bool
+_long_press(void *data)
+{
+   Edje_Real_Part *rp = data;
+   Entry *en;
+   if (!rp) return;
+   en = rp->entry_data;
+
+   if (en->longpress_timer)
+     {
+	ecore_timer_del(en->longpress_timer);
+	en->longpress_timer = NULL;
+     }	
+   
+   en->long_pressed = EINA_TRUE;
+   en->longpress_timer = NULL;
 }
 
 static void
@@ -1879,6 +1900,8 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return;
    en = rp->entry_data;
    en->double_clicked = EINA_FALSE;
+   en->long_pressed = EINA_FALSE;
+   
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
       return;
@@ -2028,7 +2051,11 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
      }
 #endif /* HAVE_ECORE_IMF */
 
-   _edje_entry_real_part_configure(rp);
+   //_edje_entry_real_part_configure(rp);
+   //printf("[%s] cursor pos : %d\n", __func__, evas_textblock_cursor_pos_get(en->cursor));
+   
+   if (en->longpress_timer) ecore_timer_del(en->longpress_timer);
+   en->longpress_timer = ecore_timer_add(1.0, _long_press, data);
 }
 
 static void
@@ -2046,7 +2073,15 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
       return;
+
+   if (en->longpress_timer)
+     {
+        ecore_timer_del(en->longpress_timer);
+        en->longpress_timer = NULL;
+     }
+
    if (en->double_clicked) return;
+   if (en->long_pressed) return;
 
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
@@ -2332,6 +2367,8 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
      }
 
    _edje_entry_real_part_configure(rp);
+   
+   _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
 }
 
 static void
@@ -2855,6 +2892,9 @@ _edje_entry_select_all(Edje_Real_Part *rp)
 #endif
 
    _edje_entry_real_part_configure(rp);
+   
+   en->select_allow = EINA_TRUE;
+   en->had_sel = EINA_TRUE;
 }
 
 void
@@ -3010,6 +3050,7 @@ _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow)
    if ((allow) && (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
      {
         _edje_entry_select_word(rp);
+        _edje_emit(en->rp->edje, "selection,end", en->rp->part->name);
      }
 }
 
