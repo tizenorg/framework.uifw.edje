@@ -93,7 +93,7 @@ struct _Entry
    int select_dragging_state;
    double space_key_time;
 
-#ifdef HAVE_ECORE_IMF   
+#ifdef HAVE_ECORE_IMF
    Eina_Bool have_preedit : 1;
    Eina_Bool input_panel_enable : 1;
    Ecore_IMF_Context *imf_context;
@@ -104,7 +104,7 @@ struct _Entry
 #endif
 
    Ecore_Timer *longpress_timer;
-   Edje_elm_function func;  
+   Edje_elm_function func;
    void *data;
 };
 
@@ -271,29 +271,11 @@ static void
 _preedit_del(Entry *en)
 {
    if (!en || !en->have_preedit) return;
-
-   /* delete the preedit characters */
    if (!en->preedit_start || !en->preedit_end) return;
    if (!evas_textblock_cursor_compare(en->preedit_start, en->preedit_end)) return;
 
+   /* delete the preedit characters */
    evas_textblock_cursor_range_delete(en->preedit_start, en->preedit_end);
-
-   /*
-   int preedit_len;
-   int i;
-   Evas_Textblock_Cursor *tc;
-   tc = evas_object_textblock_cursor_new(en->rp->object);
-   evas_textblock_cursor_copy(en->preedit_start, tc);
-
-   preedit_len = evas_textblock_cursor_pos_get(en->preedit_end) - evas_textblock_cursor_pos_get(en->preedit_start);
-
-   for (i = 0; i < preedit_len; i++)
-     {
-        evas_textblock_cursor_char_delete(tc);
-     }
-
-   evas_textblock_cursor_free(tc);
-   */
 }
 
 static void 
@@ -762,7 +744,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                   evas_object_show(ob);
                   sel->obj_fg = ob;
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, sel->obj_fg);
-                }
+               }
           }
      }
    x = y = w = h = -1;
@@ -1245,7 +1227,7 @@ static void
 _backspace(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSED__)
 {
    if (evas_textblock_cursor_char_prev(c))
-     evas_textblock_cursor_char_delete(c);
+      evas_textblock_cursor_char_delete(c);
 }
 
 static void
@@ -1950,8 +1932,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
      }
    tc = evas_object_textblock_cursor_new(rp->object);
    evas_textblock_cursor_copy(en->cursor, tc);
-   //printf("[mouse_down] cursor pos : %d\n", evas_textblock_cursor_pos_get(en->cursor));
-
    //   multiline = rp->part->multiline;
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
    en->cx = ev->canvas.x - x;
@@ -2063,7 +2043,6 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 #endif /* HAVE_ECORE_IMF */
 
    //_edje_entry_real_part_configure(rp);
-   //printf("[%s] cursor pos : %d\n", __func__, evas_textblock_cursor_pos_get(en->cursor));
    
    if (en->longpress_timer) ecore_timer_del(en->longpress_timer);
    en->longpress_timer = ecore_timer_add(1.0, _long_press, data);
@@ -2111,7 +2090,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
    en->cx = ev->canvas.x - x;
    en->cy = ev->canvas.y - y;
-
    if (!evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy))
      {
         Evas_Coord lx, ly, lw, lh;
@@ -2203,7 +2181,7 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
-     return;
+      return;
 
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
@@ -3636,7 +3614,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
      }
 
    evas_textblock_cursor_free(tc);
-   
+
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
@@ -3675,7 +3653,6 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
-//   ecore_imf_context_preedit_string_get(en->imf_context, &preedit_string, &cursor_pos);
    ecore_imf_context_preedit_string_with_attributes_get(en->imf_context, &preedit_string, &attrs, &cursor_pos);
 
    if (!strcmp(preedit_string, ""))
