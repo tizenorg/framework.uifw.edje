@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.51480slp2+build34) unstable; urgency=low
+
+  * Repackaging.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build34
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Thu, 02 Dec 2010 15:00:18 +0900
+
 edje (1.0.0.001+svn.51480slp2+build33) unstable; urgency=low
 
   * Package Upload due to EFL merge.
