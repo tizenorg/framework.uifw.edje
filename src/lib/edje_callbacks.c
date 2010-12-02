@@ -294,7 +294,6 @@ _edje_mouse_move_signal_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
 
    if (rp->still_in)
      {
-	Evas_Coord x, y, w, h;
 
         if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD)
           rp->still_in = 0;
