@@ -123,6 +123,17 @@ struct _Anchor
    Eina_Bool item : 1;
 };
 
+static void
+_input_panel_hide(Ecore_IMF_Context *ctx)
+{
+   Ecore_IMF_Input_Panel_State state;
+
+   state = ecore_imf_context_input_panel_state_get(ctx);
+
+   if (state == ECORE_IMF_INPUT_PANEL_STATE_SHOW)
+      ecore_imf_context_input_panel_hide(ctx);
+}
+
 static Eina_Bool
 _punctuation_check(Entry *en)
 {
@@ -229,9 +240,7 @@ static Eina_Bool _hide_timer_handler(void *data)
    if (!en || !en->imf_context) goto done;
 
    if (!keypad_show)
-     {
-        ecore_imf_context_input_panel_hide(en->imf_context);
-     }
+      _input_panel_hide(en->imf_context);
 
 done:
    hide_timer = NULL;
@@ -604,9 +613,7 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
    ecore_imf_context_reset(en->imf_context);
 
    if (en->input_panel_enable)
-     {
-        ecore_imf_context_input_panel_hide(en->imf_context);
-     }
+      _input_panel_hide(en->imf_context);
 #endif
 }
 
@@ -637,7 +644,7 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 
    if (en->input_panel_enable)
      {
-        ecore_imf_context_input_panel_hide(en->imf_context);
+        _input_panel_hide(en->imf_context);
      }
 #endif
 }
@@ -2719,7 +2726,7 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                             ecore_timer_del(hide_timer);
                             hide_timer = NULL;
 
-                            ecore_imf_context_input_panel_hide(en->imf_context);
+                            _input_panel_hide(en->imf_context);
                          }
                     }
                }
