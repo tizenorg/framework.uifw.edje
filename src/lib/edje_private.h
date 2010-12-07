@@ -5,43 +5,61 @@
 # include <config.h>
 #endif
 
-#ifdef HAVE_ALLOCA_H  
-# include <alloca.h>  
-#elif defined __GNUC__  
-# define alloca __builtin_alloca  
-#elif defined _AIX  
-# define alloca __alloca  
-#elif defined _MSC_VER  
-# include <malloc.h>  
-# define alloca _alloca  
-#else  
-# include <stddef.h>  
-void *alloca (size_t);  
-#endif 		      
+#ifndef _WIN32
+# define _GNU_SOURCE
+#endif
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#elif defined _MSC_VER
+# include <malloc.h>
+# define alloca _alloca
+#else
+# include <stddef.h>
+void *alloca (size_t);
+#endif
+
+#include <string.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <sys/time.h>
+#include <errno.h>
+#include <libgen.h>
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include <setjmp.h>
+
+#ifndef _MSC_VER
+# include <unistd.h>
+#endif
+
+#ifdef HAVE_LOCALE_H
+# include <locale.h>
+#endif
 
 #ifdef HAVE_EVIL
 # include <Evil.h>
 #endif
 
 #include <Eina.h>
+#include <Eet.h>
 #include <Evas.h>
 #include <Ecore.h>
+#include <Ecore_File.h>
 #ifdef HAVE_ECORE_IMF
 # include <Ecore_IMF.h>
 # include <Ecore_IMF_Evas.h>
 #endif
-#include <Eet.h>
 #include <Embryo.h>
-#include <time.h>
-#include <sys/time.h>
 
 #include "Edje.h"
-#include "Edje_Edit.h"
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-#include <setjmp.h>
 
 EAPI extern int _edje_default_log_dom ; 
 
@@ -154,7 +172,7 @@ struct _Edje_Smart_Api
 /* increment this when you add new feature to edje file format without
  * breaking backward compatibility.
  */
-#define EDJE_FILE_MINOR 0
+#define EDJE_FILE_MINOR 1
 
 /* FIXME:
  *
@@ -167,6 +185,14 @@ struct _Edje_Smart_Api
  * ? recursions, unsafe callbacks outside Edje etc. with freeze, ref/unref and block/unblock and break_programs needs to be redesigned & fixed
  * ? all unsafe calls that may result in callbacks must be marked and dealt with
  */
+
+typedef enum
+{
+   EDJE_ASPECT_PREFER_NONE,
+   EDJE_ASPECT_PREFER_VERTICAL,
+   EDJE_ASPECT_PREFER_HORIZONTAL,
+   EDJE_ASPECT_PREFER_BOTH
+} Edje_Internal_Aspect;
 
 struct _Edje_Perspective
 {
@@ -205,12 +231,7 @@ struct _Edje_Color
 struct _Edje_Aspect_Prefer
 {
    FLOAT_T min, max;
-   enum {
-     EDJE_ASPECT_PREFER_NONE,
-     EDJE_ASPECT_PREFER_VERTICAL,
-     EDJE_ASPECT_PREFER_HORIZONTAL,
-     EDJE_ASPECT_PREFER_BOTH
-   } prefer;
+   Edje_Internal_Aspect prefer;
 };
 
 struct _Edje_Aspect
@@ -245,7 +266,6 @@ typedef struct _Edje_Image_Directory                 Edje_Image_Directory;
 typedef struct _Edje_Image_Directory_Entry           Edje_Image_Directory_Entry;
 typedef struct _Edje_Image_Directory_Set             Edje_Image_Directory_Set;
 typedef struct _Edje_Image_Directory_Set_Entry       Edje_Image_Directory_Set_Entry;
-typedef struct _Edje_Sound_Directory                 Edje_Sound_Directory;
 typedef struct _Edje_Program                         Edje_Program;
 typedef struct _Edje_Program_Target                  Edje_Program_Target;
 typedef struct _Edje_Program_After                   Edje_Program_After;
@@ -269,6 +289,7 @@ typedef struct _Edje_Part_Description_Spec_Text      Edje_Part_Description_Spec_
 typedef struct _Edje_Part_Description_Spec_Box       Edje_Part_Description_Spec_Box;
 typedef struct _Edje_Part_Description_Spec_Table     Edje_Part_Description_Spec_Table;
 typedef struct _Edje_Patterns                        Edje_Patterns;
+typedef struct _Edje_Part_Box_Animation              Edje_Part_Box_Animation;
 
 #define EDJE_INF_MAX_W 100000
 #define EDJE_INF_MAX_H 100000
@@ -345,9 +366,6 @@ typedef struct _Edje_Patterns                        Edje_Patterns;
 
 #define EDJE_ENTRY_DOUBLE_SPACE_TIME 0.6
 
-#define EDJE_ENTRY_CURSOR_MODE_UNDER 0
-#define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
-
 #define EDJE_PART_PATH_SEPARATOR ':'
 #define EDJE_PART_PATH_SEPARATOR_STRING ":"
 #define EDJE_PART_PATH_SEPARATOR_INDEXL '['
@@ -361,10 +379,8 @@ struct _Edje_File
 
    Edje_External_Directory        *external_dir;
    Edje_Image_Directory           *image_dir;
-   Edje_Sound_Directory           *sound_dir;
    Eina_List                      *styles;
    Eina_List                      *color_classes;
-   Eina_List 		  	  	      *haptics;
 
    int                             references;
    const char                     *compiler;
@@ -374,7 +390,6 @@ struct _Edje_File
 
    Eina_Hash                      *data;
    Eina_Hash			  *fonts;
-   char				*outdir_for_sound ;
 
    Eina_Hash			  *collection;
    Eina_List			  *collection_cache;
@@ -471,11 +486,6 @@ struct _Edje_Image_Directory_Set_Entry
    } size;
 };
 
-struct _Edje_Sound_Directory
-{
-   Eina_List *entries; /* a list of Edje_Sound_Directory_Entry */
-};
-
 /*----------*/
 
 struct _Edje_Program /* a conditional program to be run */
@@ -485,10 +495,6 @@ struct _Edje_Program /* a conditional program to be run */
 
    const char *signal; /* if signal emission name matches the glob here... */
    const char *source; /* if part that emitted this (name) matches this glob */
-   const char *sound_name;/*name of sound to be played*/
-   int sound_iterations;
-   char *haptic_name;
-   int haptic_iterations;
 
    struct {
       const char *part;
@@ -626,6 +632,7 @@ struct _Edje_Part_Collection
    int        id; /* the collection id */
 
    Eina_Hash *alias; /* aliasing part */
+   Eina_Hash *aliased; /* invert match of alias */
 
    struct {
       Edje_Size min, max;
@@ -704,7 +711,6 @@ struct _Edje_Part
    unsigned char          pointer_mode;
    unsigned char          entry_mode;
    unsigned char          select_mode;
-   unsigned char          cursor_mode;
    unsigned char          multiline;
    Edje_Part_Api          api;
 };
@@ -982,14 +988,14 @@ struct _Edje
    FLOAT_T		 scale;
 
    struct {
-      void (*func) (void *data, Evas_Object *obj, const char *part);
-      void *data;
+      Edje_Text_Change_Cb  func;
+      void                *data;
    } text_change;
 
    struct {
-      void                (*func) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg);
-      void                 *data;
-      int                   num;
+      Edje_Message_Handler_Cb  func;
+      void                    *data;
+      int                      num;
    } message;
    int                      processing_messages;
 
@@ -1024,8 +1030,8 @@ struct _Edje
    int                   lua_ref;
    
    struct {
-      Evas_Object *(*func) (void *data, Evas_Object *obj, const char *part, const char *item);
-      void *data;
+      Edje_Item_Provider_Cb  func;
+      void                  *data;
    } item_provider;
 };
 
@@ -1108,6 +1114,7 @@ struct _Edje_Real_Part
    Edje_Rectangle            req; // 16
 
    Eina_List                *items; // 4 //FIXME: only if table/box
+   Edje_Part_Box_Animation  *anim; // 4 //FIXME: Used only if box
    void                     *entry_data; // 4 // FIXME: move to entry section
    Evas_Object              *cursorbg_object; // 4 // FIXME: move to entry section
    Evas_Object              *cursorfg_object; // 4 // FIXME: move to entry section
@@ -1181,16 +1188,16 @@ struct _Edje_Signal_Callback
 {
    const char	  *signal;
    const char	  *source;
-   void (*func) (void *data, Evas_Object *o, const char *emission, const char *source);
-   void  *data;
-   unsigned char just_added : 1;
-   unsigned char delete_me : 1;
+   Edje_Signal_Cb  func;
+   void           *data;
+   unsigned char   just_added : 1;
+   unsigned char   delete_me : 1;
 };
 
 struct _Edje_Text_Insert_Filter_Callback
 {
    const char  *part;
-   void       (*func) (void *data, Evas_Object *obj, const char *part, char **text);
+   Edje_Text_Filter_Cb func;
    void        *data;
 };
 
@@ -1387,15 +1394,13 @@ const Eina_List *edje_match_signal_source_hash_get(const char *signal,
 						   const Eina_Rbtree *tree);
 void edje_match_signal_source_free(Edje_Signal_Source_Char *key, void *data);
 
-// FIXME remove below 2 eapi decls when edje_convert goes  
-EAPI void _edje_edd_init(void);  
-EAPI void _edje_edd_shutdown(void); 
+// FIXME remove below 2 eapi decls when edje_convert goes
+EAPI void _edje_edd_init(void);
+EAPI void _edje_edd_shutdown(void);
 
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_file;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_part_collection;
-EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_directory;
-EAPI extern Eet_Data_Descriptor *_edje_edd_edje_sound_info;
-Eina_Bool _edje_multisense_ui_init() ;
+
 extern int              _edje_anim_count;
 extern Ecore_Animator  *_edje_timer;
 extern Eina_List       *_edje_animators;
@@ -1522,6 +1527,11 @@ void              _edje_real_part_swallow_clear(Edje_Real_Part *rp);
 void              _edje_box_init(void);
 void              _edje_box_shutdown(void);
 Eina_Bool         _edje_box_layout_find(const char *name, Evas_Object_Box_Layout *cb, void **data, void (**free_data)(void *data));
+void              _edje_box_recalc_apply(Edje *ed __UNUSED__, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edje_Part_Description_Box *chosen_desc);
+Eina_Bool         _edje_box_layout_add_child(Edje_Real_Part *rp, Evas_Object *child_obj);
+void              _edje_box_layout_remove_child(Edje_Real_Part *rp, Evas_Object *child_obj);
+Edje_Part_Box_Animation * _edje_box_layout_anim_new(Evas_Object *box);
+void              _edje_box_layout_free_data(void *data);
 
 Eina_Bool         _edje_real_part_box_append(Edje_Real_Part *rp, Evas_Object *child_obj);
 Eina_Bool         _edje_real_part_box_prepend(Edje_Real_Part *rp, Evas_Object *child_obj);
@@ -1772,8 +1782,8 @@ void _edje_external_init();
 void _edje_external_shutdown();
 Evas_Object *_edje_external_type_add(const char *type_name, Evas *evas, Evas_Object *parent, const Eina_List *params, const char *part_name);
 void _edje_external_signal_emit(Evas_Object *obj, const char *emission, const char *source);
-Eina_Bool _edje_external_param_set(Evas_Object *obj, const Edje_External_Param *param) EINA_ARG_NONNULL(1, 2);
-Eina_Bool _edje_external_param_get(const Evas_Object *obj, Edje_External_Param *param) EINA_ARG_NONNULL(1, 2);
+Eina_Bool _edje_external_param_set(Evas_Object *obj, Edje_Real_Part *rp, const Edje_External_Param *param) EINA_ARG_NONNULL(1, 2);
+Eina_Bool _edje_external_param_get(const Evas_Object *obj, Edje_Real_Part *rp, Edje_External_Param *param) EINA_ARG_NONNULL(1, 2);
 Evas_Object *_edje_external_content_get(const Evas_Object *obj, const char *content) EINA_ARG_NONNULL(1, 2);
 void _edje_external_params_free(Eina_List *params, Eina_Bool free_strings);
 void _edje_external_recalc_apply(Edje *ed, Edje_Real_Part *ep,

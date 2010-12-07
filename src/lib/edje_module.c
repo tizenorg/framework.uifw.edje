@@ -1,92 +1,54 @@
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <libgen.h>
-
-#ifdef HAVE_EVIL
-# include <Evil.h>
-#endif
-
-#include <Eina.h>
-#include <Ecore_File.h>
-
-#include "Edje.h"
 #include "edje_private.h"
 
-static Eina_Hash *_registered_modules = NULL;
-static Eina_List *_modules_paths = NULL;
+Eina_Hash *_registered_modules = NULL;
+Eina_List *_modules_paths = NULL;
 
-static Eina_List *_modules_found = NULL;
+Eina_List *_modules_found = NULL;
 
 #if defined(__CEGCC__) || defined(__MINGW32CE__)
 # define EDJE_MODULE_NAME "edje_%s.dll"
+# define EDJE_EXTRA_MODULE_NAME 1
 #elif _WIN32
 # define EDJE_MODULE_NAME "module.dll"
 #else
 # define EDJE_MODULE_NAME "module.so"
 #endif
 
-EAPI Eina_Module *
+EAPI Eina_Bool
 edje_module_load(const char *module)
 {
    const char *path;
    Eina_List *l;
-   Eina_Module *em = NULL;
 
    EINA_SAFETY_ON_NULL_RETURN_VAL(module, EINA_FALSE);
 
-   em = eina_hash_find(_registered_modules, module);
+   if (eina_hash_find(_registered_modules, module))
+     return EINA_TRUE;
 
+   EINA_LIST_FOREACH(_modules_paths, l, path)
+     {
+	Eina_Module *em;
+	char tmp[PATH_MAX];
 
-   if (!em)
-   {
+	snprintf(tmp, sizeof (tmp), "%s/%s/%s/" EDJE_MODULE_NAME, path, module, MODULE_ARCH
+#ifdef EDJE_EXTRA_MODULE_NAME                 
+                 , module
+#endif                 
+                );
+	em = eina_module_new(tmp);
+	if (!em) continue ;
 
-	   EINA_LIST_FOREACH(_modules_paths, l, path)
-		 {
+	if (!eina_module_load(em))
+	  {
+	     eina_module_free(em);
+	     continue ;
+	  }
 
-		char tmp[PATH_MAX];
+	return !!eina_hash_add(_registered_modules, module, em);
+     }
 
-		/* A warning is expected has the naming change under wince. */
-		snprintf(tmp, sizeof (tmp), "%s/%s/%s/" EDJE_MODULE_NAME, path, module, MODULE_ARCH, module);
-		em = eina_module_new(tmp);
-		if (!em) continue ;
-
-		if (!eina_module_load(em))
-		  {
-			 eina_module_free(em);
-			 em = NULL;
-			 continue ;
-		  }
-
-		 eina_hash_add(_registered_modules, module, em);
- 	 }
-   }
-
-   if(!em)
-	   ERR("Could not find the module %s", module);
-
-   return em;
+   ERR("Could not find the module %s", module);
+   return EINA_FALSE;
 }
 
 void
@@ -166,8 +128,11 @@ edje_available_modules_get(void)
 	       {
 		  char tmp[PATH_MAX];
 
-		  /* A warning is expected has the naming change under wince. */
-		  snprintf(tmp, sizeof (tmp), "%s/%s/" EDJE_MODULE_NAME, info->path, MODULE_ARCH, ecore_file_file_get(info->path));
+		  snprintf(tmp, sizeof (tmp), "%s/%s/" EDJE_MODULE_NAME, info->path, MODULE_ARCH
+#ifdef EDJE_EXTRA_MODULE_NAME                 
+                           , ecore_file_file_get(info->path)
+#endif
+                           );
 
 		  if (ecore_file_exists(tmp))
 		    result = eina_list_append(result, eina_stringshare_add(ecore_file_file_get(info->path)));
@@ -181,5 +146,3 @@ edje_available_modules_get(void)
 
    return result;
 }
-
-

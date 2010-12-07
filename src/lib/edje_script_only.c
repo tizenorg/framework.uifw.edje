@@ -1,24 +1,3 @@
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca(size_t);
-#endif
-
 #include "edje_private.h"
 
 /*
@@ -639,18 +618,26 @@ _call_fn(Edje * ed, const char *fname, Embryo_Function fn)
    ret = embryo_program_run(ed->collection->script, fn);
    if (ret == EMBRYO_PROGRAM_FAIL)
      {
-	ERR("ERROR with embryo script.\n"
-	    "ENTRY POINT: %s\n"
-	    "ERROR:       %s",
-	       fname,
-	       embryo_error_string_get(embryo_program_error_get
-				       (ed->collection->script)));
+	ERR("ERROR with embryo script. "
+            "OBJECT NAME: '%s', "
+            "OBJECT FILE: '%s', "
+            "ENTRY POINT: '%s', "
+	    "ERROR: '%s'",
+            ed->collection->part,
+            ed->file->path,
+            fname,
+            embryo_error_string_get(embryo_program_error_get(ed->collection->script)));
      }
    else if (ret == EMBRYO_PROGRAM_TOOLONG)
      {
-	ERR("ERROR with embryo script.\n"
-	    "ENTRY POINT: %s\n"
-	    "ERROR:       Script exceeded maximum allowed cycle count of %i",
-	    fname, embryo_program_max_cycle_run_get(ed->collection->script));
+	ERR("ERROR with embryo script. "
+            "OBJECT NAME: '%s', "
+            "OBJECT FILE: '%s', "
+            "ENTRY POINT: '%s', "
+	    "ERROR: 'Script exceeded maximum allowed cycle count of %i'",
+            ed->collection->part,
+            ed->file->path,
+            fname, 
+            embryo_program_max_cycle_run_get(ed->collection->script));
      }
 }

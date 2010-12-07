@@ -1,33 +1,10 @@
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
-#include <string.h>
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca(size_t);
-#endif
-
 #include "edje_private.h"
 
-#if 0  
-/////////////////////////////////////////////////////////////////////////////  
-// the below is deprecated and here for reference only until removed. look  
-// at edje_lua2.c for the active workign code  
-/////////////////////////////////////////////////////////////////////////////  
+#if 0
+/////////////////////////////////////////////////////////////////////////////
+// the below is deprecated and here for reference only until removed. look
+// at edje_lua2.c for the active workign code
+/////////////////////////////////////////////////////////////////////////////
 
 #include <lauxlib.h>
 #include <lualib.h>
@@ -143,7 +120,7 @@ jmp_buf _edje_lua_panic_jmp;
 static int
 _edje_lua_custom_panic(__UNUSED__ lua_State *L)
 {
-   printf("PANIC\n");
+   CRITICAL("PANIC");
    longjmp(_edje_lua_panic_jmp, 1);
    return 1; /* longjmp() never returns, but this keep gcc happy */
 }
@@ -175,7 +152,7 @@ __edje_lua_error(const char *file, const char *fnc, int line, lua_State *L, int 
      (_edje_default_log_dom, EINA_LOG_LEVEL_ERR,  file, fnc, line,
       "Lua %s error: %s", err_type, lua_tostring(L, -1));
    // don't exit. this is BAD. lua script bugs will cause thngs like e to
-   // exit mysteriously endig your x session. bad!
+   // exit mysteriously ending your x session. bad!
    // exit(-1);
 }
 
@@ -5072,7 +5049,7 @@ _edje_lua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
    /* ANSI requires that realloc(NULL, size) == malloc(size) */
    ptr2 = realloc(ptr, nsize);
    if (ptr2) return ptr2;
-   ERR("Edje Lua cannot re-allocate %zu bytes\n", nsize);
+   ERR("Edje Lua cannot re-allocate %zu bytes", nsize);
    return ptr2;
 }
 

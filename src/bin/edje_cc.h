@@ -70,8 +70,8 @@ struct _Font_List
 
 struct _Font
 {
-   char *file;
    char *name;
+   char *file;
 };
 
 struct _Code
@@ -156,7 +156,6 @@ void    error_and_abort(Eet_File *ef, const char *fmt, ...);
 extern Eina_List             *ext_dirs;
 extern Eina_List             *img_dirs;
 extern Eina_List             *fnt_dirs;
-extern Eina_List             *snd_dirs;
 extern char                  *file_in;
 extern char                  *tmp_dir;
 extern char                  *file_out;

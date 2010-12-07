@@ -23,7 +23,7 @@ void *alloca (size_t);
 #include <limits.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <errno.h>
+
 #include <Ecore_Evas.h>
 
 #include "edje_cc.h"
@@ -38,7 +38,6 @@ typedef struct _Part_Lookup Part_Lookup;
 typedef struct _Program_Lookup Program_Lookup;
 typedef struct _Group_Lookup Group_Lookup;
 typedef struct _Image_Lookup Image_Lookup;
-typedef struct _Sound_Lookup Sound_Lookup;
 typedef struct _Slave_Lookup Slave_Lookup;
 typedef struct _Code_Lookup Code_Lookup;
 
@@ -75,7 +74,7 @@ struct _Group_Lookup
    char *name;
 };
 
-struct _Sound_Lookup
+struct _String_Lookup
 {
    char *name;
    int *dest;
@@ -113,15 +112,12 @@ Eina_List *code_lookups = NULL;
 Eina_List *aliases = NULL;
 
 static Eet_Data_Descriptor *edd_edje_file = NULL;
-static Eet_Data_Descriptor *edd_edje_sound_directory = NULL;
-static Eet_Data_Descriptor *edd_edje_sound_info = NULL;
 static Eet_Data_Descriptor *edd_edje_part_collection = NULL;
 
 static Eina_List *part_lookups = NULL;
 static Eina_List *program_lookups = NULL;
 static Eina_List *group_lookups = NULL;
 static Eina_List *image_lookups = NULL;
-static Eina_List *sound_lookups = NULL;
 static Eina_List *part_slave_lookups = NULL;
 static Eina_List *image_slave_lookups= NULL;
 
@@ -147,8 +143,6 @@ void
 data_setup(void)
 {
    edd_edje_file = _edje_edd_edje_file;
-   edd_edje_sound_directory = _edje_edd_edje_sound_directory;
-   edd_edje_sound_info = _edje_edd_edje_sound_info;
    edd_edje_part_collection = _edje_edd_edje_part_collection;
 }
 
@@ -193,17 +187,27 @@ check_packed_items(Edje_Part_Collection *pc, Edje_Part *ep, Eet_File *ef)
 }
 
 static void
+check_nameless_state(Edje_Part_Collection *pc, Edje_Part *ep, Edje_Part_Description_Common *ed, Eet_File *ef)
+{
+   if (!ed->state.name)
+      error_and_abort(ef, "Collection %i: description with state missing on part \"%s\"\n",
+                      pc->id, ep->name);
+}
+
+static void
 check_part (Edje_Part_Collection *pc, Edje_Part *ep, Eet_File *ef)
 {
+   unsigned int i;
    /* FIXME: check image set and sort them. */
    if (!ep->default_desc)
      error_and_abort(ef, "Collection %i: default description missing "
 		     "for part \"%s\"\n", pc->id, ep->name);
 
+   for (i = 0; i < ep->other.desc_count; ++i)
+     check_nameless_state(pc, ep, ep->other.desc[i], ef);
+
    if (ep->type == EDJE_PART_TYPE_IMAGE)
      {
-	unsigned int i;
-
 	check_image_part_desc(pc, ep, (Edje_Part_Description_Image*) ep->default_desc, ef);
 
 	for (i = 0; i < ep->other.desc_count; ++i)
@@ -647,70 +651,6 @@ data_write_images(Eet_File *ef, int *image_num, int *input_bytes, int *input_raw
    return total_bytes;
 }
 
-static int
-data_write_sounds(Eet_File * ef, int *sound_num, int *input_bytes, int *input_raw_bytes)
-{
-   int bytes = 0;
-   int total_bytes = 0;
-
-   if ((edje_file) && (edje_file->sound_dir))
-   {
-      Eina_List *l, *ll;
-      Edje_Sound_Info *snd_info;
-      char *dir_path = NULL;
-      char snd_path[PATH_MAX];
-      char sndid_str[15];
-      void *fdata = NULL;
-      FILE *f = NULL;
-      struct stat st;
-      int size = 0;
-
-      //Iterate through all the sound entries
-      EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, snd_info)
-      {
-		// Search the Sound file in all the -sd ( sound directory )
-		EINA_LIST_FOREACH(snd_dirs, ll, dir_path)
-		{
-			snprintf(snd_path, sizeof(snd_path), "%s/%s", dir_path, snd_info->name);
-			f = fopen(snd_path, "rb");
-			if (!f)
-				continue;
-
-			stat(snd_path, &st);
-			size = st.st_size;
-			snprintf(sndid_str, sizeof(sndid_str), "edje/sounds/%i", snd_info->id);
-			fdata = malloc(sizeof(char) * size);
-			if(!fdata)
-			{
-				ERR("%s: Error. %s:%i while allocating memory to load file \"%s\"",
-				progname, file_in, line, snd_path);
-				exit(-1);
-			}
-
-			if (!fread(fdata, size, 1, f) != 1)
-			   {
-			   bytes = eet_write(ef, sndid_str, fdata, size, 1);
-			   
-			}
-			*sound_num += 1;
-			total_bytes += bytes;
-			*input_bytes += size;
-			*input_raw_bytes += size;
-			free(fdata);
-
-		   if (verbose)
-		   {
-			printf
-			   ("%s: Wrote %9i bytes (%4iKb) for \"%s\" sound entry is  \"%s\" \n",
-			    progname, bytes, (bytes + 512) / 1024, sndid_str, snd_path);
-		   }
-		   fclose(f);
-		   break;
-	   }
-	}
-  }
-  return (total_bytes);
-}
 static void
 check_groups(Eet_File *ef)
 {
@@ -1101,7 +1041,6 @@ data_write(void)
    int fmap_bytes = 0;
    int input_raw_bytes = 0;
    int image_num = 0;
-   int sound_num = 0;
    int font_num = 0;
    int collection_num = 0;
 
@@ -1127,8 +1066,6 @@ data_write(void)
 				   &input_raw_bytes);
    total_bytes += data_write_images(ef, &image_num, &input_bytes,
 				    &input_raw_bytes);
-   total_bytes += data_write_sounds(ef, &sound_num, &input_bytes,
-				    &input_raw_bytes);
 
    total_bytes += data_write_groups(ef, &collection_num);
    data_write_scripts(ef);
@@ -1152,7 +1089,6 @@ data_write(void)
 	printf("Summary:\n"
 	       "  Wrote %i collections\n"
 	       "  Wrote %i images\n"
-	       "  Wrote %i sounds\n"
 	       "  Wrote %i fonts\n"
 	       "  Wrote %i bytes (%iKb) of original source data\n"
 	       "  Wrote %i bytes (%iKb) of original source font map\n"
@@ -1167,7 +1103,6 @@ data_write(void)
 	       ,
 	       collection_num,
 	       image_num,
-	       sound_num,
 	       font_num,
 	       src_bytes, (src_bytes + 512) / 1024,
 	       fmap_bytes, (fmap_bytes + 512) / 1024,
@@ -1247,15 +1182,6 @@ data_queue_image_lookup(char *name, int *dest, Eina_Bool *set)
    il->dest = dest;
    il->set = set;
 }
-void
-data_queue_sound_lookup(char *name, int *dest)
-{
-   Sound_Lookup *il;
-   il = mem_alloc(SZ(Sound_Lookup));
-   sound_lookups = eina_list_append(sound_lookups, il);
-   il->name = mem_strdup(name);
-   il->dest = dest;
-}
 
 void
 data_queue_part_slave_lookup(int *master, int *slave)
@@ -1298,7 +1224,6 @@ data_process_lookups(void)
    Program_Lookup *program;
    Group_Lookup *group;
    Image_Lookup *image;
-   Sound_Lookup *sl;
    Eina_List *l;
    void *data;
 
@@ -1474,33 +1399,6 @@ data_process_lookups(void)
 
    EINA_LIST_FREE(image_slave_lookups, data)
      free(data);
-
-   if (edje_file->sound_dir)
-   {
-      Edje_Sound_Info *sndinfo;
-
-      EINA_LIST_FREE(sound_lookups, sl)
-      {
-    	  Eina_Bool find = EINA_FALSE;
-          EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, sndinfo)
-	   	  {
-	   		if ((sndinfo->name) && (!strcmp(sndinfo->name, sl->name)))
-	   		  {
-	   		     *(sl->dest) = sndinfo->id;
-	   		     find = EINA_TRUE;
-	   		     break;
-	   		  }
-	   	  }
-          if (!find)
-           {
-          	     ERR("%s: Error. Unable to find sound name \"%s\".",
-          		 progname, sl->name);
-          	     exit(-1);
-           }
-           free(sl->name);
-           free(sl);
-       }
-   }
 }
 
 static void

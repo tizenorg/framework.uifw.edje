@@ -1,27 +1,3 @@
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
-
-#include <string.h>
-#include <sys/stat.h>
-
 #include "edje_private.h"
 
 
@@ -203,16 +179,14 @@ _edje_file_dangling(Edje_File *edf)
 Edje_File *
 _edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret)
 {
-   Edje_File *edf = NULL;
+   Edje_File *edf;
    Eina_List *l, *hist;
    Edje_Part_Collection *edc;
    Edje_Part *ep;
    struct stat st;
 
    if (stat(file, &st) != 0)
-     {
-	return NULL;
-     }
+      return NULL;
 
    if (!_edje_file_hash)
      {
@@ -226,7 +200,6 @@ _edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, E
 	if (edf->mtime != st.st_mtime)
 	  {
 	     _edje_file_dangling(edf);
-	     edf = NULL;
 	     goto open_new;
 	  }
 
@@ -242,32 +215,30 @@ _edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, E
 	       {
 		  _edje_file_cache = eina_list_remove_list(_edje_file_cache, l);
 		  _edje_file_free(edf);
-		  edf = NULL;
 		  goto open_new;
 	       }
 
 	     edf->references = 1;
 	     _edje_file_cache = eina_list_remove_list(_edje_file_cache, l);
 	     eina_hash_add(_edje_file_hash, file, edf);
-	     break;
+	     goto open;
 	  }
-	edf = NULL;
      }
 
- open_new:
+open_new:
+   if (!_edje_file_hash)
+      _edje_file_hash = eina_hash_string_small_new(NULL);
+
+   edf = _edje_file_open(file, coll, error_ret, edc_ret);
    if (!edf)
-     {
-	if (!_edje_file_hash)
-	  _edje_file_hash = eina_hash_string_small_new(NULL);
-	edf = _edje_file_open(file, coll, error_ret, edc_ret);
-	if (!edf) return NULL;
-	eina_hash_add(_edje_file_hash, file, edf);
-	return edf;
-     }
+      return NULL;
 
- open:
+   eina_hash_add(_edje_file_hash, file, edf);
+   return edf;
 
-   if (!coll) return edf;
+open:
+   if (!coll)
+      return edf;
 
    edc = _edje_file_coll_open(edf, coll);
    if (!edc)
@@ -424,8 +395,18 @@ _edje_cache_coll_unref(Edje_File *edf, Edje_Part_Collection *edc)
    else if (ce->ref)
      {
 	ce->ref = NULL;
-	edf->collection_cache = eina_list_prepend(edf->collection_cache, edc);
-	_edje_cache_coll_clean(edf);
+
+	if (edf->dangling)
+	  {
+	     /* No need to keep the collection around if the file is dangling */
+	     _edje_collection_free(edf, edc, ce);
+	     _edje_cache_coll_flush(edf);
+	  }
+	else
+	  {
+	     edf->collection_cache = eina_list_prepend(edf->collection_cache, edc);
+	     _edje_cache_coll_clean(edf);
+	  }
      }
 }
 

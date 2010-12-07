@@ -1,6 +1,3 @@
-#include <string.h>
-#include <ctype.h>
-
 #include "edje_private.h"
 
 typedef struct _Edje_Box_Layout Edje_Box_Layout;
@@ -1270,7 +1267,7 @@ edje_object_part_geometry_get(const Evas_Object *obj, const char *part, Evas_Coo
  * Edje object is deleted (or file is set to a new file).
  */
 EAPI void
-edje_object_item_provider_set(Evas_Object *obj, Evas_Object *(*func) (void *data, Evas_Object *obj, const char *part, const char *item), void *data)
+edje_object_item_provider_set(Evas_Object *obj, Edje_Item_Provider_Cb func, void *data)
 {
    Edje *ed;
 
@@ -1295,7 +1292,7 @@ edje_object_item_provider_set(Evas_Object *obj, Evas_Object *(*func) (void *data
  *
  */
 EAPI void
-edje_object_text_change_cb_set(Evas_Object *obj, void (*func) (void *data, Evas_Object *obj, const char *part), void *data)
+edje_object_text_change_cb_set(Evas_Object *obj, Edje_Text_Change_Cb func, void *data)
 {
    Edje *ed;
    unsigned int i;
@@ -1310,8 +1307,8 @@ edje_object_text_change_cb_set(Evas_Object *obj, void (*func) (void *data, Evas_
 	Edje_Real_Part *rp;
 
 	rp = ed->table_parts[i];
-	if (rp->part->type == EDJE_PART_TYPE_GROUP && rp->swallowed_object)
-	  edje_object_text_change_cb_set(rp->swallowed_object, func, data);
+	if ((rp->part->type == EDJE_PART_TYPE_GROUP) && (rp->swallowed_object))
+           edje_object_text_change_cb_set(rp->swallowed_object, func, data);
      }
 }
 
@@ -2369,8 +2366,32 @@ edje_object_part_text_cursor_content_get(const Evas_Object *obj, const char *par
    return NULL;
 }
 
+/**
+ * Add a filter function for newly inserted text.
+ *
+ * Whenever text is inserted (not the same as set) into the given @p part,
+ * the list of filter functions will be called to decide if and how the new
+ * text will be accepted.
+ * There are three types of filters, EDJE_TEXT_FILTER_TEXT,
+ * EDJE_TEXT_FILTER_FORMAT and EDJE_TEXT_FILTER_MARKUP.
+ * The text parameter in the @p func filter can be modified by the user and
+ * it's up to him to free the one passed if he's to change the pointer. If
+ * doing so, the newly set text should be malloc'ed, as once all the filters
+ * are called Edje will free it.
+ * If the text is to be rejected, freeing it and setting the pointer to NULL
+ * will make Edje break out of the filter cycle and reject the inserted
+ * text.
+ *
+ * @see edje_object_text_insert_filter_callback_del
+ * @see edje_object_text_insert_filter_callback_del_full
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param func The callback function that will act as filter
+ * @param data User provided data to pass to the filter function
+ */
 EAPI void
-edje_object_text_insert_filter_callback_add(Evas_Object *obj, const char *part, void (*func) (void *data, Evas_Object *obj, const char *part, char **text), const void *data)
+edje_object_text_insert_filter_callback_add(Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func, void *data)
 {
    Edje *ed;
    Edje_Text_Insert_Filter_Callback *cb;
@@ -2380,31 +2401,90 @@ edje_object_text_insert_filter_callback_add(Evas_Object *obj, const char *part, 
    cb = calloc(1, sizeof(Edje_Text_Insert_Filter_Callback));
    cb->part = eina_stringshare_add(part);
    cb->func = func;
-   cb->data = (void*) data;
+   cb->data = (void *)data;
    ed->text_insert_filter_callbacks =
      eina_list_append(ed->text_insert_filter_callbacks, cb);
 }
 
-EAPI void
-edje_object_text_insert_filter_callback_del(Evas_Object *obj, const char *part, void (*func) (void *data, Evas_Object *obj, const char *part, char **text), const void *data)
+/**
+ * Delete a function from the filter list.
+ *
+ * Delete the given @p func filter from the list in @p part. Returns
+ * the user data pointer given when added.
+ *
+ * @see edje_object_text_insert_filter_callback_add
+ * @see edje_object_text_insert_filter_callback_del_full
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param func The function callback to remove
+ *
+ * @return The user data pointer if succesful, or NULL otherwise
+ */
+EAPI void *
+edje_object_text_insert_filter_callback_del(Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func)
 {
    Edje *ed;
    Edje_Text_Insert_Filter_Callback *cb;
    Eina_List *l;
 
    ed = _edje_fetch(obj);
-   if ((!ed) || (!part)) return;
+   if ((!ed) || (!part)) return NULL;
    EINA_LIST_FOREACH(ed->text_insert_filter_callbacks, l, cb)
      {
-        if ((!strcmp(cb->part, part)) && (cb->func == func) && (cb->data == data))
+        if ((!strcmp(cb->part, part)) && (cb->func == func))
           {
+             void *data = cb->data;
              ed->text_insert_filter_callbacks =
-               eina_list_remove_list(ed->text_insert_filter_callbacks, l);
+                eina_list_remove_list(ed->text_insert_filter_callbacks, l);
              eina_stringshare_del(cb->part);
              free(cb);
-             return;
+             return data;
           }
      }
+   return NULL;
+}
+
+/**
+ * Delete a function and matching user data from the filter list.
+ *
+ * Delete the given @p func filter and @p data user data from the list
+ * in @p part.
+ * Returns the user data pointer given when added.
+ *
+ * @see edje_object_text_insert_filter_callback_add
+ * @see edje_object_text_insert_filter_callback_del
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param func The function callback to remove
+ * @param data The data passed to the callback function
+ *
+ * @return The same data pointer if succesful, or NULL otherwise
+ */
+EAPI void *
+edje_object_text_insert_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func, void *data)
+{
+   Edje *ed;
+   Edje_Text_Insert_Filter_Callback *cb;
+   Eina_List *l;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return NULL;
+   EINA_LIST_FOREACH(ed->text_insert_filter_callbacks, l, cb)
+     {
+        if ((!strcmp(cb->part, part)) && (cb->func == func) &&
+            (cb->data == data))
+          {
+             void *data = cb->data;
+             ed->text_insert_filter_callbacks =
+                eina_list_remove_list(ed->text_insert_filter_callbacks, l);
+             eina_stringshare_del(cb->part);
+             free(cb);
+             return data;
+          }
+     }
+   return NULL;
 }
 
 /**
@@ -3139,11 +3219,13 @@ edje_object_size_min_restricted_calc(Evas_Object *obj, Evas_Coord *minw, Evas_Co
 	  }
 	if ((ed->w > 4000) || (ed->h > 4000))
 	  {
-	     ERR("file %s, group %s has a non-fixed part. add fixed: 1 1; ???",
-		    ed->path, ed->group);
-	     if (pep)
-	       ERR("  Problem part is: %s", pep->part->name);
-	     ERR("  Will recalc min size not allowing broken parts to affect the result.");
+             if (pep)
+               ERR("file %s, group %s has a non-fixed part '%s'. Adding 'fixed: 1 1;' to source EDC may help. Continuing discarding faulty part.",
+                   ed->path, ed->group, pep->part->name);
+             else
+               ERR("file %s, group %s overflowed 4000x4000 with minimum size of %dx%d. Continuing discarding faulty parts.",
+                   ed->path, ed->group, ed->w, ed->h);
+
 	     if (reset_maxwh)
 	       {
 		  reset_maxwh = 0;
@@ -3234,7 +3316,7 @@ edje_object_part_state_get(const Evas_Object *obj, const char *part, double *val
  * 2: Dragable in Y direction\n
  * 3: Dragable in X & Y directions
  */
-EAPI int
+EAPI Edje_Drag_Dir
 edje_object_part_drag_dir_get(const Evas_Object *obj, const char *part)
 {
    Edje *ed;
@@ -3902,6 +3984,12 @@ _edje_real_part_box_append(Edje_Real_Part *rp, Evas_Object *child_obj)
    opt = evas_object_box_append(rp->object, child_obj);
    if (!opt) return EINA_FALSE;
 
+   if (!_edje_box_layout_add_child(rp, child_obj))
+     {
+        evas_object_box_remove(rp->object, child_obj);
+        return EINA_FALSE;
+     }
+
    _edje_box_child_add(rp, child_obj);
 
    return EINA_TRUE;
@@ -3914,6 +4002,12 @@ _edje_real_part_box_prepend(Edje_Real_Part *rp, Evas_Object *child_obj)
 
    opt = evas_object_box_prepend(rp->object, child_obj);
    if (!opt) return EINA_FALSE;
+
+   if (!_edje_box_layout_add_child(rp, child_obj))
+     {
+        evas_object_box_remove(rp->object, child_obj);
+        return EINA_FALSE;
+     }
 
    _edje_box_child_add(rp, child_obj);
 
@@ -3928,6 +4022,12 @@ _edje_real_part_box_insert_before(Edje_Real_Part *rp, Evas_Object *child_obj, co
    opt = evas_object_box_insert_before(rp->object, child_obj, ref);
    if (!opt) return EINA_FALSE;
 
+   if (!_edje_box_layout_add_child(rp, child_obj))
+     {
+        evas_object_box_remove(rp->object, child_obj);
+        return EINA_FALSE;
+     }
+
    _edje_box_child_add(rp, child_obj);
 
    return EINA_TRUE;
@@ -3941,6 +4041,12 @@ _edje_real_part_box_insert_at(Edje_Real_Part *rp, Evas_Object *child_obj, unsign
    opt = evas_object_box_insert_at(rp->object, child_obj, pos);
    if (!opt) return EINA_FALSE;
 
+   if (!_edje_box_layout_add_child(rp, child_obj))
+     {
+        evas_object_box_remove(rp->object, child_obj);
+        return EINA_FALSE;
+     }
+
    _edje_box_child_add(rp, child_obj);
 
    return EINA_TRUE;
@@ -3951,6 +4057,7 @@ _edje_real_part_box_remove(Edje_Real_Part *rp, Evas_Object *child_obj)
 {
    if (evas_object_data_get(child_obj, "\377 edje.box_item")) return NULL;
    if (!evas_object_box_remove(rp->object, child_obj)) return NULL;
+   _edje_box_layout_remove_child(rp, child_obj);
    _edje_box_child_remove(rp, child_obj);
    return child_obj;
 }
@@ -3968,6 +4075,7 @@ _edje_real_part_box_remove_at(Edje_Real_Part *rp, unsigned int pos)
    child_obj = opt->obj;
    if (evas_object_data_get(child_obj, "\377 edje.box_item")) return NULL;
    if (!evas_object_box_remove_at(rp->object, pos)) return NULL;
+   _edje_box_layout_remove_child(rp, child_obj);
    _edje_box_child_remove(rp, child_obj);
    return child_obj;
 }
@@ -3986,6 +4094,7 @@ _edje_real_part_box_remove_all(Edje_Real_Part *rp, Eina_Bool clear)
 	  i++;
 	else
 	  {
+             _edje_box_layout_remove_child(rp, child_obj);
 	     _edje_box_child_remove(rp, child_obj);
 	     if (!evas_object_box_remove_at(rp->object, i))
 	       return EINA_FALSE;
@@ -5092,7 +5201,7 @@ _edje_program_remove(Edje_Part_Collection *edc, Edje_Program *p)
 	array = &edc->programs.nocmp;
 	count = &edc->programs.nocmp_count;
      }
-   else if (p->signal && !strpbrk(p->signal, "*?[\\") 
+   else if (p->signal && !strpbrk(p->signal, "*?[\\")
 	    && p->source && !strpbrk(p->source, "*?[\\"))
      {
 	array = &edc->programs.strcmp;
@@ -5136,7 +5245,7 @@ _edje_program_insert(Edje_Part_Collection *edc, Edje_Program *p)
 	array = &edc->programs.nocmp;
 	count = &edc->programs.nocmp_count;
      }
-   else if (p->signal && !strpbrk(p->signal, "*?[\\") 
+   else if (p->signal && !strpbrk(p->signal, "*?[\\")
 	    && p->source && !strpbrk(p->source, "*?[\\"))
      {
 	array = &edc->programs.strcmp;

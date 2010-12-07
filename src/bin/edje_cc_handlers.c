@@ -48,8 +48,6 @@
  * @anchor sec_quickaccess Quick access to block descriptions:
  * <ul>
  *    <li>@ref sec_toplevel "Top-Level"</li>
- *    <li>@ref sec_group "Sounds"</li>
- *    <li>@ref sec_group "Haptics"</li>
  *    <li>@ref sec_group "Group"</li>
  *    <li>@ref sec_description "State description"</li>
  *    <ul>
@@ -78,7 +76,6 @@ static void st_images_set_name(void);
 static void ob_images_set_image(void);
 static void st_images_set_image_image(void);
 static void st_images_set_image_size(void);
-static void st_sounds_sound(void);
 
 static void st_fonts_font(void);
 
@@ -131,7 +128,6 @@ static void st_collections_group_parts_part_source5(void);
 static void st_collections_group_parts_part_source6(void);
 static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
-static void st_collections_group_parts_part_cursor_mode(void);
 static void st_collections_group_parts_part_multiline(void);
 static void st_collections_group_parts_part_dragable_x(void);
 static void st_collections_group_parts_part_dragable_y(void);
@@ -249,16 +245,6 @@ static void st_collections_group_programs_program_after(void);
 static void st_collections_group_programs_program_api(void);
 
 static void ob_collections_group_programs_program_script(void);
-static void st_haptics_haptic_name(void);
-static void st_haptics_haptic_pattern(void);
-static void st_haptics_haptic_magnitude(void);
-static void st_haptics_haptic_duration(void);
-static void st_haptics_haptic_attack_level(void);
-static void st_haptics_haptic_attack_time(void);
-static void st_haptics_haptic_fade_level(void);
-static void st_haptics_haptic_fade_time(void);
-static void st_haptics_haptic_type(void);
-static void ob_haptics_haptic(void);
 
 /*****/
 
@@ -297,16 +283,6 @@ New_Statement_Handler statement_handlers[] =
      {"collections.color_classes.color_class.color", st_color_class_color}, /* dup */
      {"collections.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.color_classes.color_class.color3", st_color_class_color3}, /* dup */
-     {"collections.sounds.sound", st_sounds_sound},
-     {"collections.haptics.haptic.name", st_haptics_haptic_name},
-     {"collections.haptics.haptic.pattern", st_haptics_haptic_pattern},
-     {"collections.haptics.haptic.magnitude", st_haptics_haptic_magnitude},
-     {"collections.haptics.haptic.duration", st_haptics_haptic_duration},
-     {"collections.haptics.haptic.attack_level", st_haptics_haptic_attack_level},
-     {"collections.haptics.haptic.attack_time", st_haptics_haptic_attack_time},
-     {"collections.haptics.haptic.fade_level", st_haptics_haptic_fade_level},
-     {"collections.haptics.haptic.fade_time", st_haptics_haptic_fade_time},
-     {"collections.haptics.haptic.type", st_haptics_haptic_type},
      {"collections.group.name", st_collections_group_name},
      {"collections.group.script_only", st_collections_group_script_only},
      {"collections.group.lua_script_only", st_collections_group_script_only},
@@ -374,7 +350,6 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.dragable.events", st_collections_group_parts_part_dragable_events},
      {"collections.group.parts.part.entry_mode", st_collections_group_parts_part_entry_mode},
      {"collections.group.parts.part.select_mode", st_collections_group_parts_part_select_mode},
-     {"collections.group.parts.part.cursor_mode", st_collections_group_parts_part_cursor_mode},
      {"collections.group.parts.part.multiline", st_collections_group_parts_part_multiline},
      {"collections.group.parts.part.image", st_images_image}, /* dup */
      {"collections.group.parts.part.set.name", st_images_set_name},
@@ -659,9 +634,6 @@ New_Object_Handler object_handlers[] =
      {"collections.styles.style", ob_styles_style}, /* dup */
      {"collections.color_classes", NULL}, /* dup */
      {"collections.color_classes.color_class", ob_color_class}, /* dup */
-     {"collections.sounds", NULL},	/* dup */
-     {"collections.haptics", NULL},	/* dup */
-     {"collections.haptics.haptic", ob_haptics_haptic},	/* dup */
      {"collections.group", ob_collections_group},
      {"collections.group.data", NULL},
      {"collections.group.script", ob_collections_group_script},
@@ -781,7 +753,7 @@ New_Object_Handler object_handlers[] =
      {"collections.group.programs.fonts", NULL}, /* dup */
      {"collections.group.programs.program", ob_collections_group_programs_program},
      {"collections.group.programs.program.script", ob_collections_group_programs_program_script},
-     {"collections.group.programs.script", ob_collections_group_script} /* dup */ 
+     {"collections.group.programs.script", ob_collections_group_script} /* dup */
 };
 
 /*****/
@@ -1697,15 +1669,13 @@ st_styles_style_tag(void)
     @context
         collections {
             ..
-            sounds { }
-            haptics { }
             group { }
             group { }
             ..
         }
     @description
         The "collections" block is used to list the groups that compose the
-        theme. The "sounds" block comprises of all sound definitions while "haptics" block comprise of all haptic definitions to be used in theme.Additional "collections" blocks do not prevent overriding group
+        theme. Additional "collections" blocks do not prevent overriding group
         names.
     @endblock
 */
@@ -1714,282 +1684,6 @@ ob_collections(void)
 {
    if (!edje_file->collection)
      edje_file->collection = eina_hash_string_small_new(NULL);
-}
-/**
-    @page edcref
-    @block
-        sounds
-    @context
-        sounds {
-			sound: "sound_file1.ext" [0-100][0-100] ;
-			sound: "sound_file2.ext" [0-100][0-100] ;
-     
-        }
-    @description
-        The " sounds" block contains a list of one or more " sound" items.
-    @endblock
-     @property
-        sound
-    @parameters
-        [sound file name] [start point percentage] [end point percentage] 
-    @effect
-        Used to include each sound file. The full path to the directory holding
-        the sounds can be defined later with edje_cc's "-sd" option.
-        start point percentage :start point expressed as percentage(the "%" is omitted)
-        end point percentage :end point expressed as percentage(the "%" is omitted)
-    @endproperty
- */
-
-static void
-st_sounds_sound(void)
-{
-   Edje_Sound_Info *snd, *lsnd;
-   Eina_List *l;
-
-   if (!edje_file->sound_dir)
-      edje_file->sound_dir = mem_alloc(SZ(Edje_Sound_Directory));
-   snd = mem_alloc(SZ(Edje_Sound_Info));
-   snd->name = parse_str(0);
-
-   EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, lsnd)
-   {
-	  if (!strcmp(lsnd->name, snd->name))
-	  {
-	     free(snd->name);
-	     free(snd);
-	     return;
-	  }
-   }
-   snd->start_point = parse_int_range(1, 0, 100);
-   snd->end_point = parse_int_range(2, 0, 100);
-   snd->id = eina_list_count(edje_file->sound_dir->entries);
-   edje_file->sound_dir->entries =
-      eina_list_append(edje_file->sound_dir->entries, snd);
-}
-
-/**
-    @page edcref
-    @block
-        haptics
-    @context
-         haptics {
-           haptic_name:"haptic_name" ;
-           haptic_magnitude: UNSIGNED INT_VALUE ;
-           haptic_duration: UNSIGNED INT_VALUE ;
-           haptic_attack_level: UNSIGNED INT_VALUE ;
-           haptic_attack_time: UNSIGNED INT_VALUE ;
-           haptic_fade_level: UNSIGNED INT_VALUE;
-           haptic_fade_time: UNSIGNED INT_VALUE ;
-           haptic_type: EDJE_HAPTIC_EFFECT_PERIODIC or EDJE_HAPTIC_EFFECT_MAGSWEEP ;
-           haptic_pattern :COMMA SEPARATED HEX_STRING
-        }
-    @description
-        The " haptics" block contains a list of one or more " haptic" items.
-    @endblock
-*/
-
-static void
-ob_haptics_haptic(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = mem_alloc(SZ(Edje_Haptic_Info));
-   edje_file->haptics = eina_list_append(edje_file->haptics, hinfo);
-}
-
-/**
-    @page edcref
-    @property
-        name
-    @parameters
-        [haptic name]
-    @effect
-        The name of the haptic to be used as reference later in the theme.
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_name(void)
-{
-   Edje_Haptic_Info *hinfo, *thinfo;
-   Eina_List *l;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->name = parse_str(0);
-   EINA_LIST_FOREACH(edje_file->haptics, l, thinfo)
-   {
-      if ((hinfo != thinfo) && (!strcmp(hinfo->name, thinfo->name)))
-	{
-	   ERR("%s: Error. parse error %s:%i. There is already a haptic named \"%s\"", progname, file_in, line - 1, hinfo->name);
-	   exit(-1);
-	}
-   }
-}
-
-/**
-    @page edcref
-    @property
-        Pattern
-    @parameters
-        [haptic Pattern]
-    @effect
-        The Full pattern of Haptic - in HEX(the "ox" are omitted).
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_pattern(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->pattern = parse_str(0);
-
-}
-
-/**
-    @page edcref
-    @property
-        Magnitude
-    @parameters
-        [haptic magnitude]
-    @effect
-        The magnitude of  the haptic to be used  in the theme.The Magnitude of an effect corresponds to its strength, or the amplitude of the vibration.
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_magnitude(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->magnitude = parse_int(0);
-}
-
-/**
-    @page edcref
-    @property
-        duration
-    @parameters
-        [haptic duration]
-    @effect
-        The duration of  the haptic to be used  in the theme.The Duration parameter specifies how long the effect lasts from start to finish including the envelope that is the means of shaping the strength of effect in time
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_duration(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->duration = parse_int(0);
-}
-
-/**
-    @page edcref
-    @property
-        attack_level
-    @parameters
-        [haptic attack_level]
-    @effect
-        The attack_level of  the haptic to be used  in the theme.The Attack Level specifies the initial strength of the effect
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_attack_level(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->attack_level = parse_int(0);
-   
-}
-
-/**
-    @page edcref
-    @property
-        attack_time
-    @parameters
-        [haptic attack_time]
-    @effect
-        The attack_time of  the haptic to be used  in the theme.The Attack Time specifies the amount of time, in milliseconds, for the effect to ramp from the Attack Level to the Magnitude
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_attack_time(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->attack_time = parse_int(0);
-}
-
-/**
-    @page edcref
-    @property
-        fade_level
-    @parameters
-        [haptic fade_level]
-    @effect
-        The fade_level of  the haptic to be used  in the theme.It specifies the final strength of effect to be reduced to from magnitude at the end of effect's fade time
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_fade_level(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->fade_level = parse_int(0);
-   
-}
-
-/**
-    @page edcref
-    @property
-        fade_time
-    @parameters
-        [haptic fade_time]
-    @effect
-        The fade_time of the haptic to be used  in the theme.The Fade Time corresponds to the amount of time before the end of the effect, for the vibration to ramp between the Magnitude and the Fade Level
-    @endproperty
-*/
-
-static void
-st_haptics_haptic_fade_time(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->fade_time = parse_int(0);
-   
-}
-
-/**
-    @page edcref
-    @property
-        Haptic type
-    @parameters
-        [haptic type]
-    @effect
-        The Haptic types: EDJE_HAPTIC_EFFECT_PERIODIC,EDJE_HAPTIC_EFFECT_MAGSWEEP.
-    @endproperty
-*/
-static void
-st_haptics_haptic_type(void)
-{
-   Edje_Haptic_Info *hinfo;
-
-   hinfo = eina_list_data_get(eina_list_last(edje_file->haptics));
-   hinfo->type = parse_enum(0,
-		    "PERIODIC", EDJE_HAPTIC_EFFECT_PERIODIC,
-		    "MAGSWEEP", EDJE_HAPTIC_EFFECT_MAGSWEEP,
-             NULL);
 }
 
 /**
@@ -2153,7 +1847,7 @@ st_collections_group_alias(void)
         [width] [height]
     @effect
         The minimum size for the container defined by the composition of the
-        parts.
+        parts. It is not enforced.
     @endproperty
 */
 static void
@@ -2176,7 +1870,7 @@ st_collections_group_min(void)
         [width] [height]
     @effect
         The maximum size for the container defined by the totality of the
-        parts.
+        parts. It is not enforced.
     @endproperty
 */
 static void
@@ -2321,13 +2015,21 @@ static void
 st_collections_group_parts_alias(void)
 {
    Edje_Part_Collection *pc;
+   const char *alias;
+   const char *aliased;
 
    check_arg_count(2);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
 
+   alias = parse_str(0);
+   aliased = parse_str(1);
+
    if (!pc->alias) pc->alias = eina_hash_string_small_new(NULL);
-   eina_hash_add(pc->alias, parse_str(0), parse_str(1));
+   eina_hash_add(pc->alias, alias, aliased);
+
+   if (!pc->aliased) pc->aliased = eina_hash_string_small_new(NULL);
+   eina_hash_add(pc->aliased, aliased, alias);
 }
 
 
@@ -2985,38 +2687,6 @@ st_collections_group_parts_part_select_mode(void)
                                 "DEFAULT", EDJE_ENTRY_SELECTION_MODE_DEFAULT,
                                 "EXPLICIT", EDJE_ENTRY_SELECTION_MODE_EXPLICIT,
                                 "BLOCK_HANDLE", EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE,
-                                NULL);
-}
-
-/**
-    @page edcref
-    @property
-        cursor_mode
-    @parameters
-        [MODE]
-    @effect
-        Sets the cursor mode for a textblock part to one of:
-        @li UNDER
-        @li BEFORE
-        UNDER cursor mode means the cursor will draw below the character pointed
-        at. That's the default.
-        BEFORE cursor mode means the cursor is drawn as a vertical line before
-        the current character, just like many other GUI toolkits handle it.
-    @endproperty
-*/
-static void
-st_collections_group_parts_part_cursor_mode(void)
-{
-   Edje_Part_Collection *pc;
-   Edje_Part *ep;
-
-   check_arg_count(1);
-
-   pc = eina_list_data_get(eina_list_last(edje_collections));
-   ep = pc->parts[pc->parts_count - 1];
-   ep->cursor_mode = parse_enum(0,
-                                "UNDER", EDJE_ENTRY_CURSOR_MODE_UNDER,
-                                "BEFORE", EDJE_ENTRY_CURSOR_MODE_BEFORE,
                                 NULL);
 }
 
@@ -7061,7 +6731,7 @@ st_collections_group_programs_program_in(void)
     @effect
         Action to be performed by the program. Valid actions are: STATE_SET,
         ACTION_STOP, SIGNAL_EMIT, DRAG_VAL_SET, DRAG_VAL_STEP, DRAG_VAL_PAGE,
-        FOCUS_SET, PARAM_COPY, PARAM_SET,TOUCH_SOUND,TOUCH_HAPTIC
+        FOCUS_SET, PARAM_COPY, PARAM_SET
         Only one action can be specified per program. Examples:\n
            action: STATE_SET "statename" 0.5;\n
            action: ACTION_STOP;\n
@@ -7072,9 +6742,7 @@ st_collections_group_programs_program_in(void)
            action: FOCUS_SET;\n
            action: FOCUS_OBJECT;\n
            action: PARAM_COPY "src_part" "src_param" "dst_part" "dst_param";\n
-	    action: PARAM_SET "part" "param" "value";\n
-	    action: TOUCH_SOUND "sound_file_name" 1;\n
-	    action: TOUCH_HAPTIC "haptic_definition_name" 1;\n
+	   action: PARAM_SET "part" "param" "value";\n
     @endproperty
 */
 static void
@@ -7097,8 +6765,7 @@ st_collections_group_programs_program_action(void)
 			   "FOCUS_OBJECT", EDJE_ACTION_TYPE_FOCUS_OBJECT,
 			   "PARAM_COPY", EDJE_ACTION_TYPE_PARAM_COPY,
 			   "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
-			   "TOUCH_SOUND", EDJE_ACTION_TYPE_TOUCH_SOUND,
-			   "TOUCH_HAPTIC", EDJE_ACTION_TYPE_TOUCH_HAPTIC, NULL);
+			   NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
 	ep->state = parse_str(1);
@@ -7108,16 +6775,6 @@ st_collections_group_programs_program_action(void)
      {
 	ep->state = parse_str(1);
 	ep->state2 = parse_str(2);
-     }
-   else if (ep->action == EDJE_ACTION_TYPE_TOUCH_SOUND)
-     {
-	ep->sound_name = parse_str(1);
-	ep->sound_iterations = parse_int(2);
-     }
-   else if (ep->action == EDJE_ACTION_TYPE_TOUCH_HAPTIC)
-     {
-	ep->haptic_name = parse_str(1);
-	ep->haptic_iterations = parse_int(2);
      }
    else if (ep->action == EDJE_ACTION_TYPE_DRAG_VAL_SET)
      {
@@ -7179,12 +6836,6 @@ st_collections_group_programs_program_action(void)
 	 break;
       case EDJE_ACTION_TYPE_PARAM_SET:
 	 check_arg_count(4);
-	 break;
-      case EDJE_ACTION_TYPE_TOUCH_SOUND:
- 	 check_arg_count(3);
- 	 break;
-      case EDJE_ACTION_TYPE_TOUCH_HAPTIC:
- 	 check_arg_count(3);
 	 break;
       default:
 	check_arg_count(3);
@@ -7338,13 +6989,19 @@ st_collections_group_programs_program_api(void)
 static void
 st_collections_group_parts_part_api(void)
 {
+   Edje_Part_Collection *pc;
+   Edje_Part *ep;
+
    check_min_arg_count(1);
 
-   current_program->api.name = parse_str(0);
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+   ep = pc->parts[pc->parts_count - 1];
+
+   ep->api.name = parse_str(0);
    if (is_param(1))
      {
        check_arg_count(2);
-       current_program->api.description = parse_str(1);
+       ep->api.description = parse_str(1);
      }
 }
 

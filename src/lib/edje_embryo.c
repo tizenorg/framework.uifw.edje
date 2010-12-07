@@ -1,26 +1,3 @@
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
-#include <string.h>
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
-
 #include "edje_private.h"
 
 /*
@@ -93,6 +70,7 @@ void *alloca (size_t);
  * cancel_anim(id)
  * emit(sig[], src[])
  * set_state(part_id, state[], Float:state_val)
+ * get_state(part_id, dst[], maxlen, &Float:val)
  * set_tween_state(part_id, Float:tween, state1[], Float:state1_val, state2[], Float:state2_val)
  * run_program(program_id)
  * Direction:get_drag_dir(part_id)
@@ -819,6 +797,28 @@ _edje_embryo_fn_emit(Embryo_Program *ep, Embryo_Cell *params)
    if ((!sig) || (!src)) return 0;
    _edje_emit(ed, sig, src);
    return 0;
+}
+
+/* get_part_id(part[]) */
+static Embryo_Cell
+_edje_embryo_fn_get_part_id(Embryo_Program *ep, Embryo_Cell *params)
+{
+   Edje *ed;
+   Edje_Part_Collection *col;
+   Edje_Part **part;
+   char *p;
+
+   CHKPARAM(1);
+   ed = embryo_program_data_get(ep);
+   GETSTR(p, params[1]);
+   col = ed->collection;
+   if (!col) return -1;
+   for (part = col->parts; *part; part++)
+     {
+        if (!(*part)->name) continue;
+        if (!strcmp((*part)->name, p)) return (*part)->id;
+     }
+   return -1;
 }
 
 /* set_state(part_id, state[], Float:state_val) */
@@ -2568,7 +2568,7 @@ _edje_embryo_fn_external_param_get_int(Embryo_Program *ep, Embryo_Cell *params)
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_INT;
    eep.i = 0;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    return eep.i;
 }
 
@@ -2594,7 +2594,7 @@ _edje_embryo_fn_external_param_set_int(Embryo_Program *ep, Embryo_Cell *params)
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_INT;
    eep.i = params[3];
-   return _edje_external_param_set(rp->swallowed_object, &eep);
+   return _edje_external_param_set(NULL, rp, &eep);
 }
 
 /* Float:external_param_get_float(id, param_name[]) */
@@ -2620,7 +2620,7 @@ _edje_embryo_fn_external_param_get_float(Embryo_Program *ep, Embryo_Cell *params
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_DOUBLE;
    eep.d = 0.0;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    v = eep.d;
    return EMBRYO_FLOAT_TO_CELL(v);
 }
@@ -2647,7 +2647,7 @@ _edje_embryo_fn_external_param_set_float(Embryo_Program *ep, Embryo_Cell *params
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_DOUBLE;
    eep.d = EMBRYO_CELL_TO_FLOAT(params[3]);
-   return _edje_external_param_set(rp->swallowed_object, &eep);
+   return _edje_external_param_set(NULL, rp, &eep);
 }
 
 /* external_param_get_strlen(id, param_name[]) */
@@ -2672,7 +2672,7 @@ _edje_embryo_fn_external_param_get_strlen(Embryo_Program *ep, Embryo_Cell *param
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_STRING;
    eep.s = NULL;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    if (!eep.s) return 0;
    return strlen(eep.s);
 }
@@ -2703,7 +2703,7 @@ _edje_embryo_fn_external_param_get_str(Embryo_Program *ep, Embryo_Cell *params)
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_STRING;
    eep.s = NULL;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    if (!eep.s) goto error;
    src_len = strlen(eep.s);
    if (src_len < dst_len)
@@ -2748,7 +2748,7 @@ _edje_embryo_fn_external_param_set_str(Embryo_Program *ep, Embryo_Cell *params)
    GETSTR(val, params[3]);
    if (!val) return 0;
    eep.s = val;
-   return _edje_external_param_set(rp->swallowed_object, &eep);
+   return _edje_external_param_set(NULL, rp, &eep);
 }
 
 /* external_param_get_choice_len(id, param_name[]) */
@@ -2773,7 +2773,7 @@ _edje_embryo_fn_external_param_get_choice_len(Embryo_Program *ep, Embryo_Cell *p
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_CHOICE;
    eep.s = NULL;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    if (!eep.s) return 0;
    return strlen(eep.s);
 }
@@ -2804,7 +2804,7 @@ _edje_embryo_fn_external_param_get_choice(Embryo_Program *ep, Embryo_Cell *param
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_CHOICE;
    eep.s = NULL;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    if (!eep.s) goto error;
    src_len = strlen(eep.s);
    if (src_len < dst_len)
@@ -2849,7 +2849,7 @@ _edje_embryo_fn_external_param_set_choice(Embryo_Program *ep, Embryo_Cell *param
    GETSTR(val, params[3]);
    if (!val) return 0;
    eep.s = val;
-   return _edje_external_param_set(rp->swallowed_object, &eep);
+   return _edje_external_param_set(NULL, rp, &eep);
 }
 
 /* external_param_get_bool(id, param_name[]) */
@@ -2874,7 +2874,7 @@ _edje_embryo_fn_external_param_get_bool(Embryo_Program *ep, Embryo_Cell *params)
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_BOOL;
    eep.i = 0;
-   _edje_external_param_get(rp->swallowed_object, &eep);
+   _edje_external_param_get(NULL, rp, &eep);
    return eep.i;
 }
 
@@ -2900,7 +2900,7 @@ _edje_embryo_fn_external_param_set_bool(Embryo_Program *ep, Embryo_Cell *params)
    eep.name = param_name;
    eep.type = EDJE_EXTERNAL_PARAM_TYPE_BOOL;
    eep.i = params[3];
-   return _edje_external_param_set(rp->swallowed_object, &eep);
+   return _edje_external_param_set(NULL, rp, &eep);
 }
 
 void
@@ -2945,6 +2945,7 @@ _edje_embryo_script_init(Edje_Part_Collection *edc)
    embryo_program_native_call_add(ep, "cancel_anim", _edje_embryo_fn_cancel_anim);
 
    embryo_program_native_call_add(ep, "emit", _edje_embryo_fn_emit);
+   embryo_program_native_call_add(ep, "get_part_id", _edje_embryo_fn_get_part_id);
    embryo_program_native_call_add(ep, "set_state", _edje_embryo_fn_set_state);
    embryo_program_native_call_add(ep, "get_state", _edje_embryo_fn_get_state);
    embryo_program_native_call_add(ep, "set_tween_state", _edje_embryo_fn_set_tween_state);
@@ -3039,8 +3040,8 @@ _edje_embryo_test_run(Edje *ed, const char *fname, const char *sig, const char *
 	embryo_parameter_string_push(ed->collection->script, (char *)src);
 	pdata = embryo_program_data_get(ed->collection->script);
 	embryo_program_data_set(ed->collection->script, ed);
-	/* 5 million instructions is an arbitary number. on my p4-2.6 here */
-	/* IF embryo is ONLY runing embryo stuff and NO native calls thats */
+	/* 5 million instructions is an arbitrary number. on my p4-2.6 here */
+	/* IF embryo is ONLY running embryo stuff and NO native calls thats */
 	/* about 0.016 seconds, and longer on slower cpu's. if a simple */
 	/* embryo script snippet hasn't managed to do its work in 5 MILLION */
 	/* embryo virtual machine instructions - something is wrong, or */
@@ -3054,18 +3055,32 @@ _edje_embryo_test_run(Edje *ed, const char *fname, const char *sig, const char *
 	ret = embryo_program_run(ed->collection->script, fn);
 	if (ret == EMBRYO_PROGRAM_FAIL)
 	  {
- 	     ERR("ERROR with embryo script.\n"
-	 	 "ENTRY POINT: %s\n"
-		 "ERROR:       %s",
-		 fname,
+ 	     ERR("ERROR with embryo script. "
+                 "OBJECT NAME: '%s', "
+                 "OBJECT FILE: '%s', "
+                 "ENTRY POINT: '%s', "
+                 "SIGNAL: '%s', "
+                 "SOURCE: '%s', "
+		 "ERROR: '%s'",
+                 ed->collection->part,
+                 ed->file->path,
+                 fname,
+                 sig, src,
 		 embryo_error_string_get(embryo_program_error_get(ed->collection->script)));
 	  }
 	else if (ret == EMBRYO_PROGRAM_TOOLONG)
 	  {
-	     ERR("ERROR with embryo script.\n"
-		 "ENTRY POINT: %s\n"
-		 "ERROR:       Script exceeded maximum allowed cycle count of %i",
+	     ERR("ERROR with embryo script. "
+                 "OBJECT NAME: '%s', "
+                 "OBJECT FILE: '%s', "
+                 "ENTRY POINT: '%s', "
+                 "SIGNAL: '%s', "
+                 "SOURCE: '%s', "
+		 "ERROR: 'Script exceeded maximum allowed cycle count of %i'",
+                 ed->collection->part,
+                 ed->file->path,
 		 fname,
+                 sig, src,
 		 embryo_program_max_cycle_run_get(ed->collection->script));
 	  }
 	embryo_program_data_set(ed->collection->script, pdata);

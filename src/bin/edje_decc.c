@@ -61,10 +61,11 @@ main(int argc, char **argv)
    setlocale(LC_NUMERIC, "C");
    if (!eina_init())
      exit(-1);
-   _edje_cc_log_dom = eina_log_domain_register("edje_decc", EDJE_CC_DEFAULT_LOG_COLOR);
-   if(_edje_cc_log_dom < 0)
+   _edje_cc_log_dom = eina_log_domain_register
+     ("edje_decc", EDJE_CC_DEFAULT_LOG_COLOR);
+   if (_edje_cc_log_dom < 0)
      {
-       EINA_LOG_ERR("Edje_decc: Impossible to create a log domain for edje_decc");
+       EINA_LOG_ERR("Impossible to create a log domain.");
        eina_shutdown();
        exit(-1);
      }
@@ -290,15 +291,17 @@ output(void)
 	     void *font;
 	     int fontsize;
 	     char out[4096];
-
-	     snprintf(out, sizeof(out), "edje/fonts/%s", fn->entry);
+             /* FIXME!!!! */
+                                         /* should be fn->entry -v */
+	     snprintf(out, sizeof(out), "edje/fonts/%s", fn->file);
 	     font = eet_read(ef, out, &fontsize);
 	     if (font)
 	       {
 		  FILE *f;
 		  char *pp;
 
-		  snprintf(out, sizeof(out), "%s/%s", outdir, fn->file);
+                                         /* should be fn->file -v */
+		  snprintf(out, sizeof(out), "%s/%s", outdir, fn->entry);
 		  INF("Output Font: %s", out);
 		  pp = strdup(out);
 		  p = strrchr(pp, '/');
@@ -361,52 +364,6 @@ output(void)
 
 	chmod(out, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP);
 
-     }
-
-   if (edje_file->sound_dir)
-    {
-	Edje_Sound_Info *sndinfo;
-	void *sound_data;
-	char out[PATH_MAX];
-	char out1[PATH_MAX];
-	char *pp;
-	long sound_data_size;
-	FILE *f;
-	Eina_List *l ;
-	
-	EINA_LIST_FOREACH(edje_file->sound_dir->entries, l, sndinfo)
-	{
-	   if (NULL == sndinfo || NULL == sndinfo->name)
-		  continue;
-
-		snprintf(out, sizeof(out), "edje/sounds/%i", sndinfo->id);
-		sound_data = eet_read(ef, out, &sound_data_size);
-		if (sound_data)
-        	{
-		     snprintf(out1, sizeof(out1), "%s/%s", outdir, sndinfo->name);
-		     pp = strdup(out1);
-		     p = strrchr(pp, '/');
-		     *p = 0;
-		     if (strstr(pp, "../"))
-		       {
-			  ERR("Potential security violation. attempt to write in parent dir.");
-			  exit(-1);
-		       }
-		     ecore_file_mkpath(pp);
-		     free(pp);
-		     if (strstr(out, "../"))
-		       {
-			  ERR("Potential security violation. attempt to write in parent dir.");
-			  exit(-1);
-		       }
-		     f = fopen(out1, "wb");
-		     if (fwrite(sound_data, sound_data_size, 1, f) != 1)
-			ERR("Could not write sound: %s", strerror(errno));
-		     fclose(f);
-		     free(sound_data);
-		  }
-
-	}
      }
    eet_close(ef);
 }

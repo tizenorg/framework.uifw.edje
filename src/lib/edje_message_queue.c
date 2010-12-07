@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include "edje_private.h"
 
 static int _injob = 0;
@@ -73,7 +71,7 @@ edje_object_message_send(Evas_Object *obj, Edje_Message_Type type, int id, void 
  */
 
 EAPI void
-edje_object_message_handler_set(Evas_Object *obj, void (*func) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg), void *data)
+edje_object_message_handler_set(Evas_Object *obj, Edje_Message_Handler_Cb func, void *data)
 {
    Edje *ed;
 
@@ -99,7 +97,6 @@ edje_object_message_signal_process(Evas_Object *obj)
    Eina_List *l, *ln, *tmpq = NULL;
    Edje *ed;
    Edje_Message *em;
-   const void *data;
 
    ed = _edje_fetch(obj);
    if (!ed) return;
@@ -107,12 +104,12 @@ edje_object_message_signal_process(Evas_Object *obj)
    for (l = msgq; l; )
      {
         ln = l->next;
-	em = l->data;
-	if (em->edje == ed)
-	  {
-	    tmpq = eina_list_append(tmpq, em);
-	    msgq = eina_list_remove_list(msgq, l);
-	  }
+        em = l->data;
+        if (em->edje == ed)
+          {
+             tmpq = eina_list_append(tmpq, em);
+             msgq = eina_list_remove_list(msgq, l);
+          }
         l = ln;
      }
    /* a temporary message queue */
@@ -645,7 +642,8 @@ _edje_message_process(Edje_Message *em)
 {
    Embryo_Function fn;
    void *pdata;
-
+   int ret;
+   
    /* signals are only handled one way */
    if (em->type == EDJE_MESSAGE_SIGNAL)
      {
@@ -686,7 +684,32 @@ _edje_message_process(Edje_Message *em)
    pdata = embryo_program_data_get(em->edje->collection->script);
    embryo_program_data_set(em->edje->collection->script, em->edje);
    embryo_program_max_cycle_run_set(em->edje->collection->script, 5000000);
-   embryo_program_run(em->edje->collection->script, fn);
+   ret = embryo_program_run(em->edje->collection->script, fn);
+   if (ret == EMBRYO_PROGRAM_FAIL)
+     {
+        ERR("ERROR with embryo script. "
+            "OBJECT NAME: '%s', "
+            "OBJECT FILE: '%s', "
+            "ENTRY POINT: '%s', "
+            "ERROR: '%s'",
+            em->edje->collection->part,
+            em->edje->file->path,
+            "message",
+            embryo_error_string_get(embryo_program_error_get(em->edje->collection->script)));
+     }
+   else if (ret == EMBRYO_PROGRAM_TOOLONG)
+     {
+        ERR("ERROR with embryo script. "
+            "OBJECT NAME: '%s', "
+            "OBJECT FILE: '%s', "
+            "ENTRY POINT: '%s', "
+            "ERROR: 'Script exceeded maximum allowed cycle count of %i'",
+            em->edje->collection->part,
+            em->edje->file->path,
+            "message",
+            embryo_program_max_cycle_run_get(em->edje->collection->script));
+     }
+   
    embryo_program_data_set(em->edje->collection->script, pdata);
    embryo_program_vm_pop(em->edje->collection->script);
 }
@@ -746,6 +769,18 @@ _edje_message_queue_process(void)
    /* to get the idle enterer to be run again */
    if (msgq)
      {
+        static int self_feed_debug = -1;
+        
+        if (self_feed_debug == -1)
+          {
+             const char *s = getenv("EDJE_SELF_FEED_DEBUG");
+             if (s) self_feed_debug = atoi(s);
+             else self_feed_debug = 0;
+          }
+        if (self_feed_debug)
+          {
+             WRN("Edje is in a self-feeding message loop (> 8 loops needed)");
+          }
 	ecore_timer_add(0.0, _edje_dummy_timer, NULL);
      }
 }

@@ -3,8 +3,7 @@
 m4_define([v_maj], [1])
 m4_define([v_min], [0])
 m4_define([v_mic], [0])
-m4_define([v_rev], m4_esyscmd([(cat ./debian/SVN_REV | grep 'Last Changed Rev' || echo 0) | awk '{printf("%s\n", $4);}' | tr -d ' :MSP\n']))
-#m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
+m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
 ##--   When released, remove the dnl on the below line
 m4_undefine([v_rev])
@@ -19,7 +18,7 @@ m4_define([lt_age], v_min)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
-AC_INIT([edje], [v_ver-alpha], [enlightenment-devel@lists.sourceforge.net])
+AC_INIT([edje], [v_ver.beta2], [enlightenment-devel@lists.sourceforge.net])
 AC_PREREQ([2.52])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
@@ -96,6 +95,8 @@ EFL_ENABLE_BIN([edje-decc])
 EFL_ENABLE_BIN([edje-recc])
 EFL_ENABLE_BIN([edje-player])
 EFL_ENABLE_BIN([edje-convert])
+EFL_ENABLE_BIN([edje-inspector])
+EFL_ENABLE_BIN([edje-external-inspector])
 
 # Optional EDJE_PROGRAM_CACHE (use much more ram, but increase speed in some cases)
 want_edje_program_cache="no"
@@ -380,13 +381,17 @@ echo "  Ecore IMF............: $have_ecore_imf"
 echo "  EDJE_PROGRAM_CACHE...: $want_edje_program_cache"
 echo "  EDJE_CALC_CACHE......: $want_edje_calc_cache"
 echo "  Fixed point..........: $want_fixed_point"
-echo
-echo "  Build edje_cc........: $have_edje_cc"
-echo "  Build edje_decc......: $have_edje_decc"
-echo "  Build edje_recc......: $have_edje_recc"
-echo "  Build edje_player....: $have_edje_player"
-echo
 echo "  Documentation........: ${build_doc}"
+echo
+echo "Programs:"
+echo
+echo "  Build edje_cc................: $have_edje_cc"
+echo "  Build edje_decc..............: $have_edje_decc"
+echo "  Build edje_recc..............: $have_edje_recc"
+echo "  Build edje_player............: $have_edje_player"
+echo "  Build edje_convert...........: $have_edje_convert"
+echo "  Build edje_inspector.........: $have_edje_inspector"
+echo "  Build edje_external_inspector: $have_edje_external_inspector"
 echo
 echo "Compilation............: make (or gmake)"
 echo "  CPPFLAGS.............: $CPPFLAGS"
