@@ -1893,7 +1893,7 @@ _long_press(void *data)
 {
    Edje_Real_Part *rp = data;
    Entry *en;
-   if (!rp) return;
+   if (!rp) return ECORE_CALLBACK_CANCEL;
    en = rp->entry_data;
 
    if (en->longpress_timer)
@@ -1904,6 +1904,7 @@ _long_press(void *data)
 
    en->long_pressed = EINA_TRUE;
    en->longpress_timer = NULL;
+   return ECORE_CALLBACK_CANCEL;
 }
 
 static void
