@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.55556slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r55556
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 22 Dec 2010 20:07:23 +0900
+
 edje (1.0.0.001+svn.55379slp2+build01) unstable; urgency=low
 
   * [SVN's EFL Migration] edje in SLP is merged with SVN r55379.
