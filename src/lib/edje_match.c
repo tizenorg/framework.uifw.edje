@@ -13,7 +13,7 @@ struct _Edje_States
 {
   size_t         size;
   Edje_State    *states;
-  _Bool         *has;
+  Eina_Bool     *has;
 };
 
 static void
@@ -75,7 +75,7 @@ _edje_match_states_alloc(Edje_Patterns *ppat, int n)
    for (i = 0; i < n; ++i)
      {
         l[i].states = (Edje_State *) states;
-        l[i].has = (_Bool *) has;
+        l[i].has = (Eina_Bool *) has;
 
 	memset(l[i].has, 0, has_size);
 

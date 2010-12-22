@@ -29,16 +29,16 @@ void *alloca (size_t);
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
-#include <libgen.h>
+
+#ifndef _MSC_VER
+# include <libgen.h>
+# include <unistd.h>
+#endif
 
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 #include <setjmp.h>
-
-#ifndef _MSC_VER
-# include <unistd.h>
-#endif
 
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
@@ -1798,7 +1798,7 @@ EAPI void _edje_module_shutdown();
 static inline Eina_Bool
 edje_program_is_strncmp(const char *str)
 {
-   unsigned int length;
+   size_t length;
 
    length = strlen(str);
 

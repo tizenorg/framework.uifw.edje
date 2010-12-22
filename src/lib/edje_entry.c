@@ -833,7 +833,7 @@ _edje_anchor_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UN
    Evas_Event_Mouse_Down *ev = event_info;
    Edje_Real_Part *rp = an->en->rp;
    char *buf, *n;
-   int len;
+   size_t len;
    int ignored;
    Entry *en;
 
@@ -866,7 +866,7 @@ _edje_anchor_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    Evas_Event_Mouse_Up *ev = event_info;
    Edje_Real_Part *rp = an->en->rp;
    char *buf, *n;
-   int len;
+   size_t len;
    int ignored;
    Entry *en;
 
@@ -894,7 +894,7 @@ _edje_anchor_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UN
    Evas_Event_Mouse_Move *ev = event_info;
    Edje_Real_Part *rp = an->en->rp;
    char *buf, *n;
-   int len;
+   size_t len;
    int ignored;
    Entry *en;
 
@@ -922,7 +922,7 @@ _edje_anchor_mouse_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    Evas_Event_Mouse_In *ev = event_info;
    Edje_Real_Part *rp = an->en->rp;
    char *buf, *n;
-   int len;
+   size_t len;
    int ignored;
 
    ignored = rp->part->ignore_flags & ev->event_flags;
@@ -944,7 +944,7 @@ _edje_anchor_mouse_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNU
    Evas_Event_Mouse_Out *ev = event_info;
    Edje_Real_Part *rp = an->en->rp;
    char *buf, *n;
-   int len;
+   size_t len;
    int ignored;
 
    ignored = rp->part->ignore_flags & ev->event_flags;
@@ -2710,7 +2710,9 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    rp->entry_data = NULL;
    _sel_clear(en->cursor, rp->object, en);
    _anchors_clear(en->cursor, rp->object, en);
+#ifdef HAVE_ECORE_IMF
    _preedit_clear(en);
+#endif
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_bg);
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_fg);
    evas_object_del(en->cursor_bg);
@@ -3395,9 +3397,12 @@ void
 _edje_entry_cursor_copy(Edje_Real_Part *rp, Edje_Cursor cur, Edje_Cursor dst)
 {
    Entry *en = rp->entry_data;
-   Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
+   Evas_Textblock_Cursor *c;
+   Evas_Textblock_Cursor *d;
+
+   c = _cursor_get(rp, cur);
    if (!c) return;
-   Evas_Textblock_Cursor *d = _cursor_get(rp, dst);
+   d = _cursor_get(rp, dst);
    if (!d) return;
    evas_textblock_cursor_copy(c, d);
    _curs_update_from_curs(c, rp->object, rp->entry_data);
@@ -3571,9 +3576,11 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    else
       evas_textblock_cursor_copy(en->cursor, tc);
 
+#ifdef HAVE_ECORE_IMF
    /* delete preedit characters */
    _preedit_del(en);
    _preedit_clear(en);
+#endif
 
    if (evas_textblock_cursor_compare(en->cursor, tc))
       cursor_move = EINA_TRUE;
