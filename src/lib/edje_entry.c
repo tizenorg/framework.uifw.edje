@@ -64,6 +64,7 @@ struct _Entry
    Eina_Bool autocapital : 1;
    Eina_Bool uppercase : 1;
    Eina_Bool autoperiod : 1;
+   Eina_Bool need_commit : 1;
    int select_dragging_state;
    double space_key_time;
 
@@ -2062,11 +2063,11 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 
    if (en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
-	   if (en->longpress_timer) ecore_timer_del(en->longpress_timer);
-	   en->longpress_timer = ecore_timer_add(1.0, _long_press, data);
+        if (en->longpress_timer) ecore_timer_del(en->longpress_timer);
+        en->longpress_timer = ecore_timer_add(1.0, _long_press, data);
      }
    else
-	_edje_entry_real_part_configure(rp);
+      _edje_entry_real_part_configure(rp);
 }
 
 static void
@@ -2543,6 +2544,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    rp->entry_data = en;
    en->rp = rp;
    en->autoperiod = EINA_TRUE;
+   en->need_commit = EINA_TRUE;
 
 #ifdef HAVE_ECORE_IMF
    en->input_panel_enable = _edje_input_panel_enable;
@@ -2815,11 +2817,23 @@ _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text)
    if (!en) return;
    // set text as markup
    _sel_clear(en->cursor, rp->object, en);
+#ifdef HAVE_ECORE_IMF
+   if ((en->have_preedit) && (en->imf_context))
+     {
+        en->need_commit = EINA_FALSE;
+        ecore_imf_context_reset(en->imf_context);
+     }
+#endif
    evas_object_textblock_text_markup_set(rp->object, text);
 
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_entry_set_cursor_start(rp);
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+      ecore_imf_context_cursor_position_set(en->imf_context,
+                                            evas_textblock_cursor_pos_get(en->cursor));
+#endif
 }
 
 void
@@ -3552,6 +3566,12 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
              _range_del(en->cursor, rp->object, en);
              _sel_clear(en->cursor, rp->object, en);
           }
+     }
+
+   if (!en->need_commit)
+     {
+        en->need_commit = EINA_TRUE;
+        return ECORE_CALLBACK_PASS_ON;
      }
 
    tc = evas_object_textblock_cursor_new(rp->object);
