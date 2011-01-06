@@ -64,6 +64,7 @@ struct _Entry
    Eina_Bool autocapital : 1;
    Eina_Bool uppercase : 1;
    Eina_Bool autoperiod : 1;
+   Eina_Bool need_commit : 1;
    int select_dragging_state;
    double space_key_time;
 
@@ -2543,6 +2544,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    rp->entry_data = en;
    en->rp = rp;
    en->autoperiod = EINA_TRUE;
+   en->need_commit = EINA_TRUE;
 
 #ifdef HAVE_ECORE_IMF
    en->input_panel_enable = _edje_input_panel_enable;
@@ -2818,11 +2820,10 @@ _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text)
 #ifdef HAVE_ECORE_IMF
    if ((en->have_preedit) && (en->imf_context))
      {
+        en->need_commit = EINA_FALSE;
         ecore_imf_context_reset(en->imf_context);
-        ecore_main_loop_iterate();
      }
 #endif
-
    evas_object_textblock_text_markup_set(rp->object, text);
 
    _anchors_get(en->cursor, rp->object, en);
@@ -3565,6 +3566,12 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
              _range_del(en->cursor, rp->object, en);
              _sel_clear(en->cursor, rp->object, en);
           }
+     }
+
+   if (!en->need_commit)
+     {
+        en->need_commit = EINA_TRUE;
+        return ECORE_CALLBACK_PASS_ON;
      }
 
    tc = evas_object_textblock_cursor_new(rp->object);
