@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.55556slp2+build06) unstable; urgency=low
+
+  * [entry] fix flickering
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 06 Jan 2011 15:19:12 +0900
+
 edje (1.0.0.001+svn.55556slp2+build05) unstable; urgency=low
 
   * [entry] call ecore_imf_context_reset in _edje_entry_text_markup_set
