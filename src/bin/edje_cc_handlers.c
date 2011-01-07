@@ -6765,6 +6765,7 @@ st_collections_group_programs_program_action(void)
 			   "FOCUS_OBJECT", EDJE_ACTION_TYPE_FOCUS_OBJECT,
 			   "PARAM_COPY", EDJE_ACTION_TYPE_PARAM_COPY,
 			   "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
+			   "HIDE_VISIBLE_PASSWORD", EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD,
 			   NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
@@ -6827,6 +6828,7 @@ st_collections_group_programs_program_action(void)
 	/* this is implicitly set by script {} so this is here just for
 	 * completeness */
 	break;
+      case EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD:
       case EDJE_ACTION_TYPE_FOCUS_OBJECT:
       case EDJE_ACTION_TYPE_FOCUS_SET:
 	check_arg_count(1);
@@ -6912,6 +6914,8 @@ st_collections_group_programs_program_target(void)
 	else if (ep->action == EDJE_ACTION_TYPE_FOCUS_SET)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else if (ep->action == EDJE_ACTION_TYPE_FOCUS_OBJECT)
+	  data_queue_part_lookup(pc, name, &(et->id));
+	else if (ep->action == EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else
 	  {

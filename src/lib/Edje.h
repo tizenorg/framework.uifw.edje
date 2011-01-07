@@ -148,7 +148,8 @@ typedef enum _Edje_Action_Type
    EDJE_ACTION_TYPE_FOCUS_OBJECT  = 10,
    EDJE_ACTION_TYPE_PARAM_COPY    = 11,
    EDJE_ACTION_TYPE_PARAM_SET     = 12,
-   EDJE_ACTION_TYPE_LAST          = 13
+   EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD = 13, 
+   EDJE_ACTION_TYPE_LAST          = 14
 } Edje_Action_Type;
 
 typedef enum _Edje_Tween_Mode
