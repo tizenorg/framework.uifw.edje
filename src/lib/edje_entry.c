@@ -1829,8 +1829,7 @@ _edje_entry_select_word(Edje_Real_Part *rp)
 static void
 _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const char *emission __UNUSED__, const char *source __UNUSED__)
 {
-   Edje* ed = data;
-   Edje_Real_Part *rp = ed->focused_part;
+   Edje_Real_Part *rp = data;
    Entry *en;
    if (!rp) return;
    en = rp->entry_data;
