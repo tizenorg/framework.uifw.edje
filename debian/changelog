@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.55979slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r55979
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55979slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 19 Jan 2011 16:19:44 +0900
+
 edje (1.0.0.001+svn.55556slp2+build07) unstable; urgency=low
 
   * [entry] password - last-char-show is added 
