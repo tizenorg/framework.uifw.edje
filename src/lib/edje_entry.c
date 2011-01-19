@@ -2571,8 +2571,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
           {
              ob = edje_object_add(en->rp->edje->evas);
              edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-             evas_object_smart_member_add(ob, smart);
-             evas_object_stack_above(ob, rp->object);
+             evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
              en->block_handler_top = ob;
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_top);
              evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_top_handler_mouse_down_cb, en->rp);
@@ -2584,8 +2583,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
           {
              ob = edje_object_add(en->rp->edje->evas);
              edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-             evas_object_smart_member_add(ob, smart);
-             evas_object_stack_above(ob, rp->object);
+             evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
              en->block_handler_btm = ob;
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_btm);
              evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_bottom_handler_mouse_down_cb, en->rp);
@@ -2669,6 +2667,11 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_fg);
    evas_object_del(en->cursor_bg);
    evas_object_del(en->cursor_fg);
+
+   if (en->block_handler_top)
+	   evas_object_del(en->block_handler_top);
+   if (en->block_handler_btm)
+	   evas_object_del(en->block_handler_btm);
 
 #ifdef HAVE_ECORE_IMF
    if (rp->part->entry_mode >= EDJE_ENTRY_EDIT_MODE_EDITABLE)
