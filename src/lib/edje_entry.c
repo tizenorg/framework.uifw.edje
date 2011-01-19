@@ -177,27 +177,6 @@ _caps_mode_check(Entry *en)
 #endif
 }
 
-/*
-static void
-_text_prepend(Entry *en, Evas_Textblock_Cursor *cursor, const char *text)
-{
-   char *str;
-
-   if (!text) return;
-
-   str = strdup(text);
-   if (!str) return;
-
-   if (en->uppercase)
-     {
-        str[0] = toupper(str[0]);
-     }
-
-   evas_textblock_cursor_text_prepend(cursor, str);
-   free(str);
-}
-*/
-
 #ifdef HAVE_ECORE_IMF
 static void
 _input_panel_hide(Ecore_IMF_Context *ctx)
@@ -1274,18 +1253,18 @@ _autoperiod_insert(Entry *en, Evas_Textblock_Cursor *cursor)
 
    if (!evas_textblock_cursor_char_prev(tc)) goto done;
    if (!evas_textblock_cursor_char_prev(tc)) goto done;
-     
-   str = evas_textblock_cursor_range_text_get(tc, cursor, 
+
+   str = evas_textblock_cursor_range_text_get(tc, cursor,
                                               EVAS_TEXTBLOCK_TEXT_MARKUP);
 
    if (!str) goto done;
-     
+
    len = strlen(str);
 
-   if ((len >= 2) && 
-       ((str[len-2] != ':') && (str[len-2] != ';') && 
-        (str[len-2] != '.') && (str[len-2] != ',') && 
-        (str[0] != '?') && (str[len-2] != '!') && 
+   if ((len >= 2) &&
+       ((str[len-2] != ':') && (str[len-2] != ';') &&
+        (str[len-2] != '.') && (str[len-2] != ',') &&
+        (str[0] != '?') && (str[len-2] != '!') &&
         (str[len-2] != ' ')) && (str[len-1] == ' '))
      {
         _backspace(cursor, en->rp->object, en);
@@ -1696,8 +1675,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              _sel_clear(en->cursor, rp->object, en);
              //   if PASSWORD_SHOW_LAST_CHARACTER mode, appending it with password tag
              if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
-               {			  			
-                  _edje_entry_hide_visible_password(en->rp);		
+               {
+                  _edje_entry_hide_visible_password(en->rp);
 		  /*remove the below 3 lines*/
                   if (en->func)
                      if (en->func(en->data, (void *)ev->string))
@@ -1714,11 +1693,10 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                         return;
 
                   //evas_textblock_cursor_text_prepend(en->cursor, ev->string);
-                  //_text_prepend(en, en->cursor, ev->string);
                   _text_filter_text_prepend(en, en->cursor, ev->string);
 
                   /*count characters*/
-                  if (en->func) en->func(en->data, NULL);	    				
+                  if (en->func) en->func(en->data, NULL);
 #if 0
 //             evas_textblock_cursor_text_prepend(en->cursor, ev->string);
              _text_filter_text_prepend(en, en->cursor, ev->string);
@@ -2715,15 +2693,12 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                   en->imf_ee_handler_changed = NULL;
                }
 
-             if (focused_entry == en)
+             if ((focused_entry == en) && hide_timer)
                {
-                  if (hide_timer)
-                    {
-                       ecore_timer_del(hide_timer);
-                       hide_timer = NULL;
+                  ecore_timer_del(hide_timer);
+                  hide_timer = NULL;
 
-                       _input_panel_hide(en->imf_context);
-                    }
+                  _input_panel_hide(en->imf_context);
                }
 
              ecore_imf_context_del(en->imf_context);
@@ -3570,7 +3545,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
      {
-        _edje_entry_hide_visible_password(en->rp);		
+        _edje_entry_hide_visible_password(en->rp);
         /* if inputtin text is not allowed, dont allow text input */
         if (en->func)
           {
@@ -3579,7 +3554,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
         _text_filter_markup_prepend(en, tc, "<password=off>");
         _text_filter_markup_prepend(en, tc, ev->str);
-        _text_filter_markup_prepend(en, tc, "</password>");	
+        _text_filter_markup_prepend(en, tc, "</password>");
      }
    else
      {
@@ -3592,7 +3567,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
           }
 
         //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
-        //_text_prepend(en, tc, ev->str);
         _text_filter_text_prepend(en, tc, ev->str);
 
         /*count characters*/
@@ -3703,7 +3677,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
                        eina_strbuf_append(buf, "</>");
                     }
                }
-          }        
+          }
 //        evas_object_textblock_text_markup_prepend(en->cursor, eina_strbuf_string_get(buf));
         _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
         eina_strbuf_free(buf);
