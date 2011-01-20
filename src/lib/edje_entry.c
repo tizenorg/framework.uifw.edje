@@ -211,7 +211,6 @@ _input_panel_hide_timer_start(Entry *en)
         ecore_timer_del(hide_timer);
      }
    hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
-   focused_entry = en;
 }
 
 static void
@@ -227,6 +226,7 @@ _input_panel_show(Entry *en)
 
    if(!en->imf_context) return;
    ecore_imf_context_input_panel_show(en->imf_context);
+   focused_entry = en;
 }
 
 static void
@@ -2695,10 +2695,13 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                   en->imf_ee_handler_changed = NULL;
                }
 
-             if ((focused_entry == en) && hide_timer)
+             if (focused_entry == en)
                {
-                  ecore_timer_del(hide_timer);
-                  hide_timer = NULL;
+                  if (hide_timer) 
+                    {
+                       ecore_timer_del(hide_timer);
+                       hide_timer = NULL;
+                    }
 
                   _input_panel_hide(en->imf_context);
                }
