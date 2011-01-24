@@ -281,7 +281,7 @@ _edje_part_recalc_1(Edje *ed, Edje_Real_Part *ep)
 }
 
 int
-_edje_part_dragable_calc(Edje *ed, Edje_Real_Part *ep, FLOAT_T *x, FLOAT_T *y)
+_edje_part_dragable_calc(Edje *ed __UNUSED__, Edje_Real_Part *ep, FLOAT_T *x, FLOAT_T *y)
 {
    if (ep->drag)
      {
@@ -320,7 +320,6 @@ _edje_part_dragable_calc(Edje *ed, Edje_Real_Part *ep, FLOAT_T *x, FLOAT_T *y)
    if (x) *x = ZERO;
    if (y) *y = ZERO;
    return 0;
-   ed = NULL;
 }
 
 void
@@ -1420,8 +1419,9 @@ _edje_part_recalc_single(Edje *ed,
 	 break;
       case EDJE_PART_TYPE_GRADIENT:
 	 /* FIXME: THIS ONE SHOULD NEVER BE TRIGGERED. */
-	 abort();
 	 break;
+      default:
+        break;
      }
 }
 

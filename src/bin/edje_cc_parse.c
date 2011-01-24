@@ -1232,12 +1232,12 @@ _is_numi(char c)
 int
 _is_op1i(char c)
 {
-   switch(c)
+   switch (c)
      {
      case '*':;
      case '%':;
      case '/': return 1;
-     default: return 0;
+     default: break;
      }
    return 0;
 }
@@ -1245,11 +1245,11 @@ _is_op1i(char c)
 int
 _is_op2i(char c)
 {
-   switch(c)
+   switch (c)
      {
      case '+':;
      case '-': return 1;
-     default: return 0;
+     default: break;
      }
    return 0;
 }
@@ -1283,8 +1283,8 @@ _calci(char op, int a, int b)
      default:
 	ERR("%s: Error. %s:%i unexpected character '%c'\n",
 	    progname, file_in, line - 1, op);
-	return a;
      }
+   return a;
 }
 
 /* float set of functoins */
@@ -1322,7 +1322,6 @@ _deltaf(char *s, double *val)
 	s++;
 	s = _alphaf(s, val);
 	s++;
-	return s;
      }
    return s;
 }
@@ -1440,8 +1439,7 @@ _is_numf(char c)
        || ('.' == c)
        || ('+' == c))
      return 1;
-   else
-     return 0;
+   return 0;
 }
 
 static int
@@ -1452,7 +1450,7 @@ _is_op1f(char c)
      case '*':;
      case '%':;
      case '/': return 1;
-     default: return 0;
+     default: break;
      }
    return 0;
 }
@@ -1464,7 +1462,7 @@ _is_op2f(char c)
      {
      case '+':;
      case '-': return 1;
-     default: return 0;
+     default: break;
      }
    return 0;
 }
@@ -1498,8 +1496,8 @@ _calcf(char op, double a, double b)
      default:
 	ERR("%s: Error. %s:%i unexpected character '%c'\n",
 	    progname, file_in, line - 1, op);
-	return a;
      }
+   return a;
 }
 
 static int

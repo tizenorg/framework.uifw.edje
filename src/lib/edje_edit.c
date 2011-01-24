@@ -258,7 +258,7 @@ _edje_edit_smart_file_set(Evas_Object *obj, const char *file, const char *group)
         ps->code = eet_read(ef, keys[i], &size);
         eina_hash_add(eed->program_scripts, &ps->id, ps);
      }
-
+   if (keys) free(keys);
    return EINA_TRUE;
 }
 
@@ -371,19 +371,15 @@ _edje_real_part_free(Edje_Real_Part *rp)
    if (rp->custom)
      {
 	_edje_collection_free_part_description_clean(rp->part->type, rp->custom->description, 0);
-	free(rp->custom);
+        if (rp->custom) free(rp->custom->set);
+        eina_mempool_free(_edje_real_part_state_mp, rp->custom);
 	rp->custom = NULL;
      }
 
    free(rp->drag);
 
-   if (rp->param2)
-     free(rp->param2->set);
+   if (rp->param2) free(rp->param2->set);
    eina_mempool_free(_edje_real_part_state_mp, rp->param2);
-
-   if (rp->custom)
-     free(rp->custom->set);
-   eina_mempool_free(_edje_real_part_state_mp, rp->custom);
 
    _edje_unref(rp->edje);
    eina_mempool_free(_edje_real_part_mp, rp);
@@ -1155,10 +1151,15 @@ edje_edit_group_del(Evas_Object *obj, const char *group_name)
    snprintf(buf, sizeof(buf), "edje/scripts/embryo/source/%d/*", e->id);
    keys = eet_list(eetf, buf, &count);
    if (keys)
-     do {
-          count--;
-          eet_delete(eetf, keys[count]);
-     } while(count);
+     {
+        do
+          {
+             count--;
+             eet_delete(eetf, keys[count]);
+          }
+        while(count);
+        free(keys);
+     }
    eet_close(eetf);
 
    /* Free Group */
@@ -7693,17 +7694,17 @@ edje_edit_save_all(Evas_Object *obj)
 EAPI void
 edje_edit_print_internal_status(Evas_Object *obj)
 {
+/*   
    Edje_Program *epr;
    unsigned int i;
    int j;
-
+*/
    eina_error_set(0);
 
    GET_ED_OR_RETURN();
 
    _edje_generate_source(obj);
-   return;
-
+/*
    INF("****** CHECKIN' INTERNAL STRUCTS STATUS *********");
 
    INF("path: '%s', group: '%s', parent: '%s'",
@@ -7739,4 +7740,5 @@ edje_edit_print_internal_status(Evas_Object *obj)
      }
 
    INF("******************  END  ************************");
+ */
 }
