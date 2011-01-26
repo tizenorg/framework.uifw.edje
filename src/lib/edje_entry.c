@@ -1629,7 +1629,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         /* if inputting text is not allowed, dont allow text input */
         if (en->func)
           {
-            if (en->func(en->data, "<br>")) return;
+             if (en->func(en->data, "<br>")) return;
           }
 
         if (multiline)
@@ -1676,12 +1676,12 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              //   if PASSWORD_SHOW_LAST_CHARACTER mode, appending it with password tag
              if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
                {
-                  _edje_entry_hide_visible_password(en->rp);
-		  /*remove the below 3 lines*/
-                  if (en->func)
-                     if (en->func(en->data, (void *)ev->string))
-                        return;
-                  _text_filter_markup_prepend(en, en->cursor, "<password=off>");
+                   _edje_entry_hide_visible_password(en->rp);
+                   /*remove the below 3 lines*/
+                   if (en->func)
+                      if (en->func(en->data, (void *)ev->string))
+                         return;
+                   _text_filter_markup_prepend(en, en->cursor, "<password=off>");
                   _text_filter_markup_prepend(en, en->cursor, ev->string);
                   _text_filter_markup_prepend(en, en->cursor, "</password>");
                }
@@ -2697,7 +2697,7 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
 
              if (focused_entry == en)
                {
-                  if (hide_timer) 
+                  if (hide_timer)
                     {
                        ecore_timer_del(hide_timer);
                        hide_timer = NULL;
@@ -3554,7 +3554,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
         /* if inputtin text is not allowed, dont allow text input */
         if (en->func)
           {
-            if (en->func(en->data, (void *)ev->str)) return ECORE_CALLBACK_PASS_ON;
+             if (en->func(en->data, (void *)ev->str)) return ECORE_CALLBACK_PASS_ON;
           }
 
         _text_filter_markup_prepend(en, tc, "<password=off>");
@@ -3568,7 +3568,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
        /* if inputtin text is not allowed, dont allow text input */
         if (en->func)
           {
-            if (en->func(en->data, ev->str)) return ECORE_CALLBACK_PASS_ON;
+             if (en->func(en->data, ev->str)) return ECORE_CALLBACK_PASS_ON;
           }
 
         //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
@@ -3630,7 +3630,6 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
-//   ecore_imf_context_preedit_string_get(en->imf_context, &preedit_string, &cursor_pos);
    ecore_imf_context_preedit_string_with_attributes_get(en->imf_context, &preedit_string, &attrs, &cursor_pos);
 
    if (!strcmp(preedit_string, ""))
