@@ -2702,8 +2702,6 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                        ecore_timer_del(hide_timer);
                        hide_timer = NULL;
                     }
-
-                  _input_panel_hide(en->imf_context);
                }
 
              ecore_imf_context_del(en->imf_context);
