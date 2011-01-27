@@ -1783,7 +1783,16 @@ _edje_entry_select_word(Edje_Real_Part *rp)
    str = eina_strbuf_new();
 
    ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
-   if (!ct || strlen(ct) == 0) return;
+   if (!ct || strlen(ct) == 0) 
+   {
+      if (_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN))
+        {
+           ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+           if (!ct || strlen(ct) == 0) return;
+        }
+      else
+        return;
+   }
 
    block_type = _get_char_type(ct);
 
@@ -2056,7 +2065,11 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
      }
 
    if (en->double_clicked) return;
-   if (en->long_pressed) return;
+   if (en->long_pressed) 
+     {
+        en->long_pressed = EINA_FALSE;
+        return;
+     }
 
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
@@ -2179,6 +2192,22 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
         _edje_entry_real_part_configure(rp);
+		if (en->long_pressed)
+		{
+			tc = evas_object_textblock_cursor_new(rp->object);
+			evas_textblock_cursor_copy(en->cursor, tc);
+			evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+
+			en->cx = ev->cur.canvas.x - x;
+			en->cy = ev->cur.canvas.y - y;
+			evas_textblock_cursor_char_coord_set(en->cursor, en->cx, en->cy);
+			
+			if (evas_textblock_cursor_compare(tc, en->cursor))
+				_edje_emit(rp->edje, "cursor,changed", rp->part->name);
+			evas_textblock_cursor_free(tc);
+			
+			_edje_emit(en->rp->edje, "magnifier,changed", en->rp->part->name);	
+		}
      }
    else
      {
