@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.56184slp2+build02) unstable; urgency=low
+
+  * [entry] fixed bug in select, select all at the last character
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build02
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Mon, 31 Jan 2011 08:18:00 +0900
+
 edje (1.0.0.001+svn.56184slp2+build01) unstable; urgency=low
 
   * [SVN EFL Migration] edje in SLP is merged with SVN r56184
