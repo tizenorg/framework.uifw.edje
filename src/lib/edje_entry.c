@@ -2461,6 +2461,8 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
      }
 
    _edje_entry_real_part_configure(rp);
+   
+   _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
 }
 
 static void
