@@ -2909,6 +2909,8 @@ _edje_entry_select_all(Edje_Real_Part *rp)
 
    en->select_allow = EINA_TRUE;
    en->had_sel = EINA_TRUE;
+   
+   _edje_emit(en->rp->edje, "selection,end", en->rp->part->name);
 }
 
 void
