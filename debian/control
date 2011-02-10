@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Jaehwan Kim <jae.hwan.kim@samsung.com>, Jihoon Kim <jihoon48.kim@samsung.com>, Myungjae Lee <mjae.lee@samsung.com>, Juyung Seo <juyung.seo@samsung.com>, ChunEon Park <chuneon.park@samsung.com>, Myoungwoon Kim <myoungwoon.kim@samsung.com>, WooHyun Jung <wh0705.jung@samsung.com>
 Original-Maintainer: Debian Pkg-e Team <pkg-e-devel@lists.alioth.debian.org>
-Uploaders: Albin Tonnerre <albin.tonnerre@gmail.com>
+Uploaders: Hyoyoung Chang <hyoyoung.chang@samsung.com>, Albin Tonnerre <albin.tonnerre@gmail.com>,
  Xavier Oswald <x.oswald@free.fr>, Jan Lübbe <jluebbe@debian.org>
 Build-Depends: debhelper (>= 6), cdbs, libeet-dev, libevas-dev, libecore-dev (>= 0.9.9.060+svn20100304), libembryo-dev, libeina-dev (>= 0.0.2.060+svn20100304), liblua5.1-0-dev, doxygen, pkg-config, libtool
 Standards-Version: 3.8.1
