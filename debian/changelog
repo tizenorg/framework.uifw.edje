@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.56184slp2+build03) unstable; urgency=low
+
+  * [entry] fixed bug in text selection
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build03
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 10 Feb 2011 10:11:00 +0900
+
 edje (1.0.0.001+svn.56184slp2+build02) unstable; urgency=low
 
   * [entry] fixed bug in select, select all at the last character
