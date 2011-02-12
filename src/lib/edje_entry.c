@@ -1662,10 +1662,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (en->func)
            en->func(en->data, NULL);
      }
-   else if ((!strcmp(ev->key, "space")) && edje_autoperiod_allow_get() && en->autoperiod)
-     {
-        _autoperiod_insert(en, en->cursor);
-     }
    else
      {
         if (ev->string)
@@ -1673,6 +1669,9 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              if (en->have_selection)
                 _range_del(en->cursor, rp->object, en);
              _sel_clear(en->cursor, rp->object, en);
+
+             if (!strcmp(ev->key, "space")) _autoperiod_insert(en, en->cursor);
+
              //   if PASSWORD_SHOW_LAST_CHARACTER mode, appending it with password tag
              if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
                {
@@ -3658,7 +3657,6 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
 
-   if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
    ecore_imf_context_preedit_string_with_attributes_get(en->imf_context, &preedit_string, &attrs, &cursor_pos);
