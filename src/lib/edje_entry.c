@@ -1349,9 +1349,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    cursor_changed = EINA_FALSE;
    if (!strcmp(ev->key, "Escape"))
      {
-#ifdef HAVE_ECORE_IMF
-        if (en->imf_context) ecore_imf_context_reset(en->imf_context);
-#endif
         // dead keys here. Escape for now (should emit these)
         _edje_emit(ed, "entry,key,escape", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
