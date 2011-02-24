@@ -1967,10 +1967,11 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
 
 /**
  * @brief Enables autoperiod
+ * Autoperiod is the feature that period (.) will be automatically added when space bar is pressed twice in a short time.
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
+ * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
  */
 EAPI void
 edje_object_part_text_autoperiod_set(const Evas_Object *obj, const char *part, Eina_Bool autoperiod)
