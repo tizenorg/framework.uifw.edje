@@ -2696,6 +2696,13 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    if (en->block_handler_btm)
 	   evas_object_del(en->block_handler_btm);
 
+   if (en->longpress_timer)
+     {
+        ecore_timer_del(en->longpress_timer);
+        en->longpress_timer = NULL;
+     }
+
+
 #ifdef HAVE_ECORE_IMF
    if (rp->part->entry_mode >= EDJE_ENTRY_EDIT_MODE_EDITABLE)
      {
