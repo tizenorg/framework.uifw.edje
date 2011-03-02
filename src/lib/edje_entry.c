@@ -326,6 +326,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    ecore_imf_context_focus_in(en->imf_context);
 
    _input_panel_show(en);
+   _caps_mode_check(en);
 #endif /* HAVE_ECORE_IMF */
 }
 
