@@ -2,11 +2,11 @@
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [1])
 m4_define([v_min], [0])
-m4_define([v_mic], [0])
+m4_define([v_mic], [999])
 m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
 ##--   When released, remove the dnl on the below line
-m4_undefine([v_rev])
+dnl m4_undefine([v_rev])
 ##--   When doing snapshots - change soname. remove dnl on below line
 dnl m4_define([relname], [ver-pre-svn-07])
 dnl m4_define([v_rel], [-release relname])
@@ -18,7 +18,7 @@ m4_define([lt_age], v_min)
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
-AC_INIT([edje], [v_ver.beta3], [enlightenment-devel@lists.sourceforge.net])
+AC_INIT([edje], [v_ver], [enlightenment-devel@lists.sourceforge.net])
 AC_PREREQ([2.52])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
@@ -63,6 +63,7 @@ AC_DEFINE_UNQUOTED([SHARED_LIB_SUFFIX], ["$shrext_cmds"], [Suffix for shared obj
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 
+
 case "$host_os" in
    mingw32ce* | cegcc*)
       MODULE_ARCH="$host_os-$host_cpu"
@@ -70,7 +71,7 @@ case "$host_os" in
       have_edje_cc="no"
       ;;
    *)
-      MODULE_ARCH="$host_os-$host_cpu-v_maj.v_min.v_mic"
+      MODULE_ARCH="$host_os-$host_cpu-v_maj.0.0"
       install_vim="yes"
       have_edje_cc="yes"
       ;;
@@ -295,6 +296,8 @@ if test "x$have_edje_cc" = "xyes"; then
    EDJE_CC_LIBS="${EDJE_CC_LIBS} ${LUA_LIBS} ${lua_libs}"
 fi
 
+AM_CONDITIONAL([BUILD_EPP], [test "x$have_edje_cc" = "xyes"])
+
 if test "x$have_edje_decc" = "xyes"; then
    PKG_CHECK_MODULES([EDJE_DECC], [ecore-file >= 1.0.0 ecore-evas >= 1.0.0 ecore >= 1.0.0 evas >= 1.0.0 eet >= 1.0.0 eina >= 1.0.0])
 fi
@@ -381,6 +384,7 @@ doc/edje.dox
 src/Makefile
 src/lib/Makefile
 src/bin/Makefile
+src/bin/epp/Makefile
 utils/Makefile
 ])
 

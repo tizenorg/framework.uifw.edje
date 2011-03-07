@@ -435,8 +435,19 @@ static void
 _curs_update_from_curs(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en)
 {
    Evas_Coord cx, cy, cw, ch;
+   Evas_Textblock_Cursor_Type cur_type;
    if (c != en->cursor) return;
-   evas_textblock_cursor_geometry_get(c, &cx, &cy, &cw, &ch, NULL, EVAS_TEXTBLOCK_CURSOR_UNDER);
+   switch (en->rp->part->cursor_mode)
+     {
+      case EDJE_ENTRY_CURSOR_MODE_BEFORE:
+         cur_type = EVAS_TEXTBLOCK_CURSOR_BEFORE;
+         break;
+      case EDJE_ENTRY_CURSOR_MODE_UNDER:
+         /* no break for a resaon */
+      default:
+         cur_type = EVAS_TEXTBLOCK_CURSOR_UNDER;
+     }
+   evas_textblock_cursor_geometry_get(c, &cx, &cy, &cw, &ch, NULL, cur_type);
    en->cx = cx + (cw / 2);
    en->cy = cy + (ch / 2);
 }
@@ -1709,8 +1720,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
      }
    if ((old_cur_pos != evas_textblock_cursor_pos_get(en->cursor)) && (!cursor_changed))
-      _edje_emit(ed, "cursor,changed", rp->part->name);  
-    
+      _edje_emit(ed, "cursor,changed", rp->part->name);
+
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      {
@@ -2754,14 +2765,25 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
 {
    Evas_Coord x, y, w, h, xx, yy, ww, hh;
    Entry *en = rp->entry_data;
+   Evas_Textblock_Cursor_Type cur_type;
    if (!en) return;
+   switch (rp->part->cursor_mode)
+     {
+      case EDJE_ENTRY_CURSOR_MODE_BEFORE:
+         cur_type = EVAS_TEXTBLOCK_CURSOR_BEFORE;
+         break;
+      case EDJE_ENTRY_CURSOR_MODE_UNDER:
+         /* no break for a resaon */
+      default:
+         cur_type = EVAS_TEXTBLOCK_CURSOR_UNDER;
+     }
 
    _sel_update(en->cursor, rp->object, en);
    _anchors_update(en->cursor, rp->object, en);
    x = y = w = h = -1;
    xx = yy = ww = hh = -1;
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, EVAS_TEXTBLOCK_CURSOR_UNDER);
+   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, cur_type);
    if (ww < 1) ww = 1;
    if (hh < 1) ww = 1;
    if (en->cursor_bg)
@@ -3041,12 +3063,23 @@ _edje_entry_cursor_geometry_get(Edje_Real_Part *rp, Evas_Coord *cx, Evas_Coord *
 {
    Evas_Coord x, y, w, h, xx, yy, ww, hh;
    Entry *en = rp->entry_data;
+   Evas_Textblock_Cursor_Type cur_type;
    if (!en) return;
+   switch (rp->part->cursor_mode)
+     {
+      case EDJE_ENTRY_CURSOR_MODE_BEFORE:
+         cur_type = EVAS_TEXTBLOCK_CURSOR_BEFORE;
+         break;
+      case EDJE_ENTRY_CURSOR_MODE_UNDER:
+         /* no break for a resaon */
+      default:
+         cur_type = EVAS_TEXTBLOCK_CURSOR_UNDER;
+     }
 
    x = y = w = h = -1;
    xx = yy = ww = hh = -1;
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, EVAS_TEXTBLOCK_CURSOR_UNDER);
+   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, cur_type);
    if (ww < 1) ww = 1;
    if (hh < 1) ww = 1;
    if (cx) *cx = x + xx;
@@ -3498,6 +3531,37 @@ _edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur)
 
    s = evas_textblock_cursor_content_get(c);
    return s;
+}
+
+void
+_edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos)
+{
+   Entry *en = rp->entry_data;
+   Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
+   if (!c) return;
+   evas_textblock_cursor_pos_set(c, pos);
+   _curs_update_from_curs(c, rp->object, rp->entry_data);
+   _sel_update(c, rp->object, rp->entry_data);
+
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     {
+        ecore_imf_context_reset(en->imf_context);
+        ecore_imf_context_cursor_position_set(en->imf_context,
+                                              evas_textblock_cursor_pos_get(en->cursor));
+     }
+#endif
+
+   _edje_emit(rp->edje, "cursor,changed", rp->part->name);
+   _edje_entry_real_part_configure(rp);
+}
+
+int
+_edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur)
+{
+   Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
+   if (!c) return 0;
+   return evas_textblock_cursor_pos_get(c);
 }
 
 #ifdef HAVE_ECORE_IMF

@@ -102,6 +102,7 @@ static void st_collections_group_alias(void);
 static void st_collections_group_min(void);
 static void st_collections_group_max(void);
 static void st_collections_group_data_item(void);
+static void st_collections_group_orientation(void);
 
 static void ob_collections_group_script(void);
 static void ob_collections_group_lua_script(void);
@@ -128,6 +129,7 @@ static void st_collections_group_parts_part_source5(void);
 static void st_collections_group_parts_part_source6(void);
 static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
+static void st_collections_group_parts_part_cursor_mode(void);
 static void st_collections_group_parts_part_multiline(void);
 static void st_collections_group_parts_part_dragable_x(void);
 static void st_collections_group_parts_part_dragable_y(void);
@@ -196,6 +198,7 @@ static void st_collections_group_parts_part_description_text_font(void);
 static void st_collections_group_parts_part_description_text_style(void);
 static void st_collections_group_parts_part_description_text_repch(void);
 static void st_collections_group_parts_part_description_text_size(void);
+static void st_collections_group_parts_part_description_text_size_range(void);
 static void st_collections_group_parts_part_description_text_fit(void);
 static void st_collections_group_parts_part_description_text_min(void);
 static void st_collections_group_parts_part_description_text_max(void);
@@ -289,6 +292,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.alias", st_collections_group_alias},
      {"collections.group.min", st_collections_group_min},
      {"collections.group.max", st_collections_group_max},
+     {"collections.group.orientation", st_collections_group_orientation},
      {"collections.group.data.item", st_collections_group_data_item},
      {"collections.group.externals.external", st_externals_external}, /* dup */
      {"collections.group.image", st_images_image}, /* dup */
@@ -350,6 +354,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.dragable.events", st_collections_group_parts_part_dragable_events},
      {"collections.group.parts.part.entry_mode", st_collections_group_parts_part_entry_mode},
      {"collections.group.parts.part.select_mode", st_collections_group_parts_part_select_mode},
+     {"collections.group.parts.part.cursor_mode", st_collections_group_parts_part_cursor_mode},
      {"collections.group.parts.part.multiline", st_collections_group_parts_part_multiline},
      {"collections.group.parts.part.image", st_images_image}, /* dup */
      {"collections.group.parts.part.set.name", st_images_set_name},
@@ -445,6 +450,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.text.style", st_collections_group_parts_part_description_text_style},
      {"collections.group.parts.part.description.text.repch", st_collections_group_parts_part_description_text_repch},
      {"collections.group.parts.part.description.text.size", st_collections_group_parts_part_description_text_size},
+     {"collections.group.parts.part.description.text.size_range", st_collections_group_parts_part_description_text_size_range},
      {"collections.group.parts.part.description.text.fit", st_collections_group_parts_part_description_text_fit},
      {"collections.group.parts.part.description.text.min", st_collections_group_parts_part_description_text_min},
      {"collections.group.parts.part.description.text.max", st_collections_group_parts_part_description_text_max},
@@ -454,6 +460,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.text.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.text.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.text.elipsis", st_collections_group_parts_part_description_text_elipsis},
+     {"collections.group.parts.part.description.text.ellipsis", st_collections_group_parts_part_description_text_elipsis},
      {"collections.group.parts.part.description.box.layout", st_collections_group_parts_part_description_box_layout},
      {"collections.group.parts.part.description.box.align", st_collections_group_parts_part_description_box_align},
      {"collections.group.parts.part.description.box.padding", st_collections_group_parts_part_description_box_padding},
@@ -1997,6 +2004,35 @@ st_collections_group_data_item(void)
 
 /**
     @page edcref
+    @property
+        orientation
+    @parameters
+    enum AUTO, LTR, RTL
+    @effect
+        This defines GROUP orientation.
+        This is useful if you want match interface orientation with language.
+        AUTO  - Follow system defs.
+        LTR  - suitable for Left To Right Languages (latin)
+        RTL - suitable for Right To Left Languages (Hebrew, Arabic interface)
+    @endproperty
+*/
+static void
+st_collections_group_orientation(void)
+{
+   Edje_Part_Collection *pc;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+   pc->prop.orientation = parse_enum(0,
+         "AUTO", EDJE_ORIENTATION_AUTO,
+         "LTR", EDJE_ORIENTATION_LTR,
+         "RTL", EDJE_ORIENTATION_RTL,
+         NULL);
+}
+
+/**
+    @page edcref
     @block
         parts
     @context
@@ -2687,6 +2723,38 @@ st_collections_group_parts_part_select_mode(void)
                                 "DEFAULT", EDJE_ENTRY_SELECTION_MODE_DEFAULT,
                                 "EXPLICIT", EDJE_ENTRY_SELECTION_MODE_EXPLICIT,
                                 "BLOCK_HANDLE", EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE,
+                                NULL);
+}
+
+/**
+    @page edcref
+    @property
+        cursor_mode
+    @parameters
+        [MODE]
+    @effect
+        Sets the cursor mode for a textblock part to one of:
+        @li UNDER
+        @li BEFORE
+        UNDER cursor mode means the cursor will draw below the character pointed
+        at. That's the default.
+        BEFORE cursor mode means the cursor is drawn as a vertical line before
+        the current character, just like many other GUI toolkits handle it.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_cursor_mode(void)
+{
+   Edje_Part_Collection *pc;
+   Edje_Part *ep;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+   ep = pc->parts[pc->parts_count - 1];
+   ep->cursor_mode = parse_enum(0,
+                                "UNDER", EDJE_ENTRY_CURSOR_MODE_UNDER,
+                                "BEFORE", EDJE_ENTRY_CURSOR_MODE_BEFORE,
                                 NULL);
 }
 
@@ -5022,7 +5090,7 @@ st_collections_group_parts_part_description_fill_size_offset(void)
                     align:        X-axis     Y-axis;
                     source:      "part_name";
                     text_source: "text_part_name";
-                    elipsis:      0.0-1.0;
+                    ellipsis:     0.0-1.0;
                     style:       "stylename";
                 }
                 ..
@@ -5281,6 +5349,54 @@ st_collections_group_parts_part_description_text_size(void)
     @page edcref
 
     @property
+        size_range
+    @parameters
+        [font min size in points (pt)] [font max size in points (pt)]
+    @effect
+        Sets the allowed font size for the text part. Setting min and max to 0
+        means we won't restrict the sizing (default).
+    @endproperty
+    @since 1.1.0
+*/
+static void
+st_collections_group_parts_part_description_text_size_range(void)
+{
+   Edje_Part_Collection *pc;
+   Edje_Part *ep;
+   Edje_Part_Description_Text *ed;
+
+   check_arg_count(2);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+   ep = pc->parts[pc->parts_count - 1];
+
+   if ((ep->type != EDJE_PART_TYPE_TEXT) &&
+       (ep->type != EDJE_PART_TYPE_TEXTBLOCK))
+     {
+	ERR("%s: Error. parse error %s:%i. "
+	    "text attributes in non-TEXT part.",
+	    progname, file_in, line - 1);
+	exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Text*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Text*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->text.size_range_min = parse_int_range(0, 0, 255);
+   ed->text.size_range_max = parse_int_range(1, 0, 255);
+   if (ed->text.size_range_min > ed->text.size_range_max)
+     {
+	ERR("%s: Error. parse error %s:%i. "
+	    "min size is bigger than max size.",
+	    progname, file_in, line - 1);
+	exit(-1);
+     }
+}
+
+/**
+    @page edcref
+
+    @property
         fit
     @parameters
         [horizontal] [vertical]
@@ -5435,7 +5551,7 @@ st_collections_group_parts_part_description_text_align(void)
    ed = (Edje_Part_Description_Text*) ep->default_desc;
    if (ep->other.desc_count) ed = (Edje_Part_Description_Text*)  ep->other.desc[ep->other.desc_count - 1];
 
-   ed->text.align.x = FROM_DOUBLE(parse_float_range(0, 0.0, 1.0));
+   ed->text.align.x = FROM_DOUBLE(parse_float_range(0, -1.0, 1.0));
    ed->text.align.y = FROM_DOUBLE(parse_float_range(1, 0.0, 1.0));
 }
 
@@ -5533,7 +5649,7 @@ st_collections_group_parts_part_description_text_text_source(void)
     @page edcref
 
     @property
-        elipsis
+        ellipsis
     @parameters
         [point of balance]
     @effect
