@@ -507,6 +507,9 @@ typedef Evas_Object *(*Edje_Item_Provider_Cb)   (void *data, Evas_Object *obj, c
    EAPI double       edje_scale_get                  (void);
    EAPI Eina_Bool    edje_object_scale_set           (Evas_Object *obj, double scale);
    EAPI double       edje_object_scale_get           (const Evas_Object *obj);
+   EAPI void         edje_object_mirrored_set        (Evas_Object *obj, Eina_Bool rtl);
+   EAPI Eina_Bool    edje_object_mirrored_get        (const Evas_Object *obj);
+
    EAPI void         edje_input_panel_enabled_set    (Eina_Bool enabled);
    EAPI void         edje_input_panel_allow_set      (Eina_Bool enabled);
    EAPI Eina_Bool    edje_input_panel_allow_get      (void);   
@@ -619,6 +622,8 @@ typedef Evas_Object *(*Edje_Item_Provider_Cb)   (void *data, Evas_Object *obj, c
    EAPI Eina_Bool        edje_object_part_text_cursor_is_format_get        (const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI Eina_Bool        edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI const char      *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);
+   EAPI void             edje_object_part_text_cursor_pos_set              (Evas_Object *obj, const char *part, Edje_Cursor cur, int pos);
+   EAPI int              edje_object_part_text_cursor_pos_get              (const Evas_Object *obj, const char *part, Edje_Cursor cur);
    EAPI void             edje_object_part_text_autocapitalization_set      (const Evas_Object *obj, const char *part, Eina_Bool autocap);
    EAPI void             edje_object_part_text_autoperiod_set              (const Evas_Object *obj, const char *part, Eina_Bool autoperiod);
 #ifdef HAVE_ECORE_IMF

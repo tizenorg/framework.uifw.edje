@@ -172,7 +172,7 @@ struct _Edje_Smart_Api
 /* increment this when you add new feature to edje file format without
  * breaking backward compatibility.
  */
-#define EDJE_FILE_MINOR 1
+#define EDJE_FILE_MINOR 2
 
 /* FIXME:
  *
@@ -291,6 +291,30 @@ typedef struct _Edje_Part_Description_Spec_Table     Edje_Part_Description_Spec_
 typedef struct _Edje_Patterns                        Edje_Patterns;
 typedef struct _Edje_Part_Box_Animation              Edje_Part_Box_Animation;
 
+typedef struct _Edje Edje;
+typedef struct _Edje_Real_Part_State Edje_Real_Part_State;
+typedef struct _Edje_Real_Part_Drag Edje_Real_Part_Drag;
+typedef struct _Edje_Real_Part_Set Edje_Real_Part_Set;
+typedef struct _Edje_Real_Part Edje_Real_Part;
+typedef struct _Edje_Running_Program Edje_Running_Program;
+typedef struct _Edje_Signal_Callback Edje_Signal_Callback;
+typedef struct _Edje_Calc_Params Edje_Calc_Params;
+typedef struct _Edje_Pending_Program Edje_Pending_Program;
+typedef struct _Edje_Text_Style Edje_Text_Style;
+typedef struct _Edje_Color_Class Edje_Color_Class;
+typedef struct _Edje_Text_Class Edje_Text_Class;
+typedef struct _Edje_Var Edje_Var;
+typedef struct _Edje_Var_Int Edje_Var_Int;
+typedef struct _Edje_Var_Float Edje_Var_Float;
+typedef struct _Edje_Var_String Edje_Var_String;
+typedef struct _Edje_Var_List Edje_Var_List;
+typedef struct _Edje_Var_Hash Edje_Var_Hash;
+typedef struct _Edje_Var_Animator Edje_Var_Animator;
+typedef struct _Edje_Var_Timer Edje_Var_Timer;
+typedef struct _Edje_Var_Pool Edje_Var_Pool;
+typedef struct _Edje_Signal_Source_Char Edje_Signal_Source_Char;
+typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callback;
+
 #define EDJE_INF_MAX_W 100000
 #define EDJE_INF_MAX_H 100000
 
@@ -365,6 +389,13 @@ typedef struct _Edje_Part_Box_Animation              Edje_Part_Box_Animation;
 #define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2
 
 #define EDJE_ENTRY_DOUBLE_SPACE_TIME 0.6
+
+#define EDJE_ENTRY_CURSOR_MODE_UNDER 0
+#define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
+
+#define EDJE_ORIENTATION_AUTO  0
+#define EDJE_ORIENTATION_LTR   1
+#define EDJE_ORIENTATION_RTL   2
 
 #define EDJE_PART_PATH_SEPARATOR ':'
 #define EDJE_PART_PATH_SEPARATOR_STRING ":"
@@ -544,6 +575,16 @@ struct _Edje_Program_After /* the action to run after another action */
 };
 
 /*----------*/
+#define PART_TYPE_FIELDS(TYPE)    \
+      TYPE      RECTANGLE;        \
+      TYPE      TEXT;             \
+      TYPE      IMAGE;            \
+      TYPE      SWALLOW;          \
+      TYPE      TEXTBLOCK;        \
+      TYPE      GROUP;            \
+      TYPE      BOX;              \
+      TYPE      TABLE;            \
+      TYPE      EXTERNAL;
 
 struct _Edje_Part_Collection_Directory_Entry
 {
@@ -552,31 +593,20 @@ struct _Edje_Part_Collection_Directory_Entry
 
    struct
    {
-      int      RECTANGLE;
-      int      TEXT;
-      int      IMAGE;
-      int      SWALLOW;
-      int      TEXTBLOCK;
-      int      GROUP;
-      int      BOX;
-      int      TABLE;
-      int      EXTERNAL;
+      PART_TYPE_FIELDS(int)
       int      part;
    } count;
 
    struct
    {
-      Eina_Mempool *RECTANGLE;
-      Eina_Mempool *TEXT;
-      Eina_Mempool *IMAGE;
-      Eina_Mempool *SWALLOW;
-      Eina_Mempool *TEXTBLOCK;
-      Eina_Mempool *GROUP;
-      Eina_Mempool *BOX;
-      Eina_Mempool *TABLE;
-      Eina_Mempool *EXTERNAL;
+      PART_TYPE_FIELDS(Eina_Mempool *)
       Eina_Mempool *part;
    } mp;
+
+   struct
+   {
+      PART_TYPE_FIELDS(Eina_Mempool *)
+   } mp_rtl; /* For Right To Left interface */
 
    Edje_Part_Collection *ref;
 };
@@ -588,6 +618,7 @@ struct _Edje_Part_Collection_Directory_Entry
 struct _Edje_Pack_Element
 {
    unsigned char    type; /* only GROUP supported for now */
+   Edje_Real_Part  *parent; /* pointer to the table/box that hold it, set at runtime */
    const char      *name; /* if != NULL, will be set with evas_object_name_set */
    const char      *source; /* group name to use as source for this element */
    Edje_Size        min, prefer, max;
@@ -636,6 +667,7 @@ struct _Edje_Part_Collection
 
    struct {
       Edje_Size min, max;
+      unsigned char orientation;
    } prop;
 
    int        references;
@@ -684,6 +716,7 @@ typedef struct _Edje_Part_Description_List Edje_Part_Description_List;
 struct _Edje_Part_Description_List
 {
    Edje_Part_Description_Common **desc;
+   Edje_Part_Description_Common **desc_rtl; /* desc for Right To Left interface */
    unsigned int desc_count;
 };
 
@@ -691,6 +724,7 @@ struct _Edje_Part
 {
    const char                   *name; /* the name if any of the part */
    Edje_Part_Description_Common *default_desc; /* the part descriptor for default */
+   Edje_Part_Description_Common *default_desc_rtl; /* default desc for Right To Left interface */
 
    Edje_Part_Description_List    other; /* other possible descriptors */
 
@@ -711,6 +745,7 @@ struct _Edje_Part
    unsigned char          pointer_mode;
    unsigned char          entry_mode;
    unsigned char          select_mode;
+   unsigned char          cursor_mode;
    unsigned char          multiline;
    Edje_Part_Api          api;
 };
@@ -831,6 +866,8 @@ struct _Edje_Part_Description_Spec_Text
    unsigned char  min_y; /* if text size should be part min size */
    unsigned char  max_x; /* if text size should be part max size */
    unsigned char  max_y; /* if text size should be part max size */
+   int            size_range_min;
+   int            size_range_max; /* -1 means, no bound. */
 };
 
 struct _Edje_Part_Description_Spec_Box
@@ -885,31 +922,6 @@ struct _Edje_Part_Description_External
 };
 
 /*----------*/
-
-
-typedef struct _Edje Edje;
-typedef struct _Edje_Real_Part_State Edje_Real_Part_State;
-typedef struct _Edje_Real_Part_Drag Edje_Real_Part_Drag;
-typedef struct _Edje_Real_Part_Set Edje_Real_Part_Set;
-typedef struct _Edje_Real_Part Edje_Real_Part;
-typedef struct _Edje_Running_Program Edje_Running_Program;
-typedef struct _Edje_Signal_Callback Edje_Signal_Callback;
-typedef struct _Edje_Calc_Params Edje_Calc_Params;
-typedef struct _Edje_Pending_Program Edje_Pending_Program;
-typedef struct _Edje_Text_Style Edje_Text_Style;
-typedef struct _Edje_Color_Class Edje_Color_Class;
-typedef struct _Edje_Text_Class Edje_Text_Class;
-typedef struct _Edje_Var Edje_Var;
-typedef struct _Edje_Var_Int Edje_Var_Int;
-typedef struct _Edje_Var_Float Edje_Var_Float;
-typedef struct _Edje_Var_String Edje_Var_String;
-typedef struct _Edje_Var_List Edje_Var_List;
-typedef struct _Edje_Var_Hash Edje_Var_Hash;
-typedef struct _Edje_Var_Animator Edje_Var_Animator;
-typedef struct _Edje_Var_Timer Edje_Var_Timer;
-typedef struct _Edje_Var_Pool Edje_Var_Pool;
-typedef struct _Edje_Signal_Source_Char Edje_Signal_Source_Char;
-typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callback;
 
 struct _Edje_Signal_Source_Char
 {
@@ -986,6 +998,7 @@ struct _Edje
    int                   load_error;
    int                   freeze;
    FLOAT_T		 scale;
+   Eina_Bool             is_rtl : 1;
 
    struct {
       Edje_Text_Change_Cb  func;
@@ -1077,6 +1090,7 @@ struct _Edje_Real_Part_Set
 struct _Edje_Real_Part_State
 {
    Edje_Part_Description_Common *description; // 4
+   Edje_Part_Description_Common *description_rtl; // 4
    Edje_Real_Part        *rel1_to_x; // 4
    Edje_Real_Part        *rel1_to_y; // 4
    Edje_Real_Part        *rel2_to_x; // 4
@@ -1087,8 +1101,8 @@ struct _Edje_Real_Part_State
 #endif
    void                  *external_params; // 4
    Edje_Real_Part_Set    *set; // 4
-}; // 28
-// WITH EDJE_CALC_CACHE 128
+}; // 32
+// WITH EDJE_CALC_CACHE 132
 
 struct _Edje_Real_Part_Drag
 {
@@ -1116,8 +1130,6 @@ struct _Edje_Real_Part
    Eina_List                *items; // 4 //FIXME: only if table/box
    Edje_Part_Box_Animation  *anim; // 4 //FIXME: Used only if box
    void                     *entry_data; // 4 // FIXME: move to entry section
-   Evas_Object              *cursorbg_object; // 4 // FIXME: move to entry section
-   Evas_Object              *cursorfg_object; // 4 // FIXME: move to entry section
 
    Evas_Object              *swallowed_object; // 4 // FIXME: move with swallow_params data
    struct {
@@ -1498,8 +1510,9 @@ const char *   _edje_text_class_font_get(Edje *ed,
 					 int *size, char **free_later);
 
 
-Edje_Real_Part   *_edje_real_part_get(Edje *ed, const char *part);
-Edje_Real_Part   *_edje_real_part_recursive_get(Edje *ed, const char *part);
+Edje_Real_Part   *_edje_real_part_get(const Edje *ed, const char *part);
+Edje_Real_Part   *_edje_real_part_recursive_get(const Edje *ed, const char *part);
+Edje             *_edje_recursive_get(Edje *ed, const char *part, Edje_Real_Part **orp);
 Edje_Color_Class *_edje_color_class_find(Edje *ed, const char *color_class);
 void              _edje_color_class_member_add(Edje *ed, const char *color_class);
 void              _edje_color_class_member_del(Edje *ed, const char *color_class);
@@ -1777,6 +1790,8 @@ Eina_Bool _edje_entry_cursor_coord_set(Edje_Real_Part *rp, Edje_Cursor cur, int 
 Eina_Bool _edje_entry_cursor_is_format_get(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_is_visible_format_get(Edje_Real_Part *rp, Edje_Cursor cur);
 const char *_edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur);
+void _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos);
+int _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur);
     
 void _edje_external_init();
 void _edje_external_shutdown();
@@ -1840,5 +1855,7 @@ void _edje_lua2_script_func_signal(Edje *ed, const char *sig, const char *src);
 
 const char *edje_string_get(const Edje_String *es);
 const char *edje_string_id_get(const Edje_String *es);
+
+void _edje_object_orientation_inform(Evas_Object *obj);
 
 #endif
