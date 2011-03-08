@@ -25,15 +25,12 @@ static Eina_List *_edje_swallows_collect(Edje *ed);
 EAPI Eina_Bool
 edje_object_file_set(Evas_Object *obj, const char *file, const char *group)
 {
-   Eina_Bool ret;
    Edje *ed;
 
    ed = _edje_fetch(obj);
    if (!ed)
      return EINA_FALSE;
-   ret = ed->api->file_set(obj, file, group);
-   _edje_object_orientation_inform(obj);
-   return ret;
+   return ed->api->file_set(obj, file, group);
 }
 
 /* FIXDOC: Verify/expand doc. */
@@ -376,10 +373,6 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 
    if (ed->collection)
      {
-	if (ed->collection->prop.orientation != EDJE_ORIENTATION_AUTO)
-          ed->is_rtl = (ed->collection->prop.orientation ==
-                EDJE_ORIENTATION_RTL);
-
 	if (ed->collection->script_only)
 	  {
 	     ed->load_error = EDJE_LOAD_ERROR_NONE;
@@ -453,8 +446,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 		  _edje_ref(rp->edje);
 		  rp->part = ep;
 		  parts = eina_list_append(parts, rp);
-		  rp->param1.description = _edje_part_description_find(ed,
-                        rp, "default", 0.0);
+		  rp->param1.description = ep->default_desc;
 		  rp->chosen_description = rp->param1.description;
 		  if (!rp->param1.description)
 		    ERR("no default part description!");
@@ -785,8 +777,8 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 			    return 0;
 			 }
 		       child_ed = _edje_fetch(child_obj);
-                       child_ed->parent = eina_stringshare_add(rp->part->name);
-
+		       child_ed->parent = eina_stringshare_add(rp->part->name);
+		       
 		       group_path = eina_list_remove(group_path, group_path_entry);
 		       eina_stringshare_del(group_path_entry);
 
@@ -798,13 +790,10 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 			 }
 		       else
 			 {
-                            pack_it->parent = rp;
-
 			    _edje_object_pack_item_hints_set(child_obj, pack_it);
 			    evas_object_show(child_obj);
 			    if (pack_it->name)
-                                 evas_object_name_set(child_obj, pack_it->name);
-
+			      evas_object_name_set(child_obj, pack_it->name);
 			    if (rp->part->type == EDJE_PART_TYPE_BOX)
 			      {
 				 _edje_real_part_box_append(rp, child_obj);
@@ -1215,10 +1204,6 @@ _edje_collection_free(Edje_File *edf, Edje_Part_Collection *ec, Edje_Part_Collec
 	  _edje_collection_free_part_description_clean(ep->type, ep->other.desc[j], edf->free_strings);
 
 	free(ep->other.desc);
-        /* Alloc for RTL objects in edje_calc.c:_edje_part_description_find() */
-        if(ep->other.desc_rtl)
-          free(ep->other.desc_rtl);
-
 	free(ep->items);
 // technically need this - but we ASSUME we use "one_big" so everything gets
 // freed in one go lower down when we del the mempool... but what if pool goes
@@ -1266,16 +1251,6 @@ _edje_collection_free(Edje_File *edf, Edje_Part_Collection *ec, Edje_Part_Collec
    eina_mempool_del(ce->mp.part);
    memset(&ce->mp, 0, sizeof (ce->mp));
 
-   eina_mempool_del(ce->mp_rtl.RECTANGLE);
-   eina_mempool_del(ce->mp_rtl.TEXT);
-   eina_mempool_del(ce->mp_rtl.IMAGE);
-   eina_mempool_del(ce->mp_rtl.SWALLOW);
-   eina_mempool_del(ce->mp_rtl.TEXTBLOCK);
-   eina_mempool_del(ce->mp_rtl.GROUP);
-   eina_mempool_del(ce->mp_rtl.BOX);
-   eina_mempool_del(ce->mp_rtl.TABLE);
-   eina_mempool_del(ce->mp_rtl.EXTERNAL);
-   memset(&ce->mp_rtl, 0, sizeof (ce->mp_rtl));
    free(ec);
    ce->ref = NULL;
 }
@@ -1424,77 +1399,26 @@ _edje_find_alias(Eina_Hash *aliased, char *src, int *length)
 static void
 _cb_signal_repeat(void *data, Evas_Object *obj, const char *signal, const char *source)
 {
-   Edje_Pack_Element *pack_it;
    Evas_Object	*parent;
    Edje		*ed;
    Edje         *ed_parent;
    char		 new_src[4096]; /* XXX is this max reasonable? */
    size_t	 length_parent = 0;
-   size_t        length_index = 0;
    size_t	 length_source;
-   int           i = 0;
    const char   *alias = NULL;
 
    parent = data;
    ed = _edje_fetch(obj);
    if (!ed) return;
-
-   pack_it = evas_object_data_get(obj, "\377 edje.box_item");
-   if (!pack_it) pack_it = evas_object_data_get(obj, "\377 edje.table_item");
-   if (pack_it)
-     {
-        if (!pack_it->name)
-          {
-             Eina_List *child = NULL;
-             Evas_Object *o;
-
-             if (pack_it->parent->part->type == EDJE_PART_TYPE_BOX)
-               {
-                  child = evas_object_box_children_get(pack_it->parent->object);
-               }
-             else if (pack_it->parent->part->type == EDJE_PART_TYPE_TABLE)
-               {
-                  child = evas_object_table_children_get(pack_it->parent->object);
-               }
-
-             EINA_LIST_FREE(child, o)
-               {
-                  if (o == obj) break;
-                  i++;
-               }
-
-             eina_list_free(child);
-
-             length_index = 12;
-          }
-        else
-          {
-             length_index = strlen(pack_it->name) + 2;
-          }
-     }
-
    /* Replace snprint("%s%c%s") == memcpy + *new_src + memcat */
    if (ed->parent)
      length_parent = strlen(ed->parent);
    length_source = strlen(source);
-   if (length_source + length_parent + 2 + length_index > sizeof(new_src))
+   if (length_source + length_parent + 2 > sizeof(new_src))
      return;
 
    if (ed->parent)
      memcpy(new_src, ed->parent, length_parent);
-   if (ed->parent && length_index)
-     {
-        new_src[length_parent++] = EDJE_PART_PATH_SEPARATOR_INDEXL;
-        if (length_index == 12)
-          length_parent += eina_convert_itoa(i, new_src + length_parent);
-        else
-          {
-             memcpy(new_src + length_parent, pack_it->name, length_index);
-             length_parent += length_index - 2;
-          }
-        new_src[length_parent++] = EDJE_PART_PATH_SEPARATOR_INDEXR;
-     }
-
    new_src[length_parent] = EDJE_PART_PATH_SEPARATOR;
    memcpy(new_src + length_parent + 1, source, length_source + 1);
 

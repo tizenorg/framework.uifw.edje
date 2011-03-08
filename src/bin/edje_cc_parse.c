@@ -692,13 +692,7 @@ compile(void)
 	/*
 	 * Run the input through the C pre-processor.
 	 */
-        ret = -1;
-        if (ecore_file_exists(EPP_DIR"/epp"))
-          {
-             snprintf(buf, sizeof(buf), EPP_DIR"/epp %s -I%s %s -o %s",
-                      file_in, inc, def, tmpn);
-             ret = system(buf);
-          }
+
 	/*
 	 * On OpenSolaris, the default cpp is located in different places.
 	 * Alan Coppersmith told me to do what xorg does: using /usr/ccs/lib/cpp
@@ -706,7 +700,8 @@ compile(void)
 	 * Also, that preprocessor is not managing C++ comments, so pass the
 	 * sun cc preprocessor just after.
 	 */
-        else if (ecore_file_exists("/usr/ccs/lib/cpp"))
+        ret = -1;
+        if (ecore_file_exists("/usr/ccs/lib/cpp"))
           {
              snprintf(buf, sizeof(buf), "/usr/ccs/lib/cpp -I%s %s %s %s",
                       inc, def, file_in, tmpn);
