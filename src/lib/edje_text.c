@@ -1,5 +1,5 @@
 #include "edje_private.h"
-
+#define _ELLIP_STR "\xE2\x80\xA6"
 
 /* returns with and height for this part.
  *
@@ -86,12 +86,12 @@ _edje_text_fit_set(char *buf, const char *text, int c1, int c2)
 
    if (c1 >= 0)
      {
-	strcpy(buf, "...");
+	strcpy(buf, _ELLIP_STR);
 
 	if (c2 >= 0)
 	  {
 	     strncat(buf, text + c1, c2 - c1);
-	     strcat(buf, "...");
+	     strcat(buf, _ELLIP_STR);
 	  }
 	else
 	  strcat(buf, text + c1);
@@ -102,7 +102,7 @@ _edje_text_fit_set(char *buf, const char *text, int c1, int c2)
 	  {
 	     strncpy(buf, text, c2);
 	     buf[c2] = 0;
-	     strcat(buf, "...");
+	     strcat(buf, _ELLIP_STR);
 	  }
 	else
 	  strcpy(buf, text);
@@ -192,6 +192,8 @@ _edje_text_fit_x(Edje *ed, Edje_Real_Part *ep,
              c2 = evas_string_char_next_get(text, c2, NULL);
           }
      }
+
+   buf[0] = '\0';
 
    while (((c1 >= 0) || (c2 >= 0)) && (tw > sw))
      {
@@ -321,7 +323,8 @@ _edje_text_recalc_apply(Edje *ed, Edje_Real_Part *ep,
 			Edje_Calc_Params *params,
 			Edje_Part_Description_Text *chosen_desc)
 {
-   const char	*text, *str;
+   const char	*text = NULL;
+   const char   *str;
    const char	*font;
    char		*font2 = NULL;
    char         *sfont = NULL;
@@ -425,39 +428,32 @@ _edje_text_recalc_apply(Edje *ed, Edje_Real_Part *ep,
 	evas_object_text_font_set(ep->object, font, size);
 	evas_object_text_text_set(ep->object, text);
 	part_get_geometry(ep, &tw, &th);
-	if (tw > sw)
-	  {
-	     while ((tw > sw) && (size > 0) && (tw != 0))
-	       {
-		  int psize = size;
-		  size = (size * sw) / tw;
-		  if ((psize - size) <= 0) size = psize - 1;
-		  if (inlined_font) evas_object_text_font_source_set(ep->object, ed->path);
-		  else evas_object_text_font_source_set(ep->object, NULL);
+        /* Find the wanted font size */
+	if ((tw > sw) && (size > 0) && (tw != 0))
+          {
+             size = (size * sw) / tw;
 
-		  if (ep->part->scale) evas_object_scale_set(ep->object, TO_DOUBLE(sc));
-		  evas_object_text_font_set(ep->object, font, size);
-		  part_get_geometry(ep, &tw, &th);
-		  if ((size > 0) && (tw == 0)) break;
-	       }
-	  }
-	else if (tw < sw)
-	  {
-	     while ((tw < sw) && (size > 0) && (tw != 0))
-	       {
-		  int psize = size;
-		  size = (size * sw) / tw;
-		  /* fprintf(stderr, "size = %i (%i, %i)\n", size, sw, tw); */
-		  if ((psize - size) >= 0) size = psize + 1;
-		  if (inlined_font) evas_object_text_font_source_set(ep->object, ed->path);
-		  else evas_object_text_font_source_set(ep->object, NULL);
+             if (inlined_font) evas_object_text_font_source_set(ep->object, ed->path);
+             else evas_object_text_font_source_set(ep->object, NULL);
 
-		  if (ep->part->scale) evas_object_scale_set(ep->object, TO_DOUBLE(sc));
-		  evas_object_text_font_set(ep->object, font, size);
-		  part_get_geometry(ep, &tw, &th);
-		  if ((size > 0) && (tw == 0)) break;
-	       }
+             if (ep->part->scale) evas_object_scale_set(ep->object, TO_DOUBLE(sc));
+             evas_object_text_font_set(ep->object, font, size);
+             part_get_geometry(ep, &tw, &th);
 	  }
+	else if ((tw < sw) && (size > 0) && (tw != 0))
+          {
+             size = (size * sw) / tw;
+
+             if (inlined_font) evas_object_text_font_source_set(ep->object, ed->path);
+             else evas_object_text_font_source_set(ep->object, NULL);
+
+             if (ep->part->scale) evas_object_scale_set(ep->object, TO_DOUBLE(sc));
+             evas_object_text_font_set(ep->object, font, size);
+             part_get_geometry(ep, &tw, &th);
+          }
+        /* FIXME: This should possibly be replaced by more proper handling,
+         * but it's still way better than what was here before. */
+        if (tw > sw) size--;
      }
    if (chosen_desc->text.fit_y && (ep->text.cache.in_str && eina_stringshare_strlen(ep->text.cache.in_str) > 0))
      {
@@ -543,9 +539,17 @@ _edje_text_recalc_apply(Edje *ed, Edje_Real_Part *ep,
 	     size = current - 1;
 	  }
      }
-   if (size < 1) size = 1;
 
-   if (!chosen_desc->text.fit_x)
+   /* Make sure the size is in range */
+   if (size < 1)
+      size = 1;
+   else if ((size > chosen_desc->text.size_range_max) &&
+            (chosen_desc->text.size_range_max > 0))
+      size = chosen_desc->text.size_range_max;
+   else if (size < chosen_desc->text.size_range_min)
+      size = chosen_desc->text.size_range_min;
+
+   /* Handle ellipsis */
      {
 	if (inlined_font) evas_object_text_font_source_set(ep->object, ed->path);
 	else evas_object_text_font_source_set(ep->object, NULL);
@@ -573,8 +577,28 @@ _edje_text_recalc_apply(Edje *ed, Edje_Real_Part *ep,
    evas_object_text_font_set(ep->object, font, size);
    evas_object_text_text_set(ep->object, text);
    part_get_geometry(ep, &tw, &th);
-   ep->text.offset.x = TO_INT(SCALE(params->type.text.align.x, (sw - tw)));
-   ep->text.offset.y = TO_INT(SCALE(params->type.text.align.y, (sh - th)));
+   /* Handle alignment */
+     {
+        double align_x;
+        if (params->type.text.align.x < 0.0)
+          {
+             if (evas_object_text_direction_get(ep->object) ==
+                   EVAS_BIDI_DIRECTION_RTL)
+               {
+                  align_x = 1.0;
+               }
+             else
+               {
+                  align_x = 0.0;
+               }
+          }
+        else
+          {
+             align_x = params->type.text.align.x;
+          }
+        ep->text.offset.x = TO_INT(SCALE(align_x, (sw - tw)));
+        ep->text.offset.y = TO_INT(SCALE(params->type.text.align.y, (sh - th)));
+     }
 
    evas_object_move(ep->object,
 		    ed->x + params->x + ep->text.offset.x,
