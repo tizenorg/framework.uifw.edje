@@ -2022,7 +2022,7 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
 {
    Edje *ed;
    Edje_Real_Part *rp;
-	
+
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
    rp = _edje_real_part_recursive_get(ed, (char *)part);
@@ -2074,7 +2074,7 @@ edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   
+
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return NULL;
 
@@ -5283,7 +5283,7 @@ _edje_real_part_swallow_hints_update(Edje_Real_Part *rp)
 	rp->swallow_params.min.h = h1;
 	if (w2 > 0) rp->swallow_params.max.w = w2;
 	if (h2 > 0) rp->swallow_params.max.h = h2;
-  	switch (am)
+	switch (am)
 	  {
 	   case EVAS_ASPECT_CONTROL_NONE:
              rp->swallow_params.aspect.mode = EDJE_ASPECT_CONTROL_NONE;
