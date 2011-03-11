@@ -272,6 +272,7 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
 
    if (evas_object_focus_get(rp->edje->obj))
      {
+        printf("[Edje_entry::%s] pid : %d, obj : %p\n", __func__, getpid(), en);
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_focus_in(en->imf_context);
 
@@ -293,6 +294,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    en = rp->entry_data;
    if (!en || !en->imf_context) return;
 
+   printf("[Edje_entry::%s] pid : %d, obj : %p\n", __func__, getpid(), en);
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
@@ -322,6 +324,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
    if (!en->imf_context) return;
 
+   printf("[Edje_entry::%s] pid : %d, obj : %p\n", __func__, getpid(), en);
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_focus_in(en->imf_context);
 
@@ -350,6 +353,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
 
    if (!en->imf_context) return;
 
+   printf("[Edje_entry::%s] pid : %d, obj : %p\n", __func__, getpid(), en);
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
