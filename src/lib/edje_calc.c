@@ -381,7 +381,11 @@ _edje_recalc(Edje *ed)
 	  }
      }
    if (ed->postponed) return;
-   evas_object_smart_changed(ed->obj);
+   //TODO: need to find out "when", "how" ed->obj can be deleted.
+   //if ed->obj can be deleted then this expception handling is granted.
+   //otherwise, we should fix app-usage and remove this handling.
+   if (ed->obj)
+     evas_object_smart_changed(ed->obj);
    ed->postponed = 1;
 }
 
