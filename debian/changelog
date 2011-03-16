@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.57412slp2+build07) unstable; urgency=low
+
+  * Upload Package
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build07
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Wed, 16 Mar 2011 10:50:53 +0900
+
 edje (1.0.0.001+svn.57412slp2+build06) unstable; urgency=low
 
   * [SVN EFL Migration] edje in SLP is merged with SVN r57412
