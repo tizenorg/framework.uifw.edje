@@ -2709,8 +2709,12 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
 #endif
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_bg);
    rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->cursor_fg);
+   rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->block_handler_top);
+   rp->edje->subobjs = eina_list_remove(rp->edje->subobjs, en->block_handler_btm);
    evas_object_del(en->cursor_bg);
    evas_object_del(en->cursor_fg);
+   evas_object_del(en->block_handler_top);
+   evas_object_del(en->block_handler_btm);
 
    if (en->block_handler_top)
 	   evas_object_del(en->block_handler_top);
