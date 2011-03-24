@@ -1697,9 +1697,9 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                    if (en->func)
                       if (en->func(en->data, (void *)ev->string))
                          return;
-                   _text_filter_markup_prepend(en, en->cursor, "<password=off>");
-                  _text_filter_markup_prepend(en, en->cursor, ev->string);
-                  _text_filter_markup_prepend(en, en->cursor, "</password>");
+                   _text_filter_format_prepend(en, en->cursor, "+ password=off");
+                   _text_filter_markup_prepend(en, en->cursor, ev->string);
+                   _text_filter_format_prepend(en, en->cursor, "- password");
                }
              else
                {
@@ -3664,9 +3664,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
              if (en->func(en->data, (void *)ev->str)) return ECORE_CALLBACK_PASS_ON;
           }
 
-        _text_filter_markup_prepend(en, tc, "<password=off>");
+        _text_filter_format_prepend(en, tc, "+ password=off");
         _text_filter_markup_prepend(en, tc, ev->str);
-        _text_filter_markup_prepend(en, tc, "</password>");
+        _text_filter_format_prepend(en, tc, "- password");
      }
    else
      {
