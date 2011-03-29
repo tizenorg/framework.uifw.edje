@@ -24,24 +24,21 @@
 
 /* Parse a C expression from text in a string  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include "config.h"
+#include "cpplib.h"
+#include "cpphash.h"
 
 #ifdef __EMX__
-# include <strings.h>
+#include <strings.h>
 #endif
 
 #ifdef MULTIBYTE_CHARS
-# include <locale.h>
+#include <locale.h>
 #endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "cpplib.h"
-#include "cpphash.h"
 
 /* This is used for communicating lists of keywords with cccp.c.  */
 struct arglist {

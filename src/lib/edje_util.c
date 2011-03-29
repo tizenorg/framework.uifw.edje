@@ -42,6 +42,7 @@ static void _edje_object_image_preload_cb(void *data, Evas *e, Evas_Object *obj,
 static void _edje_object_signal_preload_cb(void *data, Evas_Object *obj, const char *emission, const char *source);
 
 Edje_Real_Part *_edje_real_part_recursive_get_helper(const Edje *ed, char **path);
+static Edje *_edje_recursive_get_helper(Edje *ed, char **path, Edje_Real_Part **orp);
 
 /************************** API Routines **************************/
 
@@ -2021,7 +2022,7 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
 {
    Edje *ed;
    Edje_Real_Part *rp;
-	
+
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
    rp = _edje_real_part_recursive_get(ed, (char *)part);
@@ -2073,7 +2074,7 @@ edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   
+
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return NULL;
 
@@ -2134,12 +2135,10 @@ edje_object_part_text_input_panel_enabled_get(const Evas_Object *obj, const char
 }
 
 /**
- * @brief Advances the cursor to the next cursor position.
- * @see evas_textblock_cursor_char_next
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur The edje cursor to advance
  */
 EAPI Eina_Bool
 edje_object_part_text_cursor_next(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2159,12 +2158,10 @@ edje_object_part_text_cursor_next(Evas_Object *obj, const char *part, Edje_Curso
 }
 
 /**
- * @brief Moves the cursor to the previous char
- * @see evas_textblock_cursor_char_prev
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI Eina_Bool
 edje_object_part_text_cursor_prev(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2184,11 +2181,10 @@ edje_object_part_text_cursor_prev(Evas_Object *obj, const char *part, Edje_Curso
 }
 
 /**
- * @brief Move the cursor to the char above the current cursor position.
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI Eina_Bool
 edje_object_part_text_cursor_up(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2208,11 +2204,10 @@ edje_object_part_text_cursor_up(Evas_Object *obj, const char *part, Edje_Cursor 
 }
 
 /**
- * @brief Moves the cursor to the char below the current cursor position.
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI Eina_Bool
 edje_object_part_text_cursor_down(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2232,12 +2227,10 @@ edje_object_part_text_cursor_down(Evas_Object *obj, const char *part, Edje_Curso
 }
 
 /**
- * @brief Moves the cursor to the beginning of the text part
- * @see evas_textblock_cursor_paragraph_first
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI void
 edje_object_part_text_cursor_begin_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2256,12 +2249,10 @@ edje_object_part_text_cursor_begin_set(Evas_Object *obj, const char *part, Edje_
 }
 
 /**
- * @brief Moves the cursor to the end of the text part.
- * @see evas_textblock_cursor_paragraph_last
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI void
 edje_object_part_text_cursor_end_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2280,12 +2271,10 @@ edje_object_part_text_cursor_end_set(Evas_Object *obj, const char *part, Edje_Cu
 }
 
 /**
- * @brief Copy the cursor to another cursor.
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param sry the cursor to copy from
- * @param dst the cursor to copy to
  */
 EAPI void
 edje_object_part_text_cursor_copy(Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst)
@@ -2304,12 +2293,10 @@ edje_object_part_text_cursor_copy(Evas_Object *obj, const char *part, Edje_Curso
 }
 
 /**
- * @brief Move the cursor to the beginning of the line.
- * @see evas_textblock_cursor_line_char_first
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI void
 edje_object_part_text_cursor_line_begin_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2328,12 +2315,10 @@ edje_object_part_text_cursor_line_begin_set(Evas_Object *obj, const char *part, 
 }
 
 /**
- * @brief Move the cursor to the end of the line.
- * @see evas_textblock_cursor_line_char_last
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur the edje cursor to work on
  */
 EAPI void
 edje_object_part_text_cursor_line_end_set(Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2382,13 +2367,10 @@ edje_object_part_text_cursor_coord_set(Evas_Object *obj, const char *part,
 }
 
 /**
- * @brief Returns whether the cursor points to a format.
- * @see evas_textblock_cursor_is_format
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur The cursor to adjust.
- * @return EINA_TRUE if it's true, EINA_FALSE otherwise.
  */
 EAPI Eina_Bool
 edje_object_part_text_cursor_is_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2408,13 +2390,10 @@ edje_object_part_text_cursor_is_format_get(const Evas_Object *obj, const char *p
 }
 
 /**
- * @brief Return true if the cursor points to a visible format
- * For example \t, \n, item and etc.
- * @see  evas_textblock_cursor_format_is_visible_get
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur The cursor to adjust.
  */
 EAPI Eina_Bool
 edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -2434,12 +2413,10 @@ edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const
 }
 
 /**
- * @brief Returns the content (char) at the cursor position.
- * @see evas_textblock_cursor_content_get
+ * @brief XX
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param cur The cursor to use
  */
 EAPI const char *
 edje_object_part_text_cursor_content_get(const Evas_Object *obj, const char *part, Edje_Cursor cur)
@@ -4736,6 +4713,22 @@ _edje_real_part_recursive_get(const Edje *ed, const char *part)
    return rp;
 }
 
+Edje *
+_edje_recursive_get(Edje *ed, const char *part, Edje_Real_Part **orp)
+{
+   Edje *oed;
+   char **path;
+
+   path = eina_str_split(part, EDJE_PART_PATH_SEPARATOR_STRING, 0);
+   if (!path) return NULL;
+
+   oed = _edje_recursive_get_helper(ed, path, orp);
+
+   free(*path);
+   free(path);
+   return oed;
+}
+
 Evas_Object *
 _edje_children_get(Edje_Real_Part *rp, const char *partid)
 {
@@ -4881,6 +4874,85 @@ _edje_real_part_recursive_get_helper(const Edje *ed, char **path)
 }
 
 /* Private Routines */
+static Edje *
+_edje_recursive_get_helper(Edje *ed, char **path, Edje_Real_Part **orp)
+{
+   Evas_Object *child;
+   Edje_Real_Part *rp;
+   char *idx = NULL;
+
+   if (!path[0])
+     return NULL;
+
+   if (ed->collection && ed->collection->alias)
+     {
+        char *alias;
+
+        alias = _edje_merge_path(eina_hash_find(ed->collection->alias, path[0]), path + 1);
+        if (alias) {
+           Edje *tmp;
+
+           tmp = _edje_recursive_get(ed, alias, orp);
+           free(alias);
+           return tmp;
+        }
+     }
+
+   //printf("  lookup: %s on %s\n", path[0], ed->parent ? ed->parent : "-");
+   idx = strchr(path[0], EDJE_PART_PATH_SEPARATOR_INDEXL);
+   if (idx)
+     {
+	char *end;
+
+	end = strchr(idx + 1, EDJE_PART_PATH_SEPARATOR_INDEXR);
+	if (end)
+	  {
+	     *end = '\0';
+	     *idx = '\0';
+	     idx++;
+	  }
+     }
+
+   rp = _edje_real_part_get(ed, path[0]);
+   if (!rp) return NULL;
+
+   if (!path[1] && !idx)
+     {
+        *orp = rp;
+        return rp->edje;
+     }
+
+   switch (rp->part->type)
+     {
+      case EDJE_PART_TYPE_GROUP:
+	 if (!rp->swallowed_object) return NULL;
+	 ed = _edje_fetch(rp->swallowed_object);
+	 if (!ed) return NULL;
+	 path++;
+
+         if (!path[0]) return ed;
+	 return _edje_recursive_get_helper(ed, path, orp);
+      case EDJE_PART_TYPE_BOX:
+      case EDJE_PART_TYPE_TABLE:
+      case EDJE_PART_TYPE_EXTERNAL:
+	 if (!idx)
+           {
+              *orp = rp;
+              return NULL;
+           }
+	 path++;
+
+	 child = _edje_children_get(rp, idx);
+
+	 ed = _edje_fetch(child);
+	 if (!ed) return NULL;
+         if (!path[0]) return ed;
+	 return _edje_recursive_get_helper(ed, path, orp);
+      default:
+	 return NULL;
+     }
+}
+
 Edje_Real_Part *
 _edje_real_part_get(const Edje *ed, const char *part)
 {
@@ -5211,7 +5283,7 @@ _edje_real_part_swallow_hints_update(Edje_Real_Part *rp)
 	rp->swallow_params.min.h = h1;
 	if (w2 > 0) rp->swallow_params.max.w = w2;
 	if (h2 > 0) rp->swallow_params.max.h = h2;
-  	switch (am)
+	switch (am)
 	  {
 	   case EVAS_ASPECT_CONTROL_NONE:
              rp->swallow_params.aspect.mode = EDJE_ASPECT_CONTROL_NONE;

@@ -48,25 +48,3 @@
 	This lets you limit the size of the font that will be used.
 	Especially useful when using fit.
 
-2011-03-10  WooHyun Jung
-
-        * Fix: Emit clicked signal on entry if still in - missing.
-
-2011-03-10  Cedric BAIL
-
-	* Correctly propagate recursive event with existing and non existing
-	part.
-
-2011-03-11  Cedric BAIL
-
-	* Add PROXY part.
-
-2011-03-19  Carsten Haitzler (The Rasterman)
-
-	* Change edje_decc to only use edje_cc as the compiler for security
-        and correctness reasons.
-
-2011-03-23  Brett Nash (nash)
-
-	* Move some of edje over to use smart clipper in evas.  This _should_
-	be transparent to users.

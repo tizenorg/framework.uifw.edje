@@ -277,7 +277,6 @@ typedef struct _Edje_Part_Api                        Edje_Part_Api;
 typedef struct _Edje_Part_Dragable		     Edje_Part_Dragable;
 typedef struct _Edje_Part_Image_Id                   Edje_Part_Image_Id;
 typedef struct _Edje_Part_Description_Image          Edje_Part_Description_Image;
-typedef struct _Edje_Part_Description_Proxy          Edje_Part_Description_Proxy;
 typedef struct _Edje_Part_Description_Text           Edje_Part_Description_Text;
 typedef struct _Edje_Part_Description_Box            Edje_Part_Description_Box;
 typedef struct _Edje_Part_Description_Table          Edje_Part_Description_Table;
@@ -286,7 +285,6 @@ typedef struct _Edje_Part_Description_Common         Edje_Part_Description_Commo
 typedef struct _Edje_Part_Description_Spec_Fill      Edje_Part_Description_Spec_Fill;
 typedef struct _Edje_Part_Description_Spec_Border    Edje_Part_Description_Spec_Border;
 typedef struct _Edje_Part_Description_Spec_Image     Edje_Part_Description_Spec_Image;
-typedef struct _Edje_Part_Description_Spec_Proxy     Edje_Part_Description_Spec_Proxy;
 typedef struct _Edje_Part_Description_Spec_Text      Edje_Part_Description_Spec_Text;
 typedef struct _Edje_Part_Description_Spec_Box       Edje_Part_Description_Spec_Box;
 typedef struct _Edje_Part_Description_Spec_Table     Edje_Part_Description_Spec_Table;
@@ -581,7 +579,6 @@ struct _Edje_Program_After /* the action to run after another action */
       TYPE      RECTANGLE;        \
       TYPE      TEXT;             \
       TYPE      IMAGE;            \
-      TYPE      PROXY;            \
       TYPE      SWALLOW;          \
       TYPE      TEXTBLOCK;        \
       TYPE      GROUP;            \
@@ -836,8 +833,6 @@ struct _Edje_Part_Description_Spec_Border
 
 struct _Edje_Part_Description_Spec_Image
 {
-   Edje_Part_Description_Spec_Fill   fill;
-
    Edje_Part_Image_Id **tweens; /* list of Edje_Part_Image_Id */
    unsigned int         tweens_count; /* number of tweens */
 
@@ -846,13 +841,7 @@ struct _Edje_Part_Description_Spec_Image
    Eina_Bool      set; /* if image condition it's content */
 
    Edje_Part_Description_Spec_Border border;
-};
-
-struct _Edje_Part_Description_Spec_Proxy
-{
    Edje_Part_Description_Spec_Fill   fill;
-
-   int id; /* the part id to use as a source for this state */
 };
 
 struct _Edje_Part_Description_Spec_Text
@@ -906,12 +895,6 @@ struct _Edje_Part_Description_Image
 {
    Edje_Part_Description_Common common;
    Edje_Part_Description_Spec_Image image;
-};
-
-struct _Edje_Part_Description_Proxy
-{
-   Edje_Part_Description_Common common;
-   Edje_Part_Description_Spec_Proxy proxy;
 };
 
 struct _Edje_Part_Description_Text
@@ -973,8 +956,6 @@ typedef struct _Edje_Signals_Sources_Patterns Edje_Signals_Sources_Patterns;
 typedef Eina_Bool(*Edje_elm_function) (void *data, void *input_data);
 struct _Edje
 {
-   Evas_Object          *clipper; /* a big rect to clip this Edje to */
-   Evas                 *evas; /* the Evas this Edje belongs to */
    const Edje_Smart_Api *api;
    const char           *path;
    const char           *group;
@@ -983,7 +964,9 @@ struct _Edje
    Evas_Coord            x, y, w, h;
    Edje_Size             min;
    double                paused_at;
+   Evas                 *evas; /* the Evas this Edje belongs to */
    Evas_Object          *obj; /* the smart object */
+   Evas_Object          *clipper; /* a big rect to clip this Edje to */
    Edje_File            *file; /* the file the data comes form */
    Edje_Part_Collection *collection; /* the description being used */
    Eina_List            *actions; /* currently running actions */
@@ -1448,7 +1431,6 @@ extern Eina_Mempool *_edje_real_part_state_mp;
 extern Eina_Mempool *_emp_RECTANGLE;
 extern Eina_Mempool *_emp_TEXT;
 extern Eina_Mempool *_emp_IMAGE;
-extern Eina_Mempool *_emp_PROXY;
 extern Eina_Mempool *_emp_SWALLOW;
 extern Eina_Mempool *_emp_TEXTBLOCK;
 extern Eina_Mempool *_emp_GROUP;
@@ -1530,6 +1512,7 @@ const char *   _edje_text_class_font_get(Edje *ed,
 
 Edje_Real_Part   *_edje_real_part_get(const Edje *ed, const char *part);
 Edje_Real_Part   *_edje_real_part_recursive_get(const Edje *ed, const char *part);
+Edje             *_edje_recursive_get(Edje *ed, const char *part, Edje_Real_Part **orp);
 Edje_Color_Class *_edje_color_class_find(Edje *ed, const char *color_class);
 void              _edje_color_class_member_add(Edje *ed, const char *color_class);
 void              _edje_color_class_member_del(Edje *ed, const char *color_class);
@@ -1543,7 +1526,7 @@ void              _edje_text_class_member_del(Edje *ed, const char *text_class);
 void              _edje_text_class_members_free(void);
 void              _edje_text_class_hash_free(void);
 
-Edje             *_edje_fetch(const Evas_Object *obj) EINA_PURE;
+Edje             *_edje_fetch(const Evas_Object *obj);
 int               _edje_freeze(Edje *ed);
 int               _edje_thaw(Edje *ed);
 int               _edje_block(Edje *ed);

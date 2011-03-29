@@ -156,7 +156,6 @@ static void st_collections_group_parts_part_table_items_item_span(void);
 
 static void ob_collections_group_parts_part_description(void);
 static void st_collections_group_parts_part_description_inherit(void);
-static void st_collections_group_parts_part_description_source(void);
 static void st_collections_group_parts_part_description_state(void);
 static void st_collections_group_parts_part_description_visible(void);
 static void st_collections_group_parts_part_description_align(void);
@@ -401,7 +400,6 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.table.items.item.position", st_collections_group_parts_part_table_items_item_position},
      {"collections.group.parts.part.table.items.item.span", st_collections_group_parts_part_table_items_item_span},
      {"collections.group.parts.part.description.inherit", st_collections_group_parts_part_description_inherit},
-     {"collections.group.parts.part.description.source", st_collections_group_parts_part_description_source},
      {"collections.group.parts.part.description.state", st_collections_group_parts_part_description_state},
      {"collections.group.parts.part.description.visible", st_collections_group_parts_part_description_visible},
      {"collections.group.parts.part.description.align", st_collections_group_parts_part_description_align},
@@ -779,23 +777,6 @@ statement_handler_num(void)
    return sizeof(statement_handlers) / sizeof (New_Object_Handler);
 }
 
-static void
-_edje_part_description_fill(Edje_Part_Description_Spec_Fill *fill)
-{
-   fill->smooth = 1;
-   fill->pos_rel_x = FROM_DOUBLE(0.0);
-   fill->pos_abs_x = 0;
-   fill->rel_x = FROM_DOUBLE(1.0);
-   fill->abs_x = 0;
-   fill->pos_rel_y = FROM_DOUBLE(0.0);
-   fill->pos_abs_y = 0;
-   fill->rel_y = FROM_DOUBLE(1.0);
-   fill->abs_y = 0;
-   fill->angle = 0;
-   fill->spread = 0;
-   fill->type = EDJE_FILL_TYPE_SCALE;
-}
-
 static Edje_Part_Description_Common *
 _edje_part_description_alloc(unsigned char type, const char *collection, const char *part)
 {
@@ -834,25 +815,22 @@ _edje_part_description_alloc(unsigned char type, const char *collection, const c
 	   ed = mem_alloc(SZ(Edje_Part_Description_Image));
 
 	   ed->image.id = -1;
-
-           _edje_part_description_fill(&ed->image.fill);
+	   ed->image.fill.smooth = 1;
+	   ed->image.fill.pos_rel_x = FROM_DOUBLE(0.0);
+	   ed->image.fill.pos_abs_x = 0;
+	   ed->image.fill.rel_x = FROM_DOUBLE(1.0);
+	   ed->image.fill.abs_x = 0;
+	   ed->image.fill.pos_rel_y = FROM_DOUBLE(0.0);
+	   ed->image.fill.pos_abs_y = 0;
+	   ed->image.fill.rel_y = FROM_DOUBLE(1.0);
+	   ed->image.fill.abs_y = 0;
+	   ed->image.fill.angle = 0;
+	   ed->image.fill.spread = 0;
+	   ed->image.fill.type = EDJE_FILL_TYPE_SCALE;
 
 	   result = &ed->common;
 	   break;
 	}
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = mem_alloc(SZ(Edje_Part_Description_Proxy));
-
-           ed->proxy.id = -1;
-
-           _edje_part_description_fill(&ed->proxy.fill);
-
-           result = &ed->common;
-           break;
-        }
       case EDJE_PART_TYPE_BOX:
 	{
 	   Edje_Part_Description_Box *ed;
@@ -2236,7 +2214,6 @@ st_collections_group_parts_part_type(void)
 			 "BOX", EDJE_PART_TYPE_BOX,
 			 "TABLE", EDJE_PART_TYPE_TABLE,
 			 "EXTERNAL", EDJE_PART_TYPE_EXTERNAL,
-                         "PROXY", EDJE_PART_TYPE_PROXY,
 			 NULL);
 
    if (ep->default_desc || ep->other.desc_count > 0)
@@ -3698,15 +3675,6 @@ st_collections_group_parts_part_description_inherit(void)
 
 	   break;
 	}
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ped = (Edje_Part_Description_Proxy*) ed;
-           Edje_Part_Description_Proxy *pparent = (Edje_Part_Description_Proxy*) parent;
-
-           ped->proxy.id = pparent->proxy.id;
-
-           break;
-        }
       case EDJE_PART_TYPE_BOX:
 	{
 	   Edje_Part_Description_Box *bed = (Edje_Part_Description_Box *) ed;
@@ -3748,48 +3716,6 @@ st_collections_group_parts_part_description_inherit(void)
      }
 
 #undef STRDUP
-}
-
-/**
-    @page edcref
-
-    @property
-        source
-    @parameters
-        [another part's name]
-    @effect
-        Causes the part to use another part content as the content of this part.
-        Only work with PROXY part.
-    @endproperty
-*/
-static void
-st_collections_group_parts_part_description_source(void)
-{
-   Edje_Part_Collection *pc;
-   Edje_Part *ep;
-   Edje_Part_Description_Proxy *ed;
-   char *name;
-
-   check_arg_count(1);
-
-   pc = eina_list_data_get(eina_list_last(edje_collections));
-   ep = pc->parts[pc->parts_count - 1];
-
-   if (ep->type != EDJE_PART_TYPE_PROXY)
-     {
-        ERR("%s: Error. parse error %s:%i. "
-            "source attributes in non-PROXY part.",
-            progname, file_in, line - 1);
-        exit(-1);
-     }
-
-   ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-   if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*) ep->other.desc[ep->other.desc_count - 1];
-
-   name = parse_str(0);
-
-   data_queue_part_lookup(pc, name, &(ed->proxy.id));
-   free(name);
 }
 
 /**
@@ -4836,45 +4762,25 @@ st_collections_group_parts_part_description_fill_smooth(void)
 {
    Edje_Part_Collection *pc;
    Edje_Part *ep;
-   Edje_Part_Description_Spec_Fill *fill;
+   Edje_Part_Description_Image *ed;
 
    check_arg_count(1);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = pc->parts[pc->parts_count - 1];
 
-   switch (ep->type)
+   if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-      case EDJE_PART_TYPE_IMAGE:
-        {
-           Edje_Part_Description_Image *ed;
-
-           ed = (Edje_Part_Description_Image*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->image.fill;
-	   break;
-        }
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->proxy.fill;
-	   break;
-        }
-      default:
-        {
-           ERR("%s: Error. parse error %s:%i. "
-               "image and proxy attributes in non-IMAGE, non-PROXY `%s` part (%i).",
-               progname, file_in, line - 1, ep->name, ep->type);
-           exit(-1);
-        }
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
      }
 
-   fill->smooth = parse_bool(0);
+   ed = (Edje_Part_Description_Image*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->image.fill.smooth = parse_bool(0);
 }
 
 /**
@@ -4943,48 +4849,28 @@ st_collections_group_parts_part_description_fill_type(void)
 {
    Edje_Part_Collection *pc;
    Edje_Part *ep;
-   Edje_Part_Description_Spec_Fill *fill;
+   Edje_Part_Description_Image *ed;
 
    check_arg_count(1);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = pc->parts[pc->parts_count - 1];
 
-   switch (ep->type)
+   if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-      case EDJE_PART_TYPE_IMAGE:
-        {
-           Edje_Part_Description_Image *ed;
-
-           ed = (Edje_Part_Description_Image*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->image.fill;
-	   break;
-        }
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->proxy.fill;
-	   break;
-        }
-      default:
-        {
-           ERR("%s: Error. parse error %s:%i. "
-               "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
-           exit(-1);
-        }
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
      }
 
-   fill->type = parse_enum(0,
-                           "SCALE", EDJE_FILL_TYPE_SCALE,
-                           "TILE", EDJE_FILL_TYPE_TILE,
-                           NULL);
+   ed = (Edje_Part_Description_Image*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->image.fill.type = parse_enum(0,
+				    "SCALE", EDJE_FILL_TYPE_SCALE,
+				    "TILE", EDJE_FILL_TYPE_TILE,
+				    NULL);
 }
 
 /**
@@ -5023,46 +4909,26 @@ st_collections_group_parts_part_description_fill_origin_relative(void)
 {
    Edje_Part_Collection *pc;
    Edje_Part *ep;
-   Edje_Part_Description_Spec_Fill *fill;
+   Edje_Part_Description_Image *ed;
 
    check_arg_count(2);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = pc->parts[pc->parts_count - 1];
 
-   switch (ep->type)
+   if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-      case EDJE_PART_TYPE_IMAGE:
-        {
-           Edje_Part_Description_Image *ed;
-
-           ed = (Edje_Part_Description_Image*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->image.fill;
-	   break;
-        }
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->proxy.fill;
-	   break;
-        }
-      default:
-        {
-           ERR("%s: Error. parse error %s:%i. "
-               "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
-           exit(-1);
-        }
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
      }
 
-   fill->pos_rel_x = FROM_DOUBLE(parse_float_range(0, -999999999.0, 999999999.0));
-   fill->pos_rel_y = FROM_DOUBLE(parse_float_range(1, -999999999.0, 999999999.0));
+   ed = (Edje_Part_Description_Image*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->image.fill.pos_rel_x = FROM_DOUBLE(parse_float_range(0, -999999999.0, 999999999.0));
+   ed->image.fill.pos_rel_y = FROM_DOUBLE(parse_float_range(1, -999999999.0, 999999999.0));
 }
 
 /**
@@ -5080,47 +4946,26 @@ st_collections_group_parts_part_description_fill_origin_offset(void)
 {
    Edje_Part_Collection *pc;
    Edje_Part *ep;
-   Edje_Part_Description_Spec_Fill *fill;
+   Edje_Part_Description_Image *ed;
 
    check_arg_count(2);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = pc->parts[pc->parts_count - 1];
 
-
-   switch (ep->type)
+   if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-      case EDJE_PART_TYPE_IMAGE:
-        {
-           Edje_Part_Description_Image *ed;
-
-           ed = (Edje_Part_Description_Image*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->image.fill;
-	   break;
-        }
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->proxy.fill;
-	   break;
-        }
-      default:
-        {
-           ERR("%s: Error. parse error %s:%i. "
-               "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
-           exit(-1);
-        }
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
      }
 
-   fill->pos_abs_x = parse_int(0);
-   fill->pos_abs_y = parse_int(1);
+   ed = (Edje_Part_Description_Image*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->image.fill.pos_abs_x = parse_int(0);
+   ed->image.fill.pos_abs_y = parse_int(1);
 }
 
 /**
@@ -5161,46 +5006,26 @@ st_collections_group_parts_part_description_fill_size_relative(void)
 {
    Edje_Part_Collection *pc;
    Edje_Part *ep;
-   Edje_Part_Description_Spec_Fill *fill;
+   Edje_Part_Description_Image *ed;
 
    check_arg_count(2);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = pc->parts[pc->parts_count - 1];
 
-   switch (ep->type)
+   if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-      case EDJE_PART_TYPE_IMAGE:
-        {
-           Edje_Part_Description_Image *ed;
-
-           ed = (Edje_Part_Description_Image*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->image.fill;
-	   break;
-        }
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->proxy.fill;
-	   break;
-        }
-      default:
-        {
-           ERR("%s: Error. parse error %s:%i. "
-               "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
-           exit(-1);
-        }
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
      }
 
-   fill->rel_x = FROM_DOUBLE(parse_float_range(0, 0.0, 999999999.0));
-   fill->rel_y = FROM_DOUBLE(parse_float_range(1, 0.0, 999999999.0));
+   ed = (Edje_Part_Description_Image*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->image.fill.rel_x = FROM_DOUBLE(parse_float_range(0, 0.0, 999999999.0));
+   ed->image.fill.rel_y = FROM_DOUBLE(parse_float_range(1, 0.0, 999999999.0));
 }
 
 /**
@@ -5218,46 +5043,26 @@ st_collections_group_parts_part_description_fill_size_offset(void)
 {
    Edje_Part_Collection *pc;
    Edje_Part *ep;
-   Edje_Part_Description_Spec_Fill *fill;
+   Edje_Part_Description_Image *ed;
 
    check_arg_count(2);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = pc->parts[pc->parts_count - 1];
 
-   switch (ep->type)
+   if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-      case EDJE_PART_TYPE_IMAGE:
-        {
-           Edje_Part_Description_Image *ed;
-
-           ed = (Edje_Part_Description_Image*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->image.fill;
-	   break;
-        }
-      case EDJE_PART_TYPE_PROXY:
-        {
-           Edje_Part_Description_Proxy *ed;
-
-           ed = (Edje_Part_Description_Proxy*) ep->default_desc;
-           if (ep->other.desc_count) ed = (Edje_Part_Description_Proxy*)  ep->other.desc[ep->other.desc_count - 1];
-
-           fill = &ed->proxy.fill;
-	   break;
-        }
-      default:
-        {
-           ERR("%s: Error. parse error %s:%i. "
-               "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
-           exit(-1);
-        }
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
      }
 
-   fill->abs_x = parse_int(0);
-   fill->abs_y = parse_int(1);
+   ed = (Edje_Part_Description_Image*) ep->default_desc;
+   if (ep->other.desc_count) ed = (Edje_Part_Description_Image*)  ep->other.desc[ep->other.desc_count - 1];
+
+   ed->image.fill.abs_x = parse_int(0);
+   ed->image.fill.abs_y = parse_int(1);
 }
 
 
@@ -7080,6 +6885,7 @@ st_collections_group_programs_program_action(void)
 			   "FOCUS_OBJECT", EDJE_ACTION_TYPE_FOCUS_OBJECT,
 			   "PARAM_COPY", EDJE_ACTION_TYPE_PARAM_COPY,
 			   "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
+			   "HIDE_VISIBLE_PASSWORD", EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD,
 			   NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
@@ -7142,6 +6948,7 @@ st_collections_group_programs_program_action(void)
 	/* this is implicitly set by script {} so this is here just for
 	 * completeness */
 	break;
+      case EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD:
       case EDJE_ACTION_TYPE_FOCUS_OBJECT:
       case EDJE_ACTION_TYPE_FOCUS_SET:
 	check_arg_count(1);
@@ -7227,6 +7034,8 @@ st_collections_group_programs_program_target(void)
 	else if (ep->action == EDJE_ACTION_TYPE_FOCUS_SET)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else if (ep->action == EDJE_ACTION_TYPE_FOCUS_OBJECT)
+	  data_queue_part_lookup(pc, name, &(et->id));
+	else if (ep->action == EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else
 	  {

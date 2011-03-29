@@ -23,23 +23,9 @@
  * You are forbidden to forbid anyone else to use, share and improve
  * what you give them.   Help stamp out software-hoarding!  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+const char         *version_string = "0.0.0";
 
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-void *alloca (size_t);
-#endif
+#include "config.h"
 
 #ifdef __EMX__
 #include <strings.h>
@@ -56,8 +42,6 @@ void *alloca (size_t);
 #include "cpplib.h"
 #include "cpphash.h"
 
-const char         *version_string = "0.0.0";
-
 #ifndef STDC_VALUE
 #define STDC_VALUE 1
 #endif
@@ -71,7 +55,12 @@ const char         *version_string = "0.0.0";
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#ifdef __STDC__
 #include <stdlib.h>
+#endif
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -82,9 +71,7 @@ const char         *version_string = "0.0.0";
 #ifndef USG
 #include <time.h>
 #include <sys/time.h>		/* for __DATE__ and __TIME__ */
-#ifdef HAVE_SYS_RESOURCE_H
-# include <sys/resource.h>
-#endif
+#include <sys/resource.h>
 #else
 #include <sys/param.h>		/* CYGNUS LOCAL: shebs -noquiet */
 #include <sys/times.h>
@@ -983,7 +970,7 @@ cpp_skip_hspace(cpp_reader * pfile)
 	  }
 	else if (c == '@' && CPP_BUFFER(pfile)->has_escapes
 		 && is_hor_space[PEEKN(1)])
-	   FORWARD(1);
+	   FORWARD(2);
 	else
 	   return;
      }
@@ -2756,8 +2743,6 @@ macroexpand(cpp_reader * pfile, HASHNODE * hp)
 		continue;
 	     if (i < nargs || (nargs == 0 && i == 0))
 	       {
-                  unsigned char *bp;
-                  
 		  /* if we are working on last arg which absorbs rest of args... */
 		  if (i == nargs - 1 && defn->rest_args)
 		     rest_args = 1;
@@ -2765,20 +2750,6 @@ macroexpand(cpp_reader * pfile, HASHNODE * hp)
 		  token = macarg(pfile, rest_args);
 		  args[i].raw_length = CPP_WRITTEN(pfile) - args[i].raw;
 		  args[i].newlines = 0;	/* FIXME */
-                  bp = ARG_BASE + args[i].raw;
-                  while (is_space[(unsigned char)(*bp)]) { bp++; }
-                  args[i].raw_length -= bp - (ARG_BASE + args[i].raw);
-                  args[i].raw = bp - ARG_BASE;
-                  if (args[i].raw_length > 0)
-                    {
-                       bp = ARG_BASE + args[i].raw + args[i].raw_length - 1;
-                       while (is_space[(unsigned char)(*bp)])
-                         {
-                            bp--; 
-                            args[i].raw_length--;
-                            if (args[i].raw_length < 1) break;
-                         }
-                    }
 	       }
 	     else
 		token = macarg(pfile, 0);
@@ -3080,6 +3051,7 @@ macroexpand(cpp_reader * pfile, HASHNODE * hp)
 	     if (totlen > xbuf_len)
 		abort();
 	  }
+
 	/* if there is anything left of the definition
 	 * after handling the arg list, copy that in too. */
 
@@ -3095,6 +3067,7 @@ macroexpand(cpp_reader * pfile, HASHNODE * hp)
 
 	xbuf[totlen] = 0;
 	xbuf_len = totlen;
+
      }
 
    pfile->output_escapes--;
@@ -4619,22 +4592,7 @@ cpp_get_token(cpp_reader * pfile)
 	       }
 	     else if (CPP_TRADITIONAL(pfile))
 	       {
-		  if (newlines > 0)
-		     {
-			output_line_command(pfile, 0, same_file);
-			return CPP_VSPACE;
-		     }
-		  else
-		    {
-			return CPP_COMMENT;
-		    }
-	       }
-	     else if (newlines > 0)
-	       {
-		 output_line_command(pfile, 0, same_file);
-		 CPP_RESERVE(pfile, 1);
-		 CPP_PUTC_Q(pfile, ' ');
-		 return CPP_VSPACE;
+		  return CPP_COMMENT;
 	       }
 	     else
 	       {
@@ -4859,9 +4817,10 @@ cpp_get_token(cpp_reader * pfile)
 		    }
 		  else if (is_space[c])
 		    {
-		       CPP_RESERVE(pfile, 1);
+		       CPP_RESERVE(pfile, 2);
 		       if (pfile->output_escapes)
 			  CPP_PUTC_Q(pfile, '@');
+		       CPP_PUTC_Q(pfile, c);
 		       return CPP_HSPACE;
 		    }
 	       }
