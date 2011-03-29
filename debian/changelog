@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.58064slp2+build02) unstable; urgency=low
+
+  * Rollback
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58064slp2+build02
+
+ -- Shinwoo Kim <cinoo.kim@samsung.com>  Wed, 30 Mar 2011 00:15:43 +0900
+
 edje (1.0.0.001+svn.58064slp2+build01) unstable; urgency=low
 
   * [SVN EFL Migration] edje in SLP is merged with SVN r58064
