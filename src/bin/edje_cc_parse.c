@@ -30,8 +30,15 @@ void *alloca (size_t);
 #include <math.h>
 
 #include "edje_cc.h"
+#include "edje_prefix.h"
 #include <Ecore.h>
 #include <Ecore_File.h>
+
+#ifdef _WIN32
+# define EPP_EXT ".exe"
+#else
+# define EPP_EXT
+#endif
 
 static void  new_object(void);
 static void  new_statement(void);
@@ -638,7 +645,7 @@ get_verbatim_line2(void)
 void
 compile(void)
 {
-   char buf[4096];
+   char buf[4096], buf2[4096];
    char inc[4096];
    static char tmpn[4096];
    int fd;
@@ -693,10 +700,11 @@ compile(void)
 	 * Run the input through the C pre-processor.
 	 */
         ret = -1;
-        if (ecore_file_exists(EPP_DIR"/epp"))
+        snprintf(buf2, sizeof(buf2), "%s/edje/utils/epp"EPP_EXT, e_prefix_lib_get());
+        if (ecore_file_exists(buf2))
           {
-             snprintf(buf, sizeof(buf), EPP_DIR"/epp %s -I%s %s -o %s",
-                      file_in, inc, def, tmpn);
+             snprintf(buf, sizeof(buf), "%s %s -I%s %s -o %s",
+                      buf2, file_in, inc, def, tmpn);
              ret = system(buf);
           }
 	/*
@@ -747,19 +755,6 @@ compile(void)
 	if (ret == EXIT_SUCCESS)
 	  file_in = tmpn;
 	free(def);
-/* OLD CODE
-	snprintf(buf, sizeof(buf), "cat %s | cpp -I%s %s -E -o %s",
-		 file_in, inc, def, tmpn);
-	ret = system(buf);
-	if (ret < 0)
-	  {
-	     snprintf(buf, sizeof(buf), "gcc -I%s %s -E -o %s %s",
-		      inc, def, tmpn, file_in);
-	     ret = system(buf);
-	  }
-	if (ret >= 0) file_in = tmpn;
-	free(def);
- */
      }
    fd = open(file_in, O_RDONLY | O_BINARY, S_IRUSR | S_IWUSR);
    if (fd < 0)
