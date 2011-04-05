@@ -178,38 +178,16 @@ _caps_mode_check(Entry *en)
 
 #ifdef HAVE_ECORE_IMF
 static void
-_input_panel_hide(Ecore_IMF_Context *ctx)
+_input_panel_hide(Entry *en)
 {
    Ecore_IMF_Input_Panel_State state;
 
-   state = ecore_imf_context_input_panel_state_get(ctx);
+   if (!en || !en->input_panel_enable || !en->imf_context) return;
+
+   state = ecore_imf_context_input_panel_state_get(en->imf_context);
 
    if (state == ECORE_IMF_INPUT_PANEL_STATE_SHOW)
-      ecore_imf_context_input_panel_hide(ctx);
-}
-
-static Eina_Bool _hide_timer_handler(void *data)
-{
-   Entry *en = (Entry *)data;
-   if (!en || !en->imf_context) goto done;
-
-   _input_panel_hide(en->imf_context);
-
-done:
-   hide_timer = NULL;
-   return ECORE_CALLBACK_CANCEL;
-}
-
-static void
-_input_panel_hide_timer_start(Entry *en)
-{
-   if (!en || !en->input_panel_enable) return;
-
-   if (hide_timer)
-     {
-        ecore_timer_del(hide_timer);
-     }
-   hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
+      ecore_imf_context_input_panel_hide(en->imf_context);
 }
 
 static void
@@ -226,6 +204,30 @@ _input_panel_show(Entry *en)
    if(!en->imf_context) return;
    ecore_imf_context_input_panel_show(en->imf_context);
    focused_entry = en;
+}
+
+static Eina_Bool _hide_timer_handler(void *data)
+{
+   Entry *en = (Entry *)data;
+   if (!en || !en->imf_context) goto done;
+
+   _input_panel_hide(en);
+
+done:
+   hide_timer = NULL;
+   return ECORE_CALLBACK_CANCEL;
+}
+
+static void
+_input_panel_hide_timer_start(Entry *en)
+{
+   if (!en || !en->input_panel_enable) return;
+
+   if (hide_timer)
+     {
+        ecore_timer_del(hide_timer);
+     }
+   hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
 }
 
 static void
@@ -621,7 +623,7 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
    ecore_imf_context_reset(en->imf_context);
 
    if (en->input_panel_enable)
-      _input_panel_hide(en->imf_context);
+      _input_panel_hide(en);
 #endif
 }
 
@@ -652,7 +654,7 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 
    if (en->input_panel_enable)
      {
-        _input_panel_hide(en->imf_context);
+        _input_panel_hide(en);
      }
 #endif
 }
