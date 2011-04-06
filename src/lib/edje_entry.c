@@ -1359,7 +1359,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                                            (Ecore_IMF_Event *)&ecore_ev))
            return;
      }
-#endif /* HAVE_ECORE_IMF */
+#endif
 
    old_cur_pos = evas_textblock_cursor_pos_get(en->cursor);
 
@@ -2665,7 +2665,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
                }
           }
         else
-           en->imf_context = NULL;
+          en->imf_context = NULL;
 
         if (!en->imf_context) goto done;
 
@@ -2766,7 +2766,7 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
         edje_object_signal_callback_del(rp->edje->obj, "focus,part,out", rp->part->name, _edje_entry_focus_out_cb);
         ecore_imf_shutdown();
      }
-#endif /* HAVE_ECORE_IMF */
+#endif
 
    free(en);
 }
@@ -3103,8 +3103,7 @@ _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow)
 {
    Entry *en = rp->entry_data;
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_DEFAULT)
-      return;
-
+     return;
    en->select_allow = allow;
 
    if ((allow) && (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
@@ -3227,19 +3226,19 @@ _cursor_get(Edje_Real_Part *rp, Edje_Cursor cur)
          return en->sel_end;
       case EDJE_CURSOR_PREEDIT_START:
          if (!en->preedit_start)
-            en->preedit_start = evas_object_textblock_cursor_new(rp->object);
+           en->preedit_start = evas_object_textblock_cursor_new(rp->object);
          return en->preedit_start;
       case EDJE_CURSOR_PREEDIT_END:
          if (!en->preedit_end)
-            en->preedit_end = evas_object_textblock_cursor_new(rp->object);
+           en->preedit_end = evas_object_textblock_cursor_new(rp->object);
          return en->preedit_end;
       case EDJE_CURSOR_USER:
          if (!en->cursor_user)
-            en->cursor_user = evas_object_textblock_cursor_new(rp->object);
+           en->cursor_user = evas_object_textblock_cursor_new(rp->object);
          return en->cursor_user;
       case EDJE_CURSOR_USER_EXTRA:
          if (!en->cursor_user_extra)
-            en->cursor_user_extra = evas_object_textblock_cursor_new(rp->object);
+           en->cursor_user_extra = evas_object_textblock_cursor_new(rp->object);
          return en->cursor_user_extra;
       default:
          break;
@@ -3587,7 +3586,7 @@ _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx __UNU
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
-      return EINA_FALSE;
+     return EINA_FALSE;
 
    if (text)
      {
@@ -3616,7 +3615,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
-      return ECORE_CALLBACK_PASS_ON;
+     return ECORE_CALLBACK_PASS_ON;
 
    if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
@@ -3635,9 +3634,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    /* calculate the cursor position to insert commit string */
    if (en->preedit_start)
-      evas_textblock_cursor_copy(en->preedit_start, tc);
+     evas_textblock_cursor_copy(en->preedit_start, tc);
    else
-      evas_textblock_cursor_copy(en->cursor, tc);
+     evas_textblock_cursor_copy(en->cursor, tc);
 
 #ifdef HAVE_ECORE_IMF
    /* delete preedit characters */
@@ -3646,7 +3645,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 #endif
 
    if (evas_textblock_cursor_compare(en->cursor, tc))
-      cursor_move = EINA_TRUE;
+     cursor_move = EINA_TRUE;
 
    if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
      {
@@ -3723,7 +3722,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
-      return ECORE_CALLBACK_PASS_ON;
+     return ECORE_CALLBACK_PASS_ON;
 
    if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
 
@@ -3732,7 +3731,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    ecore_imf_context_preedit_string_with_attributes_get(en->imf_context, &preedit_string, &attrs, &cursor_pos);
 
    if (!strcmp(preedit_string, ""))
-      preedit_end_state = EINA_TRUE;
+     preedit_end_state = EINA_TRUE;
 
    /*if inputtin text is not allowed, dont allow text input*/
    if ((en->func) && !en->have_preedit)
@@ -3790,12 +3789,12 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
      {
         /* set preedit start cursor */
         if (!en->preedit_start)
-           en->preedit_start = evas_object_textblock_cursor_new(rp->object);
+          en->preedit_start = evas_object_textblock_cursor_new(rp->object);
         evas_textblock_cursor_copy(en->cursor, en->preedit_start);
 
         /* set preedit end cursor */
         if (!en->preedit_end)
-           en->preedit_end = evas_object_textblock_cursor_new(rp->object);
+          en->preedit_end = evas_object_textblock_cursor_new(rp->object);
         evas_textblock_cursor_copy(en->cursor, en->preedit_end);
 
         preedit_end_pos = evas_textblock_cursor_pos_get(en->cursor);
@@ -3848,7 +3847,7 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
-      return ECORE_CALLBACK_PASS_ON;
+     return ECORE_CALLBACK_PASS_ON;
 
    if (!en->imf_context) return ECORE_CALLBACK_PASS_ON;
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
@@ -3868,6 +3867,6 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
 
    return ECORE_CALLBACK_DONE;
 }
-#endif /* HAVE_ECORE_IMF */
+#endif
 
 /* vim:set ts=8 sw=3 sts=3 expandtab cino=>5n-2f0^-2{2(0W1st0 :*/
