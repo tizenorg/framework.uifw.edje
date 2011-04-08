@@ -3630,18 +3630,15 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
           }
      }
 
-   tc = evas_object_textblock_cursor_new(rp->object);
-
    /* calculate the cursor position to insert commit string */
    if (en->preedit_start)
-     evas_textblock_cursor_copy(en->preedit_start, tc);
+     tc = en->preedit_start;
    else
-     evas_textblock_cursor_copy(en->cursor, tc);
+     tc = en->cursor;
 
 #ifdef HAVE_ECORE_IMF
    /* delete preedit characters */
    _preedit_del(en);
-   _preedit_clear(en);
 #endif
 
    if (evas_textblock_cursor_compare(en->cursor, tc))
@@ -3688,7 +3685,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
           }
      }
 
-   evas_textblock_cursor_free(tc);
+#ifdef HAVE_ECORE_IMF
+   _preedit_clear(en);
+#endif
 
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);
