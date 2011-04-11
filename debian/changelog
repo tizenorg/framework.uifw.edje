@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.58214slp2+build04) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build04
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Mon, 11 Apr 2011 16:09:21 +0900
+
 edje (1.0.0.001+svn.58214slp2+build03) unstable; urgency=low
 
   * Package Upload
