@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.58214slp2+build03) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build03
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Mon, 11 Apr 2011 11:05:54 +0900
+
 edje (1.0.0.001+svn.58214slp2+build02) unstable; urgency=low
 
   * [entry] remove need_commit. It makes side effect
