@@ -77,8 +77,6 @@ struct _Entry
 #endif
 
    Ecore_Timer *longpress_timer;
-   Edje_elm_function func;
-   void *data;
 };
 
 struct _Sel
@@ -1326,9 +1324,6 @@ _edje_entry_hide_visible_password(Edje_Real_Part *rp)
      }
    _edje_entry_real_part_configure(rp);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
-   /*remove the below 2 lines*/
-   if (en->func)
-      en->func(en->data, NULL);
 }
 
 static void
@@ -1461,9 +1456,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              else
                {
                 _backspace(en->cursor, rp->object, en);
-                 /* if inputting text is not allowed, dont allow text input */
-                if (en->func)
-                   en->func(en->data, NULL);
                }
           }
         _sel_clear(en->cursor, rp->object, en);
@@ -1491,9 +1483,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              else
                {
                 _delete(en->cursor, rp->object, en);
-                 /*count characters*/
-                if (en->func)
-                   en->func(en->data, NULL);
                }
           }
         _sel_clear(en->cursor, rp->object, en);
@@ -1648,12 +1637,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
      }
    else if ((!strcmp(ev->key, "Return")) || (!strcmp(ev->key, "KP_Enter")))
      {
-        /* if inputting text is not allowed, dont allow text input */
-        if (en->func)
-          {
-             if (en->func(en->data, "<br>")) return;
-          }
-
         if (multiline)
           {
              if (en->have_selection)
@@ -1680,9 +1663,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              _caps_mode_check(en);
           }
         _edje_emit(ed, "entry,key,enter", rp->part->name);
-        /*count characters*/
-        if (en->func)
-           en->func(en->data, NULL);
      }
    else
      {
@@ -1698,26 +1678,15 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
                {
                    _edje_entry_hide_visible_password(en->rp);
-                   /*remove the below 3 lines*/
-                   if (en->func)
-                      if (en->func(en->data, (void *)ev->string))
-                         return;
                    _text_filter_format_prepend(en, en->cursor, "+ password=off");
                    _text_filter_markup_prepend(en, en->cursor, ev->string);
                    _text_filter_format_prepend(en, en->cursor, "- password");
                }
              else
                {
-                  /*remove the below 3 lines*/
-                  if (en->func)
-                     if (en->func(en->data, (void *)ev->string))
-                        return;
-
                   //evas_textblock_cursor_text_prepend(en->cursor, ev->string);
                   _text_filter_text_prepend(en, en->cursor, ev->string);
 
-                  /*count characters*/
-                  if (en->func) en->func(en->data, NULL);
 #if 0
 //             evas_textblock_cursor_text_prepend(en->cursor, ev->string);
              _text_filter_text_prepend(en, en->cursor, ev->string);
@@ -2864,11 +2833,6 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-   /*if inputtin text is not allowed, dont allow text input*/
-   if (en->func)
-     {
-       if (en->func(en->data, (void *)text)) return;
-     }
 
    // prepend markup @ cursor pos
    if (en->have_selection)
@@ -2891,10 +2855,6 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
      }
 #endif
    _edje_entry_real_part_configure(rp);
-
-   /* count characters */
-   if (en->func)
-     en->func(en->data, NULL);
 }
 
 void
@@ -3122,17 +3082,6 @@ _edje_entry_select_allow_get(const Edje_Real_Part *rp)
 {
    const Entry *en = rp->entry_data;
    return en->select_allow;
-}
-
-void
-_edje_entry_textinput_callback_set(Edje_Real_Part * rp, Edje_elm_function func,
-				   void *data)
-{
-   Entry *en = rp->entry_data;
-   if (!en) return;
-
-   en->func = func;
-   en->data = data;
 }
 
 void
@@ -3651,12 +3600,6 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
      {
         _edje_entry_hide_visible_password(en->rp);
-        /* if inputtin text is not allowed, dont allow text input */
-        if (en->func)
-          {
-             if (en->func(en->data, (void *)ev->str)) return ECORE_CALLBACK_PASS_ON;
-          }
-
         _text_filter_format_prepend(en, tc, "+ password=off");
         _text_filter_markup_prepend(en, tc, ev->str);
         _text_filter_format_prepend(en, tc, "- password");
@@ -3664,18 +3607,8 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    else
      {
         if (!strcmp(ev->str, " ")) _autoperiod_insert(en, tc);
-
-       /* if inputtin text is not allowed, dont allow text input */
-        if (en->func)
-          {
-             if (en->func(en->data, ev->str)) return ECORE_CALLBACK_PASS_ON;
-          }
-
         //evas_textblock_cursor_text_prepend(en->cursor, ev->str);
         _text_filter_text_prepend(en, tc, ev->str);
-
-        /*count characters*/
-        if (en->func) en->func(en->data, NULL);
 #if 0
        //yy
 //       evas_textblock_cursor_text_prepend(en->cursor, ev->str);
@@ -3735,16 +3668,6 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
 
    if (!strcmp(preedit_string, ""))
      preedit_end_state = EINA_TRUE;
-
-   /*if inputtin text is not allowed, dont allow text input*/
-   if ((en->func) && !en->have_preedit)
-     {
-        if (en->func(en->data, preedit_string))
-          {
-             free(preedit_string);
-             return ECORE_CALLBACK_PASS_ON;
-          }
-     }
 
    if (en->have_selection && !preedit_end_state)
      {
@@ -3815,10 +3738,6 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
         /* set cursor position */
         evas_textblock_cursor_pos_set(en->cursor, preedit_start_pos + cursor_pos);
      }
-
-   /* count characters*/
-   if (en->func)
-      en->func(en->data, NULL);
 
    _curs_update_from_curs(en->cursor, rp->object, en);
    _anchors_get(en->cursor, rp->object, en);

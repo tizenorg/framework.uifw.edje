@@ -970,7 +970,6 @@ struct _Edje_Signals_Sources_Patterns
 };
 
 typedef struct _Edje_Signals_Sources_Patterns Edje_Signals_Sources_Patterns;
-typedef Eina_Bool(*Edje_elm_function) (void *data, void *input_data);
 struct _Edje
 {
    Evas_Object_Smart_Clipped_Data base;
