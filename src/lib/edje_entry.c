@@ -3598,8 +3598,9 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
      cursor_move = EINA_TRUE;
 
    if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+      _edje_entry_hide_visible_password(en->rp);
+   if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER) && (!en->preedit_start))
      {
-        _edje_entry_hide_visible_password(en->rp);
         _text_filter_format_prepend(en, tc, "+ password=off");
         _text_filter_markup_prepend(en, tc, ev->str);
         _text_filter_format_prepend(en, tc, "- password");
@@ -3707,7 +3708,16 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
                }
           }
 //        evas_object_textblock_text_markup_prepend(en->cursor, eina_strbuf_string_get(buf));
-        _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
+        if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+          {
+             _text_filter_format_prepend(en, en->cursor, "+ password=off");
+             _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
+             _text_filter_format_prepend(en, en->cursor, "- password");
+          }
+        else
+          {
+             _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
+          }
         eina_strbuf_free(buf);
      }
 
