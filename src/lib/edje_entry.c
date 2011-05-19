@@ -2808,8 +2808,6 @@ _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-   // set text as markup
-   _sel_clear(en->cursor, rp->object, en);
 #ifdef HAVE_ECORE_IMF
    if ((en->have_preedit) && (en->imf_context))
      {
@@ -2817,6 +2815,8 @@ _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text)
         ecore_main_loop_iterate();
      }
 #endif
+   // set text as markup
+   _sel_clear(en->cursor, rp->object, en);
    evas_object_textblock_text_markup_set(rp->object, text);
 
    _anchors_get(en->cursor, rp->object, en);
