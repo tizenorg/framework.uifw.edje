@@ -3502,6 +3502,10 @@ _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos)
    Entry *en = rp->entry_data;
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return;
+   /* Abort if cursor position didn't really change */
+   if (evas_textblock_cursor_pos_get(c) == pos)
+      return;
+
    evas_textblock_cursor_pos_set(c, pos);
    _curs_update_from_curs(c, rp->object, rp->entry_data);
    _sel_update(c, rp->object, rp->entry_data);
