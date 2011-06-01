@@ -338,6 +338,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
    Eina_List *parts = NULL;
    Eina_List *old_swallows;
    int group_path_started = 0;
+   Evas *tev = evas_object_evas_get(obj);
 
    ed = _edje_fetch(obj);
    if (!ed) return 0;
@@ -347,6 +348,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 	(ed->group) && (!strcmp(group, ed->group)))
      return 1;
 
+   evas_event_freeze(tev);
    old_swallows = _edje_swallows_collect(ed);
 
    if (_edje_script_only(ed)) _edje_script_only_shutdown(ed);
@@ -430,6 +432,8 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 		  if (!rp)
 		    {
 		       ed->load_error = EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED;
+                       evas_event_thaw(tev);
+                       evas_event_thaw_eval(tev);
 		       return 0;
 		    }
 
@@ -442,8 +446,10 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 			 {
 			    ed->load_error = EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED;
 			    free(rp);
-			    return 0;
-			 }
+                            evas_event_thaw(tev);
+                            evas_event_thaw_eval(tev);
+                            return 0;
+                         }
 
 		       rp->drag->step.x = FROM_INT(ep->dragable.step_x);
 		       rp->drag->step.y = FROM_INT(ep->dragable.step_y);
@@ -761,6 +767,8 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 				      eina_list_free(group_path);
 				   }
 				 ed->load_error = EDJE_LOAD_ERROR_RECURSIVE_REFERENCE;
+                                 evas_event_thaw(tev);
+                                 evas_event_thaw_eval(tev);
 				 return 0;
 			      }
 			 }
@@ -783,6 +791,8 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 				   }
 			      }
 			    ed->load_error = edje_object_load_error_get(child_obj);
+                            evas_event_thaw(tev);
+                            evas_event_thaw_eval(tev);
 			    return 0;
 			 }
 		       child_ed = _edje_fetch(child_obj);
@@ -902,12 +912,20 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
                }
 	  }
         _edje_entry_init(ed);
+        evas_event_thaw(tev);
+        evas_event_thaw_eval(tev);
 	return 1;
      }
    else
-     return 0;
+     {
+        evas_event_thaw(tev);
+        evas_event_thaw_eval(tev);
+        return 0;
+     }
    ed->load_error = EDJE_LOAD_ERROR_NONE;
    _edje_entry_init(ed);
+   evas_event_thaw(tev);
+   evas_event_thaw_eval(tev);
    return 1;
 }
 
@@ -951,6 +969,9 @@ _edje_swallows_collect(Edje *ed)
 void
 _edje_file_del(Edje *ed)
 {
+   Evas *tev = evas_object_evas_get(ed->obj);
+   
+   evas_event_freeze(tev);
    if (ed->freeze_calc)
      {
         _edje_freeze_calc_list = eina_list_remove(_edje_freeze_calc_list, ed);
@@ -967,7 +988,12 @@ _edje_file_del(Edje *ed)
 //        if (ed->collection->script) _edje_embryo_script_shutdown(ed);
 //     }
 
-   if (!((ed->file) && (ed->collection))) return;
+   if (!((ed->file) && (ed->collection)))
+     {
+        evas_event_thaw(tev);
+        evas_event_thaw_eval(tev);
+        return;
+     }
    if (ed->table_parts)
      {
 	unsigned int i;
@@ -1095,6 +1121,8 @@ _edje_file_del(Edje *ed)
    ed->table_programs = NULL;
    ed->table_programs_size = 0;
    ed->focused_part = NULL;
+   evas_event_thaw(tev);
+   evas_event_thaw_eval(tev);
 }
 
 void

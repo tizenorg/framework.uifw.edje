@@ -87,7 +87,9 @@ static void
 _edje_smart_add(Evas_Object *obj)
 {
    Edje *ed;
+   Evas *tev = evas_object_evas_get(obj);
 
+   evas_event_freeze(tev);
    ed = evas_object_smart_data_get(obj);
    if (!ed)
      {
@@ -95,7 +97,7 @@ _edje_smart_add(Evas_Object *obj)
 	const Evas_Smart_Class *sc;
 
 	ed = calloc(1, sizeof(Edje));
-	if (!ed) return;
+        if (!ed) goto end_smart_add;
 
 	smart = evas_object_smart_smart_get(obj);
 	sc = evas_smart_class_get(smart);
@@ -132,7 +134,10 @@ _edje_smart_add(Evas_Object *obj)
 	  }
 	printf("--- EDJE DUMP [%i]\n", eina_list_count(_edje_edjes));
      }
- */
+   */
+end_smart_add:
+   evas_event_thaw(tev);
+   evas_event_thaw_eval(tev);
 }
 
 static void
