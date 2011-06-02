@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.58214slp2+build08) unstable; urgency=low
+
+  * Added use of freeze+thaw. Upstream merge with r59730.
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build08
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 02 Jun 2011 11:23:22 +0900
+
 edje (1.0.0.001+svn.58214slp2+build07) unstable; urgency=low
 
   * Added use of freeze+thaw for improvement. Upstream merge with
