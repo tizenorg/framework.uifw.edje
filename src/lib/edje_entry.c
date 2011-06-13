@@ -191,15 +191,14 @@ _input_panel_hide(Entry *en)
 static void
 _input_panel_show(Entry *en)
 {
-   if (!en || !en->input_panel_enable) return;
-
    if (hide_timer)
      {
         ecore_timer_del(hide_timer);
         hide_timer = NULL;
      }
 
-   if(!en->imf_context) return;
+   if (!en || !en->input_panel_enable || !en->imf_context) return;
+
    ecore_imf_context_input_panel_show(en->imf_context);
    focused_entry = en;
 }
