@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.58214slp2+build09) unstable; urgency=low
+
+  * [entry] bug fix : keyboard doesn't appear when multibutton entry has focus again
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build09
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 14 Jun 2011 14:43:12 +0900
+
 edje (1.0.0.001+svn.58214slp2+build08) unstable; urgency=low
 
   * Added use of freeze+thaw. Upstream merge with r59730.
