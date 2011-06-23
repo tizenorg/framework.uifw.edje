@@ -548,6 +548,8 @@ struct _Edje_Program /* a conditional program to be run */
    struct {
       int      mode; /* how to tween - linear, sinusoidal etc. */
       FLOAT_T  time; /* time to graduate between current and new state */
+      FLOAT_T  v1; /* other value for drag actions */
+      FLOAT_T  v2; /* other value for drag actions */
    } tween;
 
    Eina_List  *targets; /* list of target parts to apply the state to */
@@ -889,7 +891,7 @@ struct _Edje_Part_Description_Spec_Box
       int x, y;
    } padding;
    struct {
-      Eina_Bool h, v;
+      unsigned char h, v;
    } min;
 };
 
@@ -900,6 +902,9 @@ struct _Edje_Part_Description_Spec_Table
    struct {
       int x, y;
    } padding;
+   struct {
+      unsigned char h, v;
+   } min;
 };
 
 struct _Edje_Part_Description_Image
@@ -1004,6 +1009,8 @@ struct _Edje
    void                 *script_only_data;
    int                   table_programs_size;
    unsigned int          table_parts_size;
+
+   Eina_Hash            *members;
 
    Edje_Perspective     *persp;
 
@@ -1459,7 +1466,7 @@ extern Eina_Mempool *_emp_TABLE;
 extern Eina_Mempool *_emp_EXTERNAL;
 extern Eina_Mempool *_emp_part;
 
-void  _edje_part_pos_set(Edje *ed, Edje_Real_Part *ep, int mode, FLOAT_T pos);
+void  _edje_part_pos_set(Edje *ed, Edje_Real_Part *ep, int mode, FLOAT_T pos, FLOAT_T v1, FLOAT_T v2);
 Edje_Part_Description_Common *_edje_part_description_find(Edje *ed,
 							  Edje_Real_Part *rp,
 							  const char *name, double val);
@@ -1480,7 +1487,7 @@ void  _edje_callbacks_focus_del(Evas_Object *obj, Edje *ed);
 void  _edje_edd_init(void);
 void  _edje_edd_shutdown(void);
 
-int _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *group, Eina_List *group_path);
+int _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *group, const char *parent, Eina_List *group_path);
 
 void  _edje_file_add(Edje *ed);
 void  _edje_file_del(Edje *ed);
@@ -1554,7 +1561,7 @@ int               _edje_block_break(Edje *ed);
 void              _edje_block_violate(Edje *ed);
 void              _edje_object_part_swallow_free_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
 void              _edje_object_part_swallow_changed_hints_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
-void              _edje_real_part_swallow(Edje_Real_Part *rp, Evas_Object *obj_swallow);
+void              _edje_real_part_swallow(Edje_Real_Part *rp, Evas_Object *obj_swallow, Eina_Bool hints_update);
 void              _edje_real_part_swallow_clear(Edje_Real_Part *rp);
 void              _edje_box_init(void);
 void              _edje_box_shutdown(void);
@@ -1775,6 +1782,7 @@ const char *_edje_entry_selection_get(Edje_Real_Part *rp);
 const char *_edje_entry_text_get(Edje_Real_Part *rp);
 void _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text);
 void _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text);
+void _edje_entry_text_markup_append(Edje_Real_Part *rp, const char *text);
 void _edje_entry_set_cursor_start(Edje_Real_Part *rp);
 void _edje_entry_set_cursor_end(Edje_Real_Part *rp);
 void _edje_entry_cursor_copy(Edje_Real_Part *rp, Edje_Cursor cur, Edje_Cursor dst);

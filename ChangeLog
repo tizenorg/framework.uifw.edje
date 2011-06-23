@@ -75,3 +75,51 @@
 
 	* text.align (only the vertical part) now works for textblock.
 
+2011-04-1  Carsten Haitzler (The Rasterman)
+
+	* Add Feature: Support explicit shadow direction with extra effect
+        param (optional). Default as before.
+
+2011-04-28  Tom Hacohen (TAsn)
+
+        * size_min_restricted_calc: Fixed textblock handling.
+
+2011-05-15  Tom Hacohen (TAsn)
+
+	 * Entry - New API: added edje_object_part_text_append which appends
+	   text to the end of the textblock part. This lets us do cool thing
+	   like population of textblock using idler.
+
+2011-05-16  Carsten Haitzler (The Rasterman)
+
+	* Add new interpolation modes for programs to make animation
+        much easier. Added: ACCEL_FAC, DECEL_FAC, SIN_FAC, DIVIS,
+        BOUNCE, SPRING (also made short name versions of the long ones
+        possible too).
+
+2011-05-19  Tom Hacohen (TAsn)
+
+	 * Entry: Don't emit "cursor,changed" when setting the text, because
+	   the cursor really didn't change, it's more like a new cursor.
+	   Also, when setting position, don't do anything if position is as it
+	   was.
+
+2011-05-27  Carsten Haitzler (The Rasterman)
+
+	* Improve performance on create/delete of edje objects by using
+        evas freeze and thaw calls. May help in certain pathological
+        situations.
+
+2011-05-27  Cedric Bail
+
+	* Improve performance by avoiding walking eina_list for nothing
+	when deleting member_class.
+
+2011-06-09  Cedric Bail
+
+	* Fix external usage in sub group to have the proper parents.
+
+2011-06-11  Tom Hacohen (TAsn)
+
+	* Fix an issue with ellipsis not working properly with small
+	  text parts.

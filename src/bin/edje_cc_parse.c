@@ -30,7 +30,6 @@ void *alloca (size_t);
 #include <math.h>
 
 #include "edje_cc.h"
-#include "edje_prefix.h"
 #include <Ecore.h>
 #include <Ecore_File.h>
 
@@ -85,6 +84,42 @@ static int   verbatim_line2 = 0;
 static char *verbatim_str = NULL;
 
 static void
+err_show_stack(void)
+{
+   char *s;
+   
+   s = stack_id();
+   if (s)
+     {
+        printf("PARSE STACK:\n%s\n", s);
+        free(s);
+     }
+   else
+      printf("NO PARSE STACK\n");
+}
+
+static void
+err_show_params(void)
+{
+   Eina_List *l;
+   char *p;
+
+   printf("PARAMS:");
+   EINA_LIST_FOREACH(params, l, p)
+     {
+        printf(" %s", p);
+     }
+   printf("\n");
+}
+
+static void
+err_show(void)
+{
+   err_show_stack();
+   err_show_params();
+}
+
+static void
 new_object(void)
 {
    char *id;
@@ -120,6 +155,7 @@ new_object(void)
 	ERR("%s: Error. %s:%i unhandled keyword %s",
 	    progname, file_in, line - 1,
 	    (char *)eina_list_data_get(eina_list_last(stack)));
+        err_show();
 	exit(-1);
      }
    free(id);
@@ -150,6 +186,7 @@ new_statement(void)
 	ERR("%s: Error. %s:%i unhandled keyword %s",
 	    progname, file_in, line - 1,
 	    (char *)eina_list_data_get(eina_list_last(stack)));
+        err_show();
 	exit(-1);
      }
    free(id);
@@ -433,6 +470,7 @@ stack_chop_top(void)
      {
 	ERR("%s: Error. parse error %s:%i. } marker without matching { marker",
 	    progname, file_in, line - 1);
+        err_show();
 	exit(-1);
      }
 }
@@ -461,6 +499,7 @@ parse(char *data, off_t size)
 	  {
 	     ERR("%s: Error. parse error %s:%i. %c marker before ; marker",
 		 progname, file_in, line - 1, *token);
+             err_show();
 	     exit(-1);
 	  }
 	else if (delim)
@@ -472,6 +511,7 @@ parse(char *data, off_t size)
 		    {
 		       ERR("%s: Error. parse error %s:%i. } marker before ; marker",
 			       progname, file_in, line - 1);
+                       err_show();
 		       exit(-1);
 		    }
 		  else
@@ -499,6 +539,7 @@ parse(char *data, off_t size)
 		    {
 		       ERR("%s: Error. parse error %s:%i. { marker before ; marker",
 			   progname, file_in, line - 1);
+                       err_show();
 		       exit(-1);
 		    }
 	       }
@@ -582,6 +623,7 @@ parse(char *data, off_t size)
 			 {
 			    ERR("%s: Error. parse error %s:%i. { marker does not have matching } marker",
 				progname, file_in, line - 1);
+                            err_show();
 			    exit(-1);
 			 }
 		       new_object();
@@ -666,7 +708,7 @@ compile(void)
    p = strrchr(inc, '/');
    if (!p) strcpy(inc, "./");
    else *p = 0;
-   snprintf (tmpn, PATH_MAX, "%s/edje_cc.edc-tmp-XXXXXX", tmp_dir);
+   snprintf(tmpn, PATH_MAX, "%s/edje_cc.edc-tmp-XXXXXX", tmp_dir);
    fd = mkstemp(tmpn);
    if (fd >= 0)
      {
@@ -700,60 +742,26 @@ compile(void)
 	 * Run the input through the C pre-processor.
 	 */
         ret = -1;
-        snprintf(buf2, sizeof(buf2), "%s/edje/utils/epp"EPP_EXT, e_prefix_lib_get());
+        snprintf(buf2, sizeof(buf2), "%s/edje/utils/epp" EPP_EXT, 
+                 eina_prefix_lib_get(pfx));
         if (ecore_file_exists(buf2))
           {
              snprintf(buf, sizeof(buf), "%s %s -I%s %s -o %s",
                       buf2, file_in, inc, def, tmpn);
              ret = system(buf);
           }
-	/*
-	 * On OpenSolaris, the default cpp is located in different places.
-	 * Alan Coppersmith told me to do what xorg does: using /usr/ccs/lib/cpp
-	 *
-	 * Also, that preprocessor is not managing C++ comments, so pass the
-	 * sun cc preprocessor just after.
-	 */
-        else if (ecore_file_exists("/usr/ccs/lib/cpp"))
+        else
           {
-             snprintf(buf, sizeof(buf), "/usr/ccs/lib/cpp -I%s %s %s %s",
-                      inc, def, file_in, tmpn);
-             ret = system(buf);
-             if (ret == 0)
-               {
-                  static char tmpn2[4096];
-                  
-                  snprintf (tmpn2, PATH_MAX, "%s/edje_cc.edc-tmp-XXXXXX", tmp_dir);
-                  fd = mkstemp(tmpn2);
-                  if (fd >= 0)
-                    {
-                       close(fd); 
-                       snprintf (buf, 4096, "cc -E -I%s %s -o %s %s",
-                                 inc, def, tmpn2, tmpn);
-                       ret = system(buf);
-                       snprintf(tmpn, 4096, "%s", tmpn2);
-                    }
-               }
+             ERR("Error. Cannot run epp: %s", buf2);
+             exit(-1);
           }
-
-        /* Trying gcc and other syntax */
-	if (ret != 0)
-	  {
-	     snprintf(buf, sizeof(buf), "%s -I%s %s -E -o %s -std=c99 - < %s",
-                      getenv("CC") ? getenv("CC") : "cc",
-		      inc, def, tmpn, file_in);
-	     ret = system(buf);
-	  }
-        /* Trying suncc syntax */
-	if (ret != 0)
-	  {
-	     snprintf(buf, sizeof(buf), "%s -I%s %s -E -o %s -xc99 - < %s",
-                      getenv("CC") ? getenv("CC") : "cc",
-		      inc, def, tmpn, file_in);
-	     ret = system(buf);
-	  }
 	if (ret == EXIT_SUCCESS)
 	  file_in = tmpn;
+        else
+          {
+             ERR("Error. Exit code of epp not clean: %i", ret);
+             exit(-1);
+          }
 	free(def);
      }
    fd = open(file_in, O_RDONLY | O_BINARY, S_IRUSR | S_IWUSR);
@@ -765,15 +773,14 @@ compile(void)
      }
    if (verbose)
      {
-	INF("%s: Opening \"%s\" for input",
-	       progname, file_in);
+	INF("%s: Opening \"%s\" for input", progname, file_in);
      }
 
    size = lseek(fd, 0, SEEK_END);
    lseek(fd, 0, SEEK_SET);
    data = malloc(size);
    if (data && (read(fd, data, size) == size))
-	parse(data, size);
+      parse(data, size);
    else
      {
 	ERR("%s: Error. cannot read file \"%s\". %s",
@@ -784,11 +791,13 @@ compile(void)
    close(fd);
 
    EINA_LIST_FOREACH(edje_file->styles, l, stl)
-      if (!stl->name)
-	{
-	   ERR("%s: Error. style must have a name.", progname);
-	   exit(-1);
-	}
+     {
+        if (!stl->name)
+          {
+             ERR("%s: Error. style must have a name.", progname);
+             exit(-1);
+          }
+     }
 }
 
 int
@@ -813,6 +822,7 @@ is_num(int n)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 		progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
    if (str[0] == 0) return 0;
@@ -837,6 +847,7 @@ parse_str(int n)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 	    progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
    s = mem_strdup(str);
@@ -872,6 +883,7 @@ _parse_enum(char *str, va_list va)
 	     fprintf(stderr, "\n");
 	     va_end(va2);
 	     va_end(va);
+             err_show();
 	     exit(-1);
 	  }
 
@@ -900,6 +912,7 @@ parse_enum(int n, ...)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 		progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
 
@@ -937,6 +950,7 @@ parse_int(int n)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 	    progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
    i = my_atoi(str);
@@ -954,6 +968,7 @@ parse_int_range(int n, int f, int t)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 	    progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
    i = my_atoi(str);
@@ -961,6 +976,7 @@ parse_int_range(int n, int f, int t)
      {
 	ERR("%s: Error. %s:%i integer %i out of range of %i to %i inclusive",
 	    progname, file_in, line - 1, i, f, t);
+        err_show();
 	exit(-1);
      }
    return i;
@@ -977,6 +993,7 @@ parse_bool(int n)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 	    progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
 
@@ -997,6 +1014,7 @@ parse_bool(int n)
      {
 	ERR("%s: Error. %s:%i integer %i out of range of 0 to 1 inclusive",
 	    progname, file_in, line - 1, i);
+        err_show();
 	exit(-1);
      }
    return i;
@@ -1013,6 +1031,7 @@ parse_float(int n)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 	    progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
    i = my_atof(str);
@@ -1030,6 +1049,7 @@ parse_float_range(int n, double f, double t)
      {
 	ERR("%s: Error. %s:%i no parameter supplied as argument %i",
 	    progname, file_in, line - 1, n + 1);
+        err_show();
 	exit(-1);
      }
    i = my_atof(str);
@@ -1037,9 +1057,16 @@ parse_float_range(int n, double f, double t)
      {
 	ERR("%s: Error. %s:%i float %3.3f out of range of %3.3f to %3.3f inclusive",
 	    progname, file_in, line - 1, i, f, t);
+        err_show();
 	exit(-1);
      }
    return i;
+}
+
+int
+get_arg_count(void)
+{
+   return eina_list_count (params);
 }
 
 void
@@ -1049,8 +1076,9 @@ check_arg_count(int required_args)
 
    if (num_args != required_args)
      {
-       ERR("%s: Error. %s:%i got %i arguments, but expected %i",
-	   progname, file_in, line - 1, num_args, required_args);
+        ERR("%s: Error. %s:%i got %i arguments, but expected %i",
+            progname, file_in, line - 1, num_args, required_args);
+        err_show();
 	exit(-1);
      }
 }
@@ -1065,6 +1093,7 @@ check_min_arg_count(int min_required_args)
 	ERR("%s: Error. %s:%i got %i arguments, "
 		"but expected at least %i",
 	    progname, file_in, line - 1, num_args, min_required_args);
+        err_show();
 	exit(-1);
      }
 }

@@ -76,6 +76,33 @@ _edje_file_coll_open(Edje_File *edf, const char *coll)
    edc->references = 1;
    edc->part = ce->entry;
 
+   /* For Edje file build with Edje 1.0, people expect text.align to be 0.0 0.0 */
+   if (edf->version <= 3 && edf->minor <= 1)
+     {
+        /* This will preserve previous rendering */
+        unsigned int i;
+
+        for (i = 0; i < edc->parts_count; ++i)
+          {
+             if (edc->parts[i]->type == EDJE_PART_TYPE_TEXTBLOCK)
+               {
+                  Edje_Part_Description_Text *text;
+                  unsigned int j;
+
+                  text = (Edje_Part_Description_Text*) edc->parts[i]->default_desc;
+                  text->text.align.x = TO_DOUBLE(0.0);
+                  text->text.align.y = TO_DOUBLE(0.0);
+
+                  for (j = 0; j < edc->parts[i]->other.desc_count; ++j)
+                    {
+                       text =  (Edje_Part_Description_Text*) edc->parts[i]->other.desc[j];
+                       text->text.align.x = TO_DOUBLE(0.0);
+                       text->text.align.y = TO_DOUBLE(0.0);
+                    }
+               }
+          }
+     }
+
    snprintf(buf, sizeof(buf), "edje/scripts/embryo/compiled/%i", id);
    data = eet_read(edf->ef, buf, &size);
 
@@ -477,29 +504,6 @@ _edje_file_cache_shutdown(void)
  *                                   API                                      *
  *============================================================================*/
 
-/**
- * @addtogroup Edje_cache_Group Cache
- *
- * @brief These functions provide an abstraction layer between the
- * application code and the interface, while allowing extremely
- * flexible dynamic layouts and animations.
- *
- * @{
- */
-
-/**
- * @brief Set the file cache size.
- *
- * @param count The file cache size in edje file units. Default is 16.
- *
- * This function sets the file cache size. Edje keeps this cache in
- * order to prevent duplicates of edje file entries in memory. The
- * file cache size can be retrieved with edje_file_cache_get().
- *
- * @see edje_file_cache_get()
- * @see edje_file_cache_flush()
- *
- */
 
 EAPI void
 edje_file_cache_set(int count)
@@ -509,18 +513,6 @@ edje_file_cache_set(int count)
    _edje_cache_file_clean();
 }
 
-/**
- * @brief Return the file cache size.
- *
- * @return The file cache size in edje file units. Default is 16.
- *
- * This function returns the file cache size set by
- * edje_file_cache_set().
- *
- * @see edje_file_cache_set()
- * @see edje_file_cache_flush()
- *
- */
 
 EAPI int
 edje_file_cache_get(void)
@@ -528,16 +520,6 @@ edje_file_cache_get(void)
    return _edje_file_cache_size;
 }
 
-/**
- * @brief Clean the file cache.
- *
- * This function cleans the file cache entries, but keeps this cache's
- * size to the last value set.
- *
- * @see edje_file_cache_set()
- * @see edje_file_cache_get()
- *
- */
 
 EAPI void
 edje_file_cache_flush(void)
@@ -550,20 +532,6 @@ edje_file_cache_flush(void)
    _edje_file_cache_size = ps;
 }
 
-/**
- * @brief Set the collection cache size.
- *
- * @param count The collection cache size, in edje object units. Default is 16.
- *
- * This function sets the collection cache size. Edje keeps this cache
- * in order to prevent duplicates of edje {collection,group,part}
- * entries in memory. The collection cache size can be retrieved with
- * edje_collection_cache_get().
- *
- * @see edje_collection_cache_get()
- * @see edje_collection_cache_flush()
- *
- */
 
 EAPI void
 edje_collection_cache_set(int count)
@@ -578,18 +546,6 @@ edje_collection_cache_set(int count)
    /* FIXME: freach in file hash too! */
 }
 
-/**
- * @brief Return the collection cache size.
- *
- * @return The collection cache size, in edje object units. Default is 16.
- *
- * This function returns the collection cache size set by
- * edje_collection_cache_set().
- *
- * @see edje_collection_cache_set()
- * @see edje_collection_cache_flush()
- *
- */
 
 EAPI int
 edje_collection_cache_get(void)
@@ -597,16 +553,6 @@ edje_collection_cache_get(void)
    return _edje_collection_cache_size;
 }
 
-/**
- * @brief Clean the collection cache.
- *
- * This function cleans the collection cache, but keeps this cache's
- * size to the last value set.
- *
- * @see edje_collection_cache_set()
- * @see edje_collection_cache_get()
- *
- */
 
 EAPI void
 edje_collection_cache_flush(void)
@@ -622,8 +568,3 @@ edje_collection_cache_flush(void)
    /* FIXME: freach in file hash too! */
    _edje_collection_cache_size = ps;
 }
-
-/**
- *
- * @}
- */

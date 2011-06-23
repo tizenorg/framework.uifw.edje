@@ -12,34 +12,6 @@ Eina_Mempool *_edje_real_part_state_mp = NULL;
  *                                   API                                      *
  *============================================================================*/
 
-/**
- * @addtogroup Edje_main_Group Main
- *
- * @brief These functions provide an abstraction layer between the
- * application code and the interface, while allowing extremely
- * flexible dynamic layouts and animations.
- *
- * @{
- */
-
-/**
- * @brief Initialize the edje library.
- *
- * @return The new init count. The initial value is zero.
- *
- * This function initializes the ejde library, making the propers
- * calls to initialization functions. It makes calls to functions
- * eina_init(), ecore_init(), embryo_init() and eet_init() so
- * there is no need to call those functions again in your code. To
- * shutdown edje there is a function edje_shutdown().
- *
- * @see edje_shutdown()
- * @see eina_init()
- * @see ecore_init()
- * @see embryo_init()
- * @see eet_init()
- *
- */
 
 EAPI int
 edje_init(void)
@@ -135,24 +107,6 @@ edje_init(void)
    return --_edje_init_count;
 }
 
-/**
- * @brief Shutdown the edje library.
- *
- * @return The number of times the library has been initialised without being
- *         shutdown.
- *
- * This function shuts down the edje library. It calls the functions
- * eina_shutdown(), ecore_shutdown(), embryo_shutdown() and
- * eet_shutdown(), so there is no need to call these functions again
- * in your code.
- *
- * @see edje_init()
- * @see eina_shutdown()
- * @see ecore_shutdown()
- * @see embryo_shutdown()
- * @see eet_shutdown()
- *
- */
 
 EAPI int
 edje_shutdown(void)
@@ -196,6 +150,13 @@ edje_shutdown(void)
 void
 _edje_del(Edje *ed)
 {
+   Edje_Running_Program *runp;
+   Edje_Pending_Program *pp;
+   Edje_Signal_Callback *escb;
+   Edje_Color_Class *cc;
+   Edje_Text_Class *tc;
+   Edje_Text_Insert_Filter_Callback *cb;
+
    if (ed->processing_messages)
      {
 	ed->delete_me = 1;
@@ -213,60 +174,34 @@ _edje_del(Edje *ed)
      {
 	_edje_animators = eina_list_remove(_edje_animators, ed);
      }
-   while (ed->actions)
+   EINA_LIST_FREE(ed->actions, runp)
+     free(runp);
+   EINA_LIST_FREE(ed->pending_actions, pp)
+     free(pp);
+   EINA_LIST_FREE(ed->callbacks, escb)
      {
-	Edje_Running_Program *runp;
-
-	runp = eina_list_data_get(ed->actions);
-	ed->actions = eina_list_remove(ed->actions, runp);
-	free(runp);
-     }
-   while (ed->pending_actions)
-     {
-	Edje_Pending_Program *pp;
-
-	pp = eina_list_data_get(ed->pending_actions);
-	ed->pending_actions = eina_list_remove(ed->pending_actions, pp);
-	free(pp);
-     }
-   while (ed->callbacks)
-     {
-	Edje_Signal_Callback *escb;
-
-	escb = eina_list_data_get(ed->callbacks);
-	ed->callbacks = eina_list_remove(ed->callbacks, escb);
 	if (escb->signal) eina_stringshare_del(escb->signal);
 	if (escb->source) eina_stringshare_del(escb->source);
 	free(escb);
      }
-   while (ed->color_classes)
+   EINA_LIST_FREE(ed->color_classes, cc)
      {
-	Edje_Color_Class *cc;
-
-	cc = eina_list_data_get(ed->color_classes);
-	ed->color_classes = eina_list_remove(ed->color_classes, cc);
 	if (cc->name) eina_stringshare_del(cc->name);
 	free(cc);
      }
-   while (ed->text_classes)
+   EINA_LIST_FREE(ed->text_classes, tc)
      {
-	Edje_Text_Class *tc;
-
-	tc = eina_list_data_get(ed->text_classes);
-	ed->text_classes = eina_list_remove(ed->text_classes, tc);
 	if (tc->name) eina_stringshare_del(tc->name);
 	if (tc->font) eina_stringshare_del(tc->font);
 	free(tc);
      }
-   while (ed->text_insert_filter_callbacks)
+   EINA_LIST_FREE(ed->text_insert_filter_callbacks, cb)
      {
-        Edje_Text_Insert_Filter_Callback *cb;
-        
-        cb = eina_list_data_get(ed->text_insert_filter_callbacks);
-        ed->text_insert_filter_callbacks = eina_list_remove(ed->text_insert_filter_callbacks, cb);
         eina_stringshare_del(cb->part);
         free(cb);
      }
+
+   if (ed->members) eina_hash_free(ed->members);
    free(ed);
 }
 
@@ -292,8 +227,3 @@ _edje_unref(Edje *ed)
    ed->references--;
    if (ed->references == 0) _edje_del(ed);
 }
-
-/**
- *
- * @}
- */

@@ -1,23 +1,13 @@
-/**
- * @page luaref Edje Lua scripting
- *
- * @section intro Introduction
- * 
- * Lua is intended for script-only objects at this point (with embryo left
- * for augmenting standard programs). Since script-only objects effectively
- * define objects entirely via Lua script (resize handling, event handling
- * etc. etc.) this places many more demands on them, and thus a more powerful
- * language is in order. Lua is that language.
- *
- * To get you started, here's an example:
- * @include lua_script.edc
- *
- */
-
 #include "edje_private.h"
 
 //--------------------------------------------------------------------------//
 #define MAX_LUA_MEM (4 * (1024 * 1024))
+
+#ifdef _WIN32
+# define FMT_SIZE_T "%Iu"
+#else
+# define FMT_SIZE_T "%zu"
+#endif
 
 
 //--------------------------------------------------------------------------//
@@ -266,7 +256,7 @@ _elua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
    ela->cur += nsize - osize;
    if (ela->cur > ela->max)
      {
-        ERR("Edje Lua memory limit of %zu bytes reached (%zu allocated)",
+        ERR("Edje Lua memory limit of " FMT_SIZE_T " bytes reached (" FMT_SIZE_T  " allocated)",
             ela->max, ela->cur);
         return NULL;
      }
@@ -278,7 +268,7 @@ _elua_alloc(void *ud, void *ptr, size_t osize, size_t nsize)
    
    ptr2 = realloc(ptr, nsize);
    if (ptr2) return ptr2;
-   ERR("Edje Lua cannot re-allocate %zu bytes", nsize);
+   ERR("Edje Lua cannot re-allocate " FMT_SIZE_T " bytes", nsize);
    return ptr2;
 }
 

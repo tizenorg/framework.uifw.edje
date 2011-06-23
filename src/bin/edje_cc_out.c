@@ -27,7 +27,6 @@ void *alloca (size_t);
 #include <Ecore_Evas.h>
 
 #include "edje_cc.h"
-#include "edje_prefix.h"
 #include "edje_convert.h"
 
 #include <lua.h>
@@ -709,9 +708,9 @@ data_write_groups(Eet_File *ef, int *collection_num)
 }
 
 static void
-create_script_file(Eet_File *ef, const char *filename, const Code *cd)
+create_script_file(Eet_File *ef, const char *filename, const Code *cd, int fd)
 {
-   FILE *f = fopen(filename, "wb");
+   FILE *f = fdopen(fd, "wb");
    if (!f)
      error_and_abort(ef, "Unable to open temp file \"%s\" for script "
 		     "compilation.\n", filename);
@@ -778,7 +777,7 @@ create_script_file(Eet_File *ef, const char *filename, const Code *cd)
 		     else if (sp[0] == '\n') hash = 0;
 		  }
 	     }
-	     fprintf(f, "}");
+	     fprintf(f, "}\n");
 	     ln += cp->l2 - cp->l1 + 1;
 	  }
      }
@@ -788,7 +787,7 @@ create_script_file(Eet_File *ef, const char *filename, const Code *cd)
 
 static void
 compile_script_file(Eet_File *ef, const char *source, const char *output,
-		    int script_num)
+		    int script_num, int fd)
 {
    FILE *f;
    char buf[4096];
@@ -796,14 +795,14 @@ compile_script_file(Eet_File *ef, const char *source, const char *output,
 
    snprintf(buf, sizeof(buf),
 	    "embryo_cc -i %s/include -o %s %s",
-	    e_prefix_data_get(), output, source);
+	    eina_prefix_data_get(pfx), output, source);
    ret = system(buf);
 
    /* accept warnings in the embryo code */
    if (ret < 0 || ret > 1)
      error_and_abort(ef, "Compiling script code not clean.\n");
 
-   f = fopen(output, "rb");
+   f = fdopen(fd, "rb");
    if (!f)
      error_and_abort(ef, "Unable to open script object \"%s\" for reading.\n",
 		     output);
@@ -862,8 +861,7 @@ data_write_scripts(Eet_File *ef)
 	  error_and_abort(ef, "Unable to open temp file \"%s\" for script "
 			  "compilation.\n", tmpn);
 
-	create_script_file(ef, tmpn, cd);
-	close(fd);
+	create_script_file(ef, tmpn, cd, fd);
 
 	snprintf(tmpo, PATH_MAX, "%s/edje_cc.amx-tmp-XXXXXX", tmp_dir);
 	fd = mkstemp(tmpo);
@@ -873,9 +871,7 @@ data_write_scripts(Eet_File *ef)
 	     error_and_abort(ef, "Unable to open temp file \"%s\" for script "
 			     "compilation.\n", tmpn);
 	  }
-
-	compile_script_file(ef, tmpn, tmpo, i);
-	close(fd);
+	compile_script_file(ef, tmpn, tmpo, i, fd);
 
 	unlink(tmpn);
 	unlink(tmpo);
