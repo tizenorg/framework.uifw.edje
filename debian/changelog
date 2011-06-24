@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.60299slp2+build02) unstable; urgency=low
+
+  * Package Upload : epp added
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build02
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Fri, 24 Jun 2011 19:24:43 +0900
+
 edje (1.0.0.001+svn.60299slp2+build01) unstable; urgency=low
 
   * [SVN EFL Migration] edje in SLP is merged with SVN r60299
