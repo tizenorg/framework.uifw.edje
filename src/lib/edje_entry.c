@@ -3693,6 +3693,8 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    Ecore_IMF_Preedit_Attr *attr;
    Eina_List *l;
    Eina_Strbuf *buf;
+   char *preedit_tag_index;
+   char *pretag = NULL;
 
    if (!rp) return ECORE_CALLBACK_PASS_ON;
 
@@ -3717,10 +3719,34 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
         _sel_clear(en->cursor, rp->object, en);
      }
 
+   if (en->preedit_start && en->preedit_end)
+     {
+        /* extract the tag string */
+        char *str = evas_textblock_cursor_range_text_get(en->preedit_start, en->preedit_end, EVAS_TEXTBLOCK_TEXT_MARKUP);
+
+        preedit_tag_index = strstr(str, "<preedit");
+
+        if ((preedit_tag_index - str) > 0)
+          {
+             pretag = calloc(1, sizeof(char)*(preedit_tag_index-str+1));
+             if (preedit_tag_index)
+               {
+                  strncpy(pretag, str, preedit_tag_index-str);
+               }
+          }
+     }
+
    /* delete preedit characters */
    _preedit_del(en);
 
    preedit_start_pos = evas_textblock_cursor_pos_get(en->cursor);
+
+   /* restore previous tag */
+   if (pretag)
+     {
+        _text_filter_markup_prepend(en, en->cursor, pretag);
+        free(pretag);
+     }
 
    /* insert preedit character(s) */
    //xx
