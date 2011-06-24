@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.60299slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r60299
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Fri, 24 Jun 2011 18:10:21 +0900
+
 edje (1.0.0.001+svn.58214slp2+build09) unstable; urgency=low
 
   * [entry] bug fix : keyboard doesn't appear when multibutton entry has focus again
