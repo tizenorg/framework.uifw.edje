@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.60299slp2+build04) unstable; urgency=low
+
+  * move IME control code to immodule
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build04
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 28 Jun 2011 17:12:07 +0900
+
 edje (1.0.0.001+svn.60299slp2+build03) unstable; urgency=low
 
   * [entry] don't remove the previous tag of preedit tag

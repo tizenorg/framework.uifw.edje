@@ -20,9 +20,6 @@ typedef struct _Entry Entry;
 typedef struct _Sel Sel;
 typedef struct _Anchor Anchor;
 
-static Ecore_Timer *hide_timer = NULL;
-static Entry *focused_entry = NULL;
-
 typedef enum _Entry_Char_Type
 {
    _ENTRY_CHAR_ALPHABET,
@@ -67,7 +64,6 @@ struct _Entry
 
 #ifdef HAVE_ECORE_IMF
    Eina_Bool have_preedit : 1;
-   Eina_Bool input_panel_enable : 1;
    Ecore_IMF_Context *imf_context;
 
    Ecore_Event_Handler *imf_ee_handler_commit;
@@ -179,51 +175,14 @@ _input_panel_hide(Entry *en)
 {
    Ecore_IMF_Input_Panel_State state;
 
-   if (!en || !en->input_panel_enable || !en->imf_context) return;
+   if (!en || !en->imf_context) return;
+
+   if (!ecore_imf_context_input_panel_enabled_get(en->imf_context)) return;
 
    state = ecore_imf_context_input_panel_state_get(en->imf_context);
 
    if (state == ECORE_IMF_INPUT_PANEL_STATE_SHOW)
       ecore_imf_context_input_panel_hide(en->imf_context);
-}
-
-static void
-_input_panel_show(Entry *en)
-{
-   if (hide_timer)
-     {
-        ecore_timer_del(hide_timer);
-        hide_timer = NULL;
-     }
-
-   if (!en || !en->input_panel_enable || !en->imf_context) return;
-
-   ecore_imf_context_input_panel_show(en->imf_context);
-   focused_entry = en;
-}
-
-static Eina_Bool _hide_timer_handler(void *data)
-{
-   Entry *en = (Entry *)data;
-   if (!en || !en->imf_context) goto done;
-
-   _input_panel_hide(en);
-
-done:
-   hide_timer = NULL;
-   return ECORE_CALLBACK_CANCEL;
-}
-
-static void
-_input_panel_hide_timer_start(Entry *en)
-{
-   if (!en || !en->input_panel_enable) return;
-
-   if (hide_timer)
-     {
-        ecore_timer_del(hide_timer);
-     }
-   hide_timer = ecore_timer_add(0.2, _hide_timer_handler, en);
 }
 
 static void
@@ -273,8 +232,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_focus_in(en->imf_context);
 
-        _input_panel_show(en);
-
         _caps_mode_check(en);
      }
 }
@@ -295,8 +252,6 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
-
-   _input_panel_hide_timer_start(en);
 }
 #endif /* HAVE_ECORE_IMF */
 
@@ -325,7 +280,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_focus_in(en->imf_context);
 
-   _input_panel_show(en);
    _caps_mode_check(en);
 #endif /* HAVE_ECORE_IMF */
 }
@@ -354,8 +308,6 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
    ecore_imf_context_reset(en->imf_context);
    ecore_imf_context_cursor_position_set(en->imf_context, evas_textblock_cursor_pos_get(en->cursor));
    ecore_imf_context_focus_out(en->imf_context);
-
-   _input_panel_hide_timer_start(en);
 #endif /* HAVE_ECORE_IMF */
 }
 
@@ -621,8 +573,7 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 
    ecore_imf_context_reset(en->imf_context);
 
-   if (en->input_panel_enable)
-      _input_panel_hide(en);
+   _input_panel_hide(en);
 #endif
 }
 
@@ -651,10 +602,7 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
    if (!en->imf_context) return;
    ecore_imf_context_reset(en->imf_context);
 
-   if (en->input_panel_enable)
-     {
-        _input_panel_hide(en);
-     }
+   _input_panel_hide(en);
 #endif
 }
 
@@ -1828,8 +1776,8 @@ _long_press(void *data)
 
    if (en->longpress_timer)
      {
-	ecore_timer_del(en->longpress_timer);
-	en->longpress_timer = NULL;
+        ecore_timer_del(en->longpress_timer);
+        en->longpress_timer = NULL;
      }
 
    en->long_pressed = EINA_TRUE;
@@ -2137,8 +2085,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_cursor_position_set(en->imf_context,
                                               evas_textblock_cursor_pos_get(en->cursor));
-
-        _input_panel_show(en);
      }
 #endif
 
@@ -2539,10 +2485,6 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    en->rp = rp;
    en->autoperiod = EINA_TRUE;
 
-#ifdef HAVE_ECORE_IMF
-   en->input_panel_enable = _edje_input_panel_enable;
-#endif
-
    evas_object_event_callback_add(rp->object, EVAS_CALLBACK_MOUSE_DOWN, _edje_part_mouse_down_cb, rp);
    evas_object_event_callback_add(rp->object, EVAS_CALLBACK_MOUSE_UP, _edje_part_mouse_up_cb, rp);
    evas_object_event_callback_add(rp->object, EVAS_CALLBACK_MOUSE_MOVE, _edje_part_mouse_move_cb, rp);
@@ -2732,15 +2674,6 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
                {
                   ecore_event_handler_del(en->imf_ee_handler_changed);
                   en->imf_ee_handler_changed = NULL;
-               }
-
-             if (focused_entry == en)
-               {
-                  if (hide_timer)
-                    {
-                       ecore_timer_del(hide_timer);
-                       hide_timer = NULL;
-                    }
                }
 
              ecore_imf_context_del(en->imf_context);
@@ -3190,10 +3123,10 @@ void
 _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled)
 {
    Entry *en = rp->entry_data;
-   if (!en) return;
+   if (!en || !en->imf_context) return;
 
 #ifdef HAVE_ECORE_IMF
-   en->input_panel_enable = enabled;
+   ecore_imf_context_input_panel_enabled_set(en->imf_context, enabled);
 #endif
 }
 
@@ -3201,10 +3134,10 @@ Eina_Bool
 _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
-   if (!en) return EINA_FALSE;
+   if (!en || !en->imf_context) return EINA_FALSE;
 
 #ifdef HAVE_ECORE_IMF
-   return en->input_panel_enable;
+   return ecore_imf_context_input_panel_enabled_get(en->imf_context);
 #else
    return EINA_FALSE;
 #endif
