@@ -43,6 +43,7 @@ struct _Entry
    Evas_Textblock_Cursor *sel_start, *sel_end;
    Evas_Textblock_Cursor *cursor_user, *cursor_user_extra;
    Evas_Textblock_Cursor *preedit_start, *preedit_end;
+   Ecore_Timer *pw_timer;
    Eina_List *sel;
    Eina_List *anchors;
    Eina_List *anchorlist;
@@ -1248,26 +1249,35 @@ _delete(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSED_
    evas_textblock_cursor_char_delete(c);
 }
 
-void
+static void
 _edje_entry_hide_visible_password(Edje_Real_Part *rp)
 {
-   Entry *en = rp->entry_data;/*remove this line*/
    const Evas_Object_Textblock_Node_Format *node;
    node = evas_textblock_node_format_first_get(rp->object);
-   for (; node ; node = evas_textblock_node_format_next_get(node))
+   for (; node; node = evas_textblock_node_format_next_get(node))
      {
         const char *text = evas_textblock_node_format_text_get(node);
         if (text)
           {
              if (!strcmp(text, "+ password=off"))
                {
-                  evas_textblock_node_format_remove_pair(rp->object, (Evas_Object_Textblock_Node_Format *)node);
+                  evas_textblock_node_format_remove_pair(rp->object,
+                                                        (Evas_Object_Textblock_Node_Format *) node);
                   break;
                }
           }
      }
    _edje_entry_real_part_configure(rp);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
+}
+
+static Eina_Bool
+_password_timer_cb(void *data)
+{
+   Entry *en = (Entry *)data;
+   _edje_entry_hide_visible_password(en->rp);
+   en->pw_timer = NULL;
+   return ECORE_CALLBACK_CANCEL;
 }
 
 static void
@@ -1609,19 +1619,24 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
              if (!strcmp(ev->key, "space")) _autoperiod_insert(en, en->cursor);
 
-             //   if PASSWORD_SHOW_LAST_CHARACTER mode, appending it with password tag
-             if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+             // if PASSWORD_SHOW_LAST mode, appending text with password=off tag
+             if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) &&
+                 _edje_password_show_last)
                {
-                   _edje_entry_hide_visible_password(en->rp);
-                   _text_filter_format_prepend(en, en->cursor, "+ password=off");
-                   _text_filter_markup_prepend(en, en->cursor, ev->string);
-                   _text_filter_format_prepend(en, en->cursor, "- password");
+                  _edje_entry_hide_visible_password(en->rp);
+                  _text_filter_format_prepend(en, en->cursor, "+ password=off");
+                  _text_filter_markup_prepend(en, en->cursor, ev->string);
+                  _text_filter_format_prepend(en, en->cursor, "- password");
+                  if (en->pw_timer)
+                    {
+                       ecore_timer_del(en->pw_timer);
+                       en->pw_timer = NULL;
+                    }
+                  en->pw_timer = ecore_timer_add(_edje_password_show_last_timeout,
+                                                 _password_timer_cb, en);
                }
              else
-               {
-                  //evas_textblock_cursor_text_prepend(en->cursor, ev->string);
-                  _text_filter_text_prepend(en, en->cursor, ev->string);
-               }
+               _text_filter_text_prepend(en, en->cursor, ev->string);
              _anchors_get(en->cursor, rp->object, en);
              _edje_emit(ed, "entry,changed", rp->part->name);
              _edje_emit(ed, "cursor,changed", rp->part->name);
@@ -2492,7 +2507,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_DEFAULT)
      en->select_allow = EINA_TRUE;
 
-   if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) || (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER))
+   if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD)
      {
         Edje_Part_Description_Text *txt;
 
@@ -2604,14 +2619,11 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         en->imf_ee_handler_commit = ecore_event_handler_add(ECORE_IMF_EVENT_COMMIT, _edje_entry_imf_event_commit_cb, rp->edje);
         en->imf_ee_handler_delete = ecore_event_handler_add(ECORE_IMF_EVENT_DELETE_SURROUNDING, _edje_entry_imf_event_delete_surrounding_cb, rp->edje);
         en->imf_ee_handler_changed = ecore_event_handler_add(ECORE_IMF_EVENT_PREEDIT_CHANGED, _edje_entry_imf_event_preedit_changed_cb, rp->edje);
-        ecore_imf_context_input_mode_set(en->imf_context, 
-                                         ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) || 
-                                          (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)) ?
-                                         ECORE_IMF_INPUT_MODE_INVISIBLE : 
-                                         ECORE_IMF_INPUT_MODE_FULL);
+        ecore_imf_context_input_mode_set(en->imf_context,
+                                         rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD ?
+                                         ECORE_IMF_INPUT_MODE_INVISIBLE : ECORE_IMF_INPUT_MODE_FULL);
 
-        if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) || 
-            (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER))
+        if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD)
           {
              ecore_imf_context_input_panel_language_set(en->imf_context, ECORE_IMF_INPUT_PANEL_LANG_ALPHABET);
           }
@@ -2652,6 +2664,11 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
         en->longpress_timer = NULL;
      }
 
+   if (en->pw_timer)
+     {
+        ecore_timer_del(en->pw_timer);
+        en->pw_timer = NULL;
+     }
 
 #ifdef HAVE_ECORE_IMF
    if (rp->part->entry_mode >= EDJE_ENTRY_EDIT_MODE_EDITABLE)
@@ -3570,14 +3587,22 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
 
    if (evas_textblock_cursor_compare(en->cursor, tc))
      cursor_move = EINA_TRUE;
-
-   if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
-      _edje_entry_hide_visible_password(en->rp);
-   if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER) && (!en->preedit_start))
+   if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) &&
+       _edje_password_show_last)
+     _edje_entry_hide_visible_password(en->rp);
+   if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) &&
+       _edje_password_show_last && (!en->preedit_start))
      {
         _text_filter_format_prepend(en, tc, "+ password=off");
         _text_filter_markup_prepend(en, tc, ev->str);
         _text_filter_format_prepend(en, tc, "- password");
+        if (en->pw_timer)
+          {
+             ecore_timer_del(en->pw_timer);
+             en->pw_timer = NULL;
+          }
+        en->pw_timer = ecore_timer_add(_edje_password_show_last_timeout,
+                                       _password_timer_cb, en);
      }
    else
      {
@@ -3707,11 +3732,20 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
                }
           }
 //        evas_object_textblock_text_markup_prepend(en->cursor, eina_strbuf_string_get(buf));
-        if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER)
+        if ((rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD) &&
+            _edje_password_show_last)
           {
+             _edje_entry_hide_visible_password(en->rp);
              _text_filter_format_prepend(en, en->cursor, "+ password=off");
              _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
              _text_filter_format_prepend(en, en->cursor, "- password");
+             if (en->pw_timer)
+               {
+                  ecore_timer_del(en->pw_timer);
+                  en->pw_timer = NULL;
+               }
+             en->pw_timer = ecore_timer_add(_edje_password_show_last_timeout,
+                                            _password_timer_cb, en);
           }
         else
           {

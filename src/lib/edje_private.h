@@ -384,7 +384,6 @@ typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callbac
 #define EDJE_ENTRY_EDIT_MODE_SELECTABLE 1
 #define EDJE_ENTRY_EDIT_MODE_EDITABLE 2
 #define EDJE_ENTRY_EDIT_MODE_PASSWORD 3
-#define EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER 4
 
 #define EDJE_ENTRY_SELECTION_MODE_DEFAULT 0
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
@@ -1451,6 +1450,9 @@ extern int              _edje_freeze_calc_count;
 extern Eina_List       *_edje_freeze_calc_list;
 extern Eina_Bool        _edje_input_panel_enable;
 
+extern Eina_Bool        _edje_password_show_last;
+extern FLOAT_T          _edje_password_show_last_timeout;
+
 extern Eina_Mempool *_edje_real_part_mp;
 extern Eina_Mempool *_edje_real_part_state_mp;
 
@@ -1775,7 +1777,6 @@ void _edje_lua_script_only_message(Edje *ed, Edje_Message *em);
 void _edje_entry_init(Edje *ed);
 void _edje_entry_shutdown(Edje *ed);
 void _edje_entry_real_part_init(Edje_Real_Part *rp);
-void _edje_entry_hide_visible_password(Edje_Real_Part *rp);
 void _edje_entry_real_part_shutdown(Edje_Real_Part *rp);
 void _edje_entry_real_part_configure(Edje_Real_Part *rp);
 const char *_edje_entry_selection_get(Edje_Real_Part *rp);

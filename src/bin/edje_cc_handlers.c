@@ -2718,7 +2718,6 @@ st_collections_group_parts_part_effect(void)
         @li PLAIN
         @li EDITABLE
         @li PASSWORD
-        @li PASSWORD_SHOW_LAST_CHARACTER
         It causes the part be editable if the edje object has the keyboard
         focus AND the part has the edje focus (or selectable always
         regardless of focus) and in the event of password mode, not
@@ -2741,7 +2740,6 @@ st_collections_group_parts_part_entry_mode(void)
 			       "PLAIN", EDJE_ENTRY_EDIT_MODE_SELECTABLE,
 			       "EDITABLE", EDJE_ENTRY_EDIT_MODE_EDITABLE,
 			       "PASSWORD", EDJE_ENTRY_EDIT_MODE_PASSWORD,
-			       "PASSWORD_SHOW_LAST_CHARACTER", EDJE_ENTRY_EDIT_MODE_PASSWORD_SHOW_LAST_CHARACTER,
 			       NULL);
 }
 
@@ -7146,7 +7144,6 @@ st_collections_group_programs_program_action(void)
 			   "FOCUS_OBJECT", EDJE_ACTION_TYPE_FOCUS_OBJECT,
 			   "PARAM_COPY", EDJE_ACTION_TYPE_PARAM_COPY,
 			   "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
-			   "HIDE_VISIBLE_PASSWORD", EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD,
 			   NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
@@ -7209,7 +7206,6 @@ st_collections_group_programs_program_action(void)
 	/* this is implicitly set by script {} so this is here just for
 	 * completeness */
 	break;
-      case EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD:
       case EDJE_ACTION_TYPE_FOCUS_OBJECT:
       case EDJE_ACTION_TYPE_FOCUS_SET:
 	check_arg_count(1);
@@ -7379,8 +7375,6 @@ st_collections_group_programs_program_target(void)
 	else if (ep->action == EDJE_ACTION_TYPE_FOCUS_SET)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else if (ep->action == EDJE_ACTION_TYPE_FOCUS_OBJECT)
-	  data_queue_part_lookup(pc, name, &(et->id));
-	else if (ep->action == EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else
 	  {

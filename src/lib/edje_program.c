@@ -771,13 +771,6 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
              if (_edje_block_break(ed)) goto break_prog;
           }
         break;
-      case EDJE_ACTION_TYPE_HIDE_VISIBLE_PASSWORD:
-          {
-             Edje_Real_Part *part;
-             part = ed->table_parts[pr->param.dst % ed->table_parts_size];
-             _edje_entry_hide_visible_password(part);
-          }
-        break;
      default:
         // _edje_emit(ed, "program,start", pr->name);
         // _edje_emit(ed, "program,stop", pr->name);
