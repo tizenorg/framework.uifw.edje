@@ -238,28 +238,11 @@ edje_object_mirrored_set(Evas_Object *obj, Eina_Bool rtl)
    return;
 }
 
-/**
- * @brief Set the edje object's global input panel usage.
- *
- * @param obj The edje object's reference.
- *
- * @see edje_object_part_text_input_panel_enabled_set().
- *
- */
 EAPI void
 edje_input_panel_enabled_set(Eina_Bool enabled)
 {
    if (_edje_input_panel_enable == enabled) return;
    _edje_input_panel_enable = enabled;
-
-   /*
-   Eina_List *l;
-   Evas_Object *data;
-   EINA_LIST_FOREACH(_edje_edjes, l, data)
-     {
-        edje_object_part_text_input_panel_enabled_set(data, "elm.text", _edje_input_panel_enable);
-     }
-   */
 }
 
 EAPI void
@@ -1471,13 +1454,6 @@ edje_object_part_text_select_extend(const Evas_Object *obj, const char *part)
      _edje_entry_select_extend(rp);
 }
 
-/**
- * @brief Enables autocapitalization
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
 EAPI void
 edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool autocap)
 {
@@ -1494,14 +1470,6 @@ edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char 
      }
 }
 
-/**
- * @brief Enables autoperiod
- * Autoperiod is the feature that period (.) will be automatically added when space bar is pressed twice in a short time.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
 EAPI void
 edje_object_part_text_autoperiod_set(const Evas_Object *obj, const char *part, Eina_Bool autoperiod)
 {
@@ -1518,14 +1486,6 @@ edje_object_part_text_autoperiod_set(const Evas_Object *obj, const char *part, E
      }
 }
 
-/**
- * @brief Get the input method context in entry
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- *
- * @return The input method context in entry
- */
 #ifdef HAVE_ECORE_IMF
 EAPI Ecore_IMF_Context *
 edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
@@ -1546,14 +1506,6 @@ edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
 }
 #endif
 
-/**
- * @brief Set the edje's global input panel 
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- *
- * @see edje_object_part_text_input_panel_enabled_get
- */
 EAPI void
 edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char *part, Eina_Bool enabled)
 {
@@ -1568,16 +1520,6 @@ edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char
      _edje_entry_input_panel_enabled_set(rp, enabled);
 }
 
-/**
- * @brief Get whether the entry supports to show input panel automatically
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- *
- * @return EINA_TRUE if it supports or EINA_FALSE otherwise
- *
- * @see edje_object_part_text_input_panel_enabled_set
- */
 EAPI Eina_Bool
 edje_object_part_text_input_panel_enabled_get(const Evas_Object *obj, const char *part)
 {

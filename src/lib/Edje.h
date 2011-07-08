@@ -1214,6 +1214,59 @@ EAPI void edje_password_show_last_set(Eina_Bool password_show_last);
 EAPI void edje_password_show_last_timeout_set(double password_show_last_timeout);
 
 /**
+ * @brief Set the edje object's global input panel usage.
+ *
+ * @param enabled TRUE if you want to use the input panel.
+ *
+ */
+EAPI void         edje_input_panel_enabled_set (Eina_Bool enabled);
+
+/**
+ * @brief Set whether the input panel is used or not.
+ *
+ * @param enabled TRUE if you want to use the input panel.
+ *
+ */
+EAPI void         edje_input_panel_allow_set (Eina_Bool enabled);
+
+/**
+ * @brief Get whether the input panel is used or not.
+ *
+ * @return The allowance of the edje's global input panel.
+ *
+ * @see edje_input_panel_allow_set().
+ */
+EAPI Eina_Bool    edje_input_panel_allow_get (void);
+
+/**
+ * @brief Turn on/off the edje's global autocapitalization function.
+ *
+ * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
+ */
+EAPI void         edje_autocapitalization_allow_set (Eina_Bool autocap);
+
+/**
+ * @brief Get the edje's global autocapitalization allowance.
+ *
+ * @return The allowance of the edje's global autocapitalization.
+ */
+EAPI Eina_Bool    edje_autocapitalization_allow_get (void);
+
+/**
+ * @brief Turn on/off the edje's global autoperiod function.
+ *
+ * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
+ */
+EAPI void         edje_autoperiod_allow_set (Eina_Bool autoperiod);
+
+/**
+ * @brief Get the edje's global autoperiod allowance.
+ *
+ * @return The allowance of the edje's global autoperiod.
+ */
+EAPI Eina_Bool    edje_autoperiod_allow_get (void);
+
+/**
  * @brief Set the edje object's scaling factor.
  *
  * @param obj The edje object's reference.
@@ -2485,6 +2538,61 @@ EAPI void             edje_object_part_text_cursor_pos_set              (Evas_Ob
  * @since 1.1.0
  */
 EAPI int              edje_object_part_text_cursor_pos_get              (const Evas_Object *obj, const char *part, Edje_Cursor cur);
+
+/**
+ * @brief Enables autocapitalization.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
+ */
+EAPI void             edje_object_part_text_autocapitalization_set (const Evas_Object *obj, const char *part, Eina_Bool autocap);
+
+/**
+ * @brief Enables autoperiod.
+ * Autoperiod is the feature that period (.) will be automatically added when space bar is pressed twice in a short time.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
+ */
+EAPI void             edje_object_part_text_autoperiod_set (const Evas_Object *obj, const char *part, Eina_Bool autoperiod);
+
+/**
+ * @brief Get the input method context in entry.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @return The input method context in entry
+ */
+#ifdef HAVE_ECORE_IMF
+EAPI Ecore_IMF_Context *edje_object_part_text_imf_context_get (const Evas_Object *obj, const char *part);
+#else
+EAPI void              *edje_object_part_text_imf_context_get (const Evas_Object *obj, const char *part);
+#endif
+
+/**
+ * @brief Set the edje's global input panel.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @see edje_object_part_text_input_panel_enabled_get
+ */
+EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_Object *obj, const char *part, Eina_Bool enabled);
+
+/**
+ * @brief Get whether the entry supports to show input panel automatically.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @return EINA_TRUE if it supports or EINA_FALSE otherwise
+ *
+ * @see edje_object_part_text_input_panel_enabled_set
+ */
+EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get (const Evas_Object *obj, const char *part);
 
 /**
  * Add a filter function for newly inserted text.
