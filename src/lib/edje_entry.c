@@ -3400,7 +3400,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    Evas_Textblock_Cursor *tc;
    Eina_Bool cursor_move = EINA_FALSE;
 
-   if (!rp) return ECORE_CALLBACK_PASS_ON;
+   if ((!rp) || (!ev) || (!ev->str)) return ECORE_CALLBACK_PASS_ON;
 
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
@@ -3497,7 +3497,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    char *preedit_tag_index;
    char *pretag = NULL;
 
-   if (!rp) return ECORE_CALLBACK_PASS_ON;
+   if ((!rp) || (!ev)) return ECORE_CALLBACK_PASS_ON;
 
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
@@ -3509,6 +3509,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
    if (en->imf_context != ev->ctx) return ECORE_CALLBACK_PASS_ON;
 
    ecore_imf_context_preedit_string_with_attributes_get(en->imf_context, &preedit_string, &attrs, &cursor_pos);
+   if (!preedit_string) return ECORE_CALLBACK_PASS_ON;
 
    if (!strcmp(preedit_string, ""))
      preedit_end_state = EINA_TRUE;
