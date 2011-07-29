@@ -29,6 +29,9 @@ typedef enum _Entry_Char_Type
    _ENTRY_CHAR_NONE
 } Entry_Char_Type;
 
+static void _edje_entry_imf_cursor_info_set(Entry *en);
+static void _edje_entry_imf_context_reset(Entry *en);
+
 struct _Entry
 {
    Edje_Real_Part *rp;
@@ -148,6 +151,7 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
      {
         printf("[Edje_entry::%s] pid : %d, obj : %p\n", __func__, getpid(), en);
         ecore_imf_context_reset(en->imf_context);
+        _edje_entry_imf_cursor_info_set(en);
         ecore_imf_context_focus_in(en->imf_context);
      }
 }
@@ -478,11 +482,8 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
 
+   _edje_entry_imf_context_reset(en);
 #ifdef HAVE_ECORE_IMF
-   if (!en->imf_context) return;
-
-   ecore_imf_context_reset(en->imf_context);
-
    _input_panel_hide(en);
 #endif
 }
@@ -507,11 +508,8 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
         en->selection = NULL;
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
-
+   _edje_entry_imf_context_reset(en);
 #ifdef HAVE_ECORE_IMF
-   if (!en->imf_context) return;
-   ecore_imf_context_reset(en->imf_context);
-
    _input_panel_hide(en);
 #endif
 }
@@ -1499,15 +1497,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if ((old_cur_pos != evas_textblock_cursor_pos_get(en->cursor)) && (!cursor_changed))
      _edje_emit(ed, "cursor,changed", rp->part->name);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_entry_real_part_configure(rp);
 }
 
@@ -1802,17 +1793,11 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           }
      }
    if (evas_textblock_cursor_compare(tc, en->cursor))
-      _edje_emit(rp->edje, "cursor,changed", rp->part->name);
+     _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    evas_textblock_cursor_free(tc);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    if (en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
@@ -1939,15 +1924,8 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
      _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    evas_textblock_cursor_free(tc);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_entry_real_part_configure(rp);
 }
 
@@ -2064,14 +2042,8 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           _edje_emit(rp->edje, "cursor,changed", rp->part->name);
         evas_textblock_cursor_free(tc);
 
-#ifdef HAVE_ECORE_IMF
-        if (en->imf_context)
-          {
-             ecore_imf_context_reset(en->imf_context);
-             ecore_imf_context_cursor_position_set(en->imf_context,
-                                                   evas_textblock_cursor_pos_get(en->cursor));
-          }
-#endif
+        _edje_entry_imf_context_reset(en);
+        _edje_entry_imf_cursor_info_set(en);
 
         _edje_entry_real_part_configure(rp);
      }
@@ -2451,7 +2423,10 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
 
         if (!en->imf_context) goto done;
 
-        ecore_imf_context_client_window_set(en->imf_context, rp->object);
+        ecore_imf_context_client_window_set
+           (en->imf_context, 
+               (void *)ecore_evas_window_get
+               (ecore_evas_ecore_evas_get(rp->edje->base.evas)));
         ecore_imf_context_client_canvas_set(en->imf_context, rp->edje->base.evas);
 
         ecore_imf_context_retrieve_surrounding_callback_set(en->imf_context,
@@ -2625,11 +2600,7 @@ _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text)
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_entry_set_cursor_start(rp);
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     ecore_imf_context_cursor_position_set(en->imf_context,
-                                           evas_textblock_cursor_pos_get(en->cursor));
-#endif
+   _edje_entry_imf_cursor_info_set(en);
 #if 0
    /* Don't emit cursor changed cause it didn't. It's just init to 0. */
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
@@ -2672,14 +2643,8 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_entry_real_part_configure(rp);
 }
 
@@ -2690,10 +2655,7 @@ _edje_entry_set_cursor_start(Edje_Real_Part *rp)
    if (!en) return;
    _curs_start(en->cursor, rp->object, en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     ecore_imf_context_cursor_position_set(en->imf_context, 0);
-#endif
+   _edje_entry_imf_cursor_info_set(en);
 }
 
 void
@@ -2703,11 +2665,7 @@ _edje_entry_set_cursor_end(Edje_Real_Part *rp)
    if (!en) return;
    _curs_end(en->cursor, rp->object, en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     ecore_imf_context_cursor_position_set(en->imf_context,
-                                           evas_textblock_cursor_pos_get(en->cursor));
-#endif
+   _edje_entry_imf_cursor_info_set(en);
 }
 
 void
@@ -2730,15 +2688,8 @@ _edje_entry_select_all(Edje_Real_Part *rp)
    _curs_end(en->cursor, rp->object, en);
    _sel_extend(en->cursor, rp->object, en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_entry_real_part_configure(rp);
 
    en->select_allow = EINA_TRUE;
@@ -2757,14 +2708,8 @@ _edje_entry_select_begin(Edje_Real_Part *rp)
    _sel_start(en->cursor, rp->object, en);
    _sel_extend(en->cursor, rp->object, en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_entry_real_part_configure(rp);
 }
@@ -2776,14 +2721,8 @@ _edje_entry_select_extend(Edje_Real_Part *rp)
    if (!en) return;
    _sel_extend(en->cursor, rp->object, en);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_entry_real_part_configure(rp);
 }
@@ -2929,15 +2868,8 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
      {
         en->selecting = EINA_FALSE;
 
-#ifdef HAVE_ECORE_IMF
-        if (en->imf_context)
-          {
-             ecore_imf_context_reset(en->imf_context);
-             ecore_imf_context_cursor_position_set(en->imf_context,
-                                                   evas_textblock_cursor_pos_get(en->cursor));
-          }
-#endif
-
+        _edje_entry_imf_context_reset(en);
+        _edje_entry_imf_cursor_info_set(en);
         _edje_entry_real_part_configure(rp);
      }
 }
@@ -3054,14 +2986,8 @@ _edje_entry_cursor_next(Edje_Real_Part *rp, Edje_Cursor cur)
      }
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
@@ -3082,14 +3008,8 @@ _edje_entry_cursor_prev(Edje_Real_Part *rp, Edje_Cursor cur)
 ok:
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
@@ -3120,14 +3040,8 @@ _edje_entry_cursor_up(Edje_Real_Part *rp, Edje_Cursor cur)
      }
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
@@ -3157,15 +3071,8 @@ _edje_entry_cursor_down(Edje_Real_Part *rp, Edje_Cursor cur)
      }
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
    return EINA_TRUE;
@@ -3180,15 +3087,8 @@ _edje_entry_cursor_begin(Edje_Real_Part *rp, Edje_Cursor cur)
    evas_textblock_cursor_paragraph_first(c);
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
 }
@@ -3202,14 +3102,8 @@ _edje_entry_cursor_end(Edje_Real_Part *rp, Edje_Cursor cur)
    _curs_end(c, rp->object, rp->entry_data);
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
@@ -3229,15 +3123,8 @@ _edje_entry_cursor_copy(Edje_Real_Part *rp, Edje_Cursor cur, Edje_Cursor dst)
    evas_textblock_cursor_copy(c, d);
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
 }
@@ -3251,14 +3138,8 @@ _edje_entry_cursor_line_begin(Edje_Real_Part *rp, Edje_Cursor cur)
    evas_textblock_cursor_line_char_first(c);
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
 
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
@@ -3273,15 +3154,8 @@ _edje_entry_cursor_line_end(Edje_Real_Part *rp, Edje_Cursor cur)
    evas_textblock_cursor_line_char_last(c);
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
 }
@@ -3342,15 +3216,8 @@ _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos)
    evas_textblock_cursor_pos_set(c, pos);
    _sel_update(c, rp->object, rp->entry_data);
 
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        ecore_imf_context_reset(en->imf_context);
-        ecore_imf_context_cursor_position_set(en->imf_context,
-                                              evas_textblock_cursor_pos_get(en->cursor));
-     }
-#endif
-
+   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
 }
@@ -3361,6 +3228,30 @@ _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur)
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return 0;
    return evas_textblock_cursor_pos_get(c);
+}
+
+static void
+_edje_entry_imf_context_reset(Entry *en)
+{
+#ifdef HAVE_ECORE_IMF
+   if (en->imf_context)
+     ecore_imf_context_reset(en->imf_context);
+#endif
+}
+
+static void
+_edje_entry_imf_cursor_info_set(Entry *en)
+{
+   Evas_Coord cx, cy, cw, ch;
+   if (!en || !en->rp || !en->imf_context) return;
+
+   _edje_entry_cursor_geometry_get(en->rp, &cx, &cy, &cw, &ch);
+
+#ifdef HAVE_ECORE_IMF
+   ecore_imf_context_cursor_position_set(en->imf_context,
+                                         evas_textblock_cursor_pos_get(en->cursor));
+   ecore_imf_context_cursor_location_set(en->imf_context, cx, cy, cw, ch);
+#endif
 }
 
 #ifdef HAVE_ECORE_IMF
@@ -3471,6 +3362,7 @@ _edje_entry_imf_event_commit_cb(void *data, int type __UNUSED__, void *event)
    _preedit_clear(en);
 #endif
 
+   _edje_entry_imf_cursor_info_set(en);
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_emit(ed, "cursor,changed", rp->part->name);
@@ -3616,16 +3508,14 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
           {
              evas_textblock_cursor_char_prev(en->preedit_start);
           }
-     }
 
-   if (!preedit_end_state)
-     {
         en->have_preedit = EINA_TRUE;
 
         /* set cursor position */
         evas_textblock_cursor_pos_set(en->cursor, preedit_start_pos + cursor_pos);
      }
 
+   _edje_entry_imf_cursor_info_set(en);
    _anchors_get(en->cursor, rp->object, en);
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_emit(ed, "cursor,changed", rp->part->name);
