@@ -3651,7 +3651,7 @@ _edje_entry_imf_event_delete_surrounding_cb(void *data, int type __UNUSED__, voi
    Evas_Textblock_Cursor *del_start, *del_end;
    int cursor_pos;
 
-   if (!rp) return ECORE_CALLBACK_PASS_ON;
+   if ((!rp) || (!ev)) return ECORE_CALLBACK_PASS_ON;
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
