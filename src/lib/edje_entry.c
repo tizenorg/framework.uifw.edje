@@ -627,7 +627,6 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 
         list_cnt = eina_list_count(en->sel);
         list_idx = 0;
-
         evas_object_hide(en->cursor_fg);
         evas_object_hide(en->cursor_bg);
 
@@ -651,8 +650,12 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                {
                   if (list_idx == 1)
                     {
+                       const char *bh_position = edje_object_data_get(en->block_handler_top, "position");
                        evas_object_hide(en->block_handler_top);
-                       evas_object_move(en->block_handler_top, x + r->x, y + r->y);
+                       if (bh_position && !strcmp(bh_position, "BOTTOM"))
+                         evas_object_move(en->block_handler_top, x + r->x, y + r->y + r->h);
+                       else
+                         evas_object_move(en->block_handler_top, x + r->x, y + r->y);
                        evas_object_show(en->block_handler_top);
                     }
                   if (list_idx == list_cnt)
