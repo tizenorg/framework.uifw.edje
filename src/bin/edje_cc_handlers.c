@@ -572,6 +572,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.programs.program.name", st_collections_group_programs_program_name}, /* dup */
      {"collections.group.parts.programs.program.signal", st_collections_group_programs_program_signal}, /* dup */
      {"collections.group.parts.programs.program.source", st_collections_group_programs_program_source}, /* dup */
+     {"collections.group.parts.programs.program.filter", st_collections_group_programs_program_filter}, /* dup */
      {"collections.group.parts.programs.program.in", st_collections_group_programs_program_in}, /* dup */
      {"collections.group.parts.programs.program.action", st_collections_group_programs_program_action}, /* dup */
      {"collections.group.parts.programs.program.transition", st_collections_group_programs_program_transition}, /* dup */
@@ -1678,6 +1679,9 @@ st_styles_style_base(void)
         [tag name] [style properties string]
     @effect
         Style to be applied only to text between style \<tags\>..\</tags\>.
+        When creating "paired" tags, like \<bold\>\</bold\>, A '+' should be added at the start of the style properties of the first part (\<bold\>).
+        If the second part (\</bold\>) is also defined, a '-' should be prepended to it's style properties.
+        This only applies to paired tags; Single tags, like \<tab\>, must not include a starting '+'.
     @endproperty
 */
 static void
@@ -2215,6 +2219,7 @@ st_collections_group_parts_part_name(void)
             @li BOX
             @li TABLE
             @li EXTERNAL
+	    @li PROXY
     @endproperty
 */
 static void
@@ -2256,9 +2261,9 @@ st_collections_group_parts_part_type(void)
     @parameters
         [1 or 0]
     @effect
-        Specifies whether the part will emit signals, altought is named
+        Specifies whether the part will emit signals, although it is named
         "mouse_events", disabling it (0) will prevent the part from emitting
-        any type of signal at all. Its set to 1 by default.
+        any type of signal at all. It's set to 1 by default.
     @endproperty
 */
 static void
@@ -2282,7 +2287,7 @@ st_collections_group_parts_part_mouse_events(void)
         [1 or 0]
     @effect
         Specifies whether a part echoes a mouse event to other parts below the
-        pointer (1), or not (0). Its set to 0 by default.
+        pointer (1), or not (0). It's set to 0 by default.
     @endproperty
 */
 static void
@@ -3670,6 +3675,10 @@ st_collections_group_parts_part_description_inherit(void)
    data_queue_part_slave_lookup(&parent->rel2.id_x, &ed->rel2.id_x);
    data_queue_part_slave_lookup(&parent->rel2.id_y, &ed->rel2.id_y);
 
+   data_queue_part_slave_lookup(&parent->map.id_persp, &ed->map.id_persp);
+   data_queue_part_slave_lookup(&parent->map.id_light, &ed->map.id_light);
+   data_queue_part_slave_lookup(&parent->map.rot.id_center, &ed->map.rot.id_center);
+
    /* make sure all the allocated memory is getting copied, not just
     * referenced
     */
@@ -3991,7 +4000,7 @@ st_collections_group_parts_part_description_min(void)
     @parameters
         [width] [height]
     @effect
-        The maximum size of the state.
+        The maximum size of the state. A size of -1.0 means that it will be ignored in one direction.
     @endproperty
 */
 static void
@@ -4009,8 +4018,8 @@ st_collections_group_parts_part_description_max(void)
    ed = ep->default_desc;
    if (ep->other.desc_count) ed = ep->other.desc[ep->other.desc_count - 1];
 
-   ed->max.w = parse_float_range(0, 0, 0x7fffffff);
-   ed->max.h = parse_float_range(1, 0, 0x7fffffff);
+   ed->max.w = parse_float_range(0, -1.0, 0x7fffffff);
+   ed->max.h = parse_float_range(1, -1.0, 0x7fffffff);
 }
 
 /**
@@ -7356,12 +7365,19 @@ st_collections_group_programs_program_target(void)
    ep = current_program;
      {
 	Edje_Program_Target *et;
+	Edje_Program_Target *etw;
+	Eina_List *l;
 	char *name;
-
-	et = mem_alloc(SZ(Edje_Program_Target));
-	ep->targets = eina_list_append(ep->targets, et);
+	char *copy;
 
 	name = parse_str(0);
+
+	et = mem_alloc(SZ(Edje_Program_Target) + strlen(name) + 1);
+	ep->targets = eina_list_append(ep->targets, et);
+	copy = (char*) (et + 1);
+
+	memcpy(copy, name, strlen(name) + 1);
+
 	if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else if (ep->action == EDJE_ACTION_TYPE_ACTION_STOP)
@@ -7383,6 +7399,14 @@ st_collections_group_programs_program_target(void)
 		 progname, file_in, line - 1);
 	     exit(-1);
 	  }
+	EINA_LIST_FOREACH(ep->targets, l, etw)
+	  if (et != etw && strcmp(name, (char*) (etw + 1)) == 0)
+	    {
+	      ERR("%s: Error. parse error %s:%i. "
+		  "target is targetted twice",
+		  progname, file_in, line - 1);
+	      exit(-1);
+	    }
 	free(name);
      }
 }

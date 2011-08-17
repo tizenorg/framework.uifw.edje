@@ -4,28 +4,10 @@
 These routines are used for Edje.
 
 @mainpage Edje Library Documentation
-@image html  e.png
-@version 1.0.0
-@author Carsten Haitzler <raster@@rasterman.com>
-@author Tilman Sauerbeck (tilman at code-monkey de)
-@author ZigsMcKenzie <zigsmckenzie@@gmail.com>
-@author Cedric BAIL <cedric.bail@@free.fr>
-@author Brian Mattern <rephorm@@rephorm.com>
-@author Mathieu Taillefumier <mathieu.taillefumier@@free.fr>
-@author Tristan <blunderer@@gmail.com>
-@author Gustavo Lima Chaves <glima@@profusion.mobi>
-@author Bruno Dilly <bdilly@@profusion.mobi>
-@author Fabiano Fidêncio <fidencio@@profusion.mobi>
-@author Jihoon Kim <jihoon48.kim@@samsung.com>
-@author Tiago Falcão <tiago@@profusion.mobi>
-@author Davide Andreoli <dave@@gurumeditation.it>
-@author Sebastian Dransfeld <sd@@tango.flipp.net>
-@author Tom Hacohen <tom@@stosb.com>
-@author Aharon Hillel <a.hillel@@partner.samsung.com>
+@version 1.1
 @date 2003-2011
 
-
-
+Please see the @ref authors page for contact details.
 
 
 
@@ -72,12 +54,6 @@ use Edje as a convenient way of being able to configure parts of the display.
 For details of Edje's history, see the \ref history section.
 
 
-
-
-
-
-
-
 @section requirements What does Edje require?
 
 Edje requires fairly little on your system. to use the Edje runtime library
@@ -88,83 +64,15 @@ you need:
   - Eet (library)
   - Embryo (library)
   - Eina (library)
+  - Lua 5.1 (library)
 
 Evas needs to be build with the JPEG, PNG and EET image loaders enabled at a
-minimum. Edje uses X for the test program, so you will need the SOFTWARE_X11
-engine built into Evas as well. A suggested configure list is below in the
-"cheat sheet" for Evas.
+minimum. You will also need the buffer engine (which requires the
+software_generic engine) as well.
 
 Ecore needs the ECORE, ECORE_EVAS and ECORE_X modules built at a minimum.
-It's suggested to build all the Ecore modules, but the ECORE_FB modules is
-definitely optional.
-
-Eina, Eet and Embryo have no interesting options so just build and
-install them.
-
-It is suggested right now that you get the latest SVN versions of the
-required libraries. You also need to build them in the right order and make
-sure the right options are enabled in the required libraries. Here is a
-quick "cheat sheet" on how to get started.
-
-@verbatim
-1. You need Eina from the trunk svn branch.
-
-  svn co http://svn.enlightenment.org/svn/e/trunk/eina/
-  cd eina
-  ./autogen.sh
-  ./configure
-  make
-  sudo make install
-  cd
-
-2. You need Eet from the trunk svn branch.
-
-  svn co http://svn.enlightenment.org/svn/e/trunk/eet/
-  cd eet
-  ./autogen.sh
-  ./configure
-  make
-  sudo make install
-  cd
-
-3. You need Evas from the trunk svn branch built with eet, png and jpeg loader support.
-
-  svn co http://svn.enlightenment.org/svn/e/trunk/evas/
-  cd evas
-  ./autogen.sh
-  ./configure --enable-image-loader-eet --enable-font-loader-eet --enable-image-loader-jpeg --enable-image-loader-png --enable-buffer
-  make
-  sudo make install
-  cd
-
-4. You need Ecore from the trunk svn branch built with ecore-x and ecore-evas.
-
-  svn co http://svn.enlightenment.org/svn/e/trunk/ecore/
-  cd ecore
-  ./autogen.sh
-  ./configure --enable-ecore-x --enable-ecore-evas --enable-ecore-evas-software-buffer --enable-ecore-evas-software-x11 --enable-ecore-evas-software-buffer
-  make
-  sudo make install
-  cd
-
-5. You need embryo from the trunk svn branch
-
-  svn co http://svn.enlightenment.org/svn/e/trunk/embryo/
-  cd embryo
-  ./autogen.sh
-  ./configure
-  make
-  sudo make install
-  cd
-
-@endverbatim
-
-
-
-
-
-
-
+It's suggested to build all the Ecore modules. You will beed the Buffer
+engine support built into Ecore_Evas for edje?_cc to function.
 
 
 @section compiling How to compile and test Edje
@@ -184,16 +92,9 @@ Enlightenment's own theme file.
 You may use different tools to edit and view the generated ".edj"
 files, for instance:
 
+  - edje_player (provided by Edje)
   - editje (http://trac.enlightenment.org/e/wiki/Editje)
   - edje_viewer (http://trac.enlightenment.org/e/wiki/Edje_Viewer)
-
-
-
-
-
-
-
-
 
 
 @section details So how does this all work?
@@ -415,7 +316,7 @@ changes can be done from the Edje file itself without any requirement
 in the C application.
 
 Before digging into changing or creating your own Edje source (edc)
-files, read the \ref edcref.
+files, read the @ref edcref.
 
 
 
@@ -441,15 +342,44 @@ Unlike Ebits, Edje separates the layout and behavior logic.
 
 
 
+@section Edje_Examples Examples on Edje's usage
+
+What follows is a list with various commented examples, covering a great
+part of Edje's API:
+
+- @ref Example_Edje_Basics
+- @ref tutorial_edje_swallow
+- @ref tutorial_edje_table
+- @ref tutorial_edje_box
+- @ref tutorial_edje_box2
+- @ref tutorial_edje_color_class
+- @ref tutorial_edje_animations
+- @ref Example_Edje_Signals_Messages
 
 
+*/
 
+/**
+@page authors Authors
+@author Carsten Haitzler <raster@@rasterman.com>
+@author Tilman Sauerbeck (tilman at code-monkey de)
+@author ZigsMcKenzie <zigsmckenzie@@gmail.com>
+@author Cedric BAIL <cedric.bail@@free.fr>
+@author Brian Mattern <rephorm@@rephorm.com>
+@author Mathieu Taillefumier <mathieu.taillefumier@@free.fr>
+@author Tristan <blunderer@@gmail.com>
+@author Gustavo Lima Chaves <glima@@profusion.mobi>
+@author Bruno Dilly <bdilly@@profusion.mobi>
+@author Fabiano Fidêncio <fidencio@@profusion.mobi>
+@author Jihoon Kim <jihoon48.kim@@samsung.com>
+@author Tiago Falcão <tiago@@profusion.mobi>
+@author Davide Andreoli <dave@@gurumeditation.it>
+@author Sebastian Dransfeld <sd@@tango.flipp.net>
+@author Tom Hacohen <tom@@stosb.com>
+@author Aharon Hillel <a.hillel@@partner.samsung.com>
 
-
-
-@todo Complete documentation of API
-@todo Bytecode language for extending programs... but what/how?
-
+Please contact <enlightenment-devel@lists.sourceforge.net> to get in
+contact with the developers and maintainers.
 */
 
 
@@ -581,25 +511,32 @@ extern "C" {
  * These routines are used for Edje.
  */
 
+/**
+ * Identifiers of Edje message types, which can be sent back and forth
+ * code and a given Edje object's theme file/group.
+ *
+ * @see edje_object_message_send()
+ * @see edje_object_message_handler_set()
+ */
 typedef enum _Edje_Message_Type
 {
    EDJE_MESSAGE_NONE = 0,
 
    EDJE_MESSAGE_SIGNAL = 1, /* DONT USE THIS */
 
-   EDJE_MESSAGE_STRING = 2,
-   EDJE_MESSAGE_INT = 3,
-   EDJE_MESSAGE_FLOAT = 4,
+   EDJE_MESSAGE_STRING = 2, /**< A message with a string as value. Use #Edje_Message_String structs as message body, for this type. */
+   EDJE_MESSAGE_INT = 3, /**< A message with an integer number as value. Use #Edje_Message_Int structs as message body, for this type. */
+   EDJE_MESSAGE_FLOAT = 4, /**< A message with a floating pointer number as value. Use #Edje_Message_Float structs as message body, for this type. */
 
-   EDJE_MESSAGE_STRING_SET = 5,
-   EDJE_MESSAGE_INT_SET = 6,
-   EDJE_MESSAGE_FLOAT_SET = 7,
+   EDJE_MESSAGE_STRING_SET = 5, /**< A message with a list of strings as value. Use #Edje_Message_String_Set structs as message body, for this type. */
+   EDJE_MESSAGE_INT_SET = 6, /**< A message with a list of integer numbers as value. Use #Edje_Message_Int_Set structs as message body, for this type. */
+   EDJE_MESSAGE_FLOAT_SET = 7, /**< A message with a list of floating point numbers as value. Use #Edje_Message_Float_Set structs as message body, for this type. */
 
-   EDJE_MESSAGE_STRING_INT = 8,
-   EDJE_MESSAGE_STRING_FLOAT = 9,
+   EDJE_MESSAGE_STRING_INT = 8, /**< A message with a struct containing a string and an integer number as value. Use #Edje_Message_String_Int structs as message body, for this type. */
+   EDJE_MESSAGE_STRING_FLOAT = 9, /**< A message with a struct containing a string and a floating point number as value. Use #Edje_Message_String_Float structs as message body, for this type. */
 
-   EDJE_MESSAGE_STRING_INT_SET = 10,
-   EDJE_MESSAGE_STRING_FLOAT_SET = 11
+   EDJE_MESSAGE_STRING_INT_SET = 10, /**< A message with a struct containing a string and list of integer numbers as value. Use #Edje_Message_String_Int_Set structs as message body, for this type. */
+   EDJE_MESSAGE_STRING_FLOAT_SET = 11 /**< A message with a struct containing a string and list of floating point numbers as value. Use #Edje_Message_String_Float_Set structs as message body, for this type. */
 } Edje_Message_Type;
 
 typedef enum _Edje_Aspect_Control
@@ -726,62 +663,62 @@ typedef struct _Edje_Message_String_Float_Set Edje_Message_String_Float_Set;
 
 struct _Edje_Message_String
 {
-   char *str;
-};
+   char *str; /**< The message's string pointer */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING messages. The string in it is automatically freed be Edje */
 
 struct _Edje_Message_Int
 {
-   int val;
-};
+   int val; /**< The message's value */
+}; /**< Structure passed as value on #EDJE_MESSAGE_INT messages */
 
 struct _Edje_Message_Float
 {
-   double val;
-};
+   double val; /**< The message's value */
+}; /**< Structure passed as value on #EDJE_MESSAGE_FLOAT messages */
 
 struct _Edje_Message_String_Set
 {
-   int count;
-   char *str[1];
-};
+   int count; /**< The size of the message's array (may be greater than 1) */
+   char *str[1]; /**< The message's @b array of string pointers */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_SET messages. The array in it is automatically freed be Edje */
 
 struct _Edje_Message_Int_Set
 {
-   int count;
-   int val[1];
-};
+   int count; /**< The size of the message's array (may be greater than 1) */
+   int val[1]; /**< The message's @b array of integers */
+}; /**< Structure passed as value on #EDJE_MESSAGE_INT_SET messages. The array in it is automatically freed be Edje */
 
 struct _Edje_Message_Float_Set
 {
-   int count;
-   double val[1];
-};
+   int count; /**< The size of the message's array (may be greater than 1) */
+   double val[1]; /**< The message's @b array of floats */
+}; /**< Structure passed as value on #EDJE_MESSAGE_FLOAT_SET messages. The array in it is automatically freed be Edje */
 
 struct _Edje_Message_String_Int
 {
-   char *str;
-   int val;
-};
+   char *str; /**< The message's string value */
+   int val; /**< The message's integer value */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_INT messages */
 
 struct _Edje_Message_String_Float
 {
-   char *str;
-   double val;
-};
+   char *str; /**< The message's string value */
+   double val; /**< The message's float value */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_FLOAT messages */
 
 struct _Edje_Message_String_Int_Set
 {
-   char *str;
-   int count;
-   int val[1];
-};
+   char *str; /**< The message's string value */
+   int count; /**< The size of the message's array (may be greater than 1) */
+   int val[1]; /**< The message's @b array of integers */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_INT_SET messages */
 
 struct _Edje_Message_String_Float_Set
 {
-   char *str;
-   int count;
-   double val[1];
-};
+   char *str; /**< The message's string value */
+   int count; /**< The size of the message's array (may be greater than 1) */
+   double val[1]; /**< The message's @b array of floats */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_FLOAT_SET messages */
 
 typedef enum _Edje_Drag_Dir
 {
@@ -793,17 +730,17 @@ typedef enum _Edje_Drag_Dir
 
 typedef enum _Edje_Load_Error
 {
-   EDJE_LOAD_ERROR_NONE = 0,
-   EDJE_LOAD_ERROR_GENERIC = 1,
-   EDJE_LOAD_ERROR_DOES_NOT_EXIST = 2,
-   EDJE_LOAD_ERROR_PERMISSION_DENIED = 3,
-   EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED = 4,
-   EDJE_LOAD_ERROR_CORRUPT_FILE = 5,
-   EDJE_LOAD_ERROR_UNKNOWN_FORMAT = 6,
-   EDJE_LOAD_ERROR_INCOMPATIBLE_FILE = 7,
-   EDJE_LOAD_ERROR_UNKNOWN_COLLECTION = 8,
-   EDJE_LOAD_ERROR_RECURSIVE_REFERENCE = 9
-} Edje_Load_Error;
+   EDJE_LOAD_ERROR_NONE = 0, /**< No error happened, the loading was successful */
+   EDJE_LOAD_ERROR_GENERIC = 1, /**< A generic error happened during the loading */
+   EDJE_LOAD_ERROR_DOES_NOT_EXIST = 2, /**< The file pointed to did not exist */
+   EDJE_LOAD_ERROR_PERMISSION_DENIED = 3, /**< Permission to read the given file was denied */
+   EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED = 4, /**< Resource allocation failed during the loading */
+   EDJE_LOAD_ERROR_CORRUPT_FILE = 5, /**< The file pointed to was corrupt */
+   EDJE_LOAD_ERROR_UNKNOWN_FORMAT = 6, /**< The file pointed to had an unknown format */
+   EDJE_LOAD_ERROR_INCOMPATIBLE_FILE = 7, /**< The file pointed to is incompatible, i.e., it doesn't match the library's current version's format */
+   EDJE_LOAD_ERROR_UNKNOWN_COLLECTION = 8, /**< The group/collection set to load from was @b not found in the file */
+   EDJE_LOAD_ERROR_RECURSIVE_REFERENCE = 9 /**< The group/collection set to load from had <b>recursive references</b> on its components */
+} Edje_Load_Error; /**< Edje file loading error codes one can get - see edje_load_error_str() too. */
 
 typedef enum _Edje_Text_Filter_Type
 {
@@ -812,47 +749,34 @@ typedef enum _Edje_Text_Filter_Type
    EDJE_TEXT_FILTER_MARKUP = 2
 } Edje_Text_Filter_Type;
 
+/**
+ * The possible types the parameters of an EXTERNAL part can be.
+ */
 typedef enum _Edje_External_Param_Type
 {
-   EDJE_EXTERNAL_PARAM_TYPE_INT,
-   EDJE_EXTERNAL_PARAM_TYPE_DOUBLE,
-   EDJE_EXTERNAL_PARAM_TYPE_STRING,
-   EDJE_EXTERNAL_PARAM_TYPE_BOOL,
-   EDJE_EXTERNAL_PARAM_TYPE_CHOICE,
-   EDJE_EXTERNAL_PARAM_TYPE_MAX
+   EDJE_EXTERNAL_PARAM_TYPE_INT, /**< Parameter value is an integer. */
+   EDJE_EXTERNAL_PARAM_TYPE_DOUBLE, /**< Parameter value is a double. */
+   EDJE_EXTERNAL_PARAM_TYPE_STRING, /**< Paramater value is a string. */
+   EDJE_EXTERNAL_PARAM_TYPE_BOOL, /**< Parameter value is boolean. */
+   EDJE_EXTERNAL_PARAM_TYPE_CHOICE, /**< Parameter value is one of a set of
+                                      predefined string choices. */
+   EDJE_EXTERNAL_PARAM_TYPE_MAX /**< Sentinel. Don't use. */
 } Edje_External_Param_Type;
 
 /**
- * @typedef Edje_External_Param_Flags flags that determines the
- * behavior of a parameter.
- *
- * @var EDJE_EXTERNAL_PARAM_FLAGS_NONE property is incapable of
- *      operations, this is used to catch bogus flags.
- * @var EDJE_EXTERNAL_PARAM_FLAGS_GET property can be read/get
- * @var EDJE_EXTERNAL_PARAM_FLAGS_SET property can be written/set.
- *      This only enables edje_object_part_external_param_set() and
- *      Embryo scripts. To enable parameter being set from state
- *      description whenever it changes state, use
- *      #EDJE_EXTERNAL_PARAM_FLAGS_STATE.
- * @var EDJE_EXTERNAL_PARAM_FLAGS_STATE property can be set from state
- *      description.
- * @var EDJE_EXTERNAL_PARAM_FLAGS_CONSTRUCTOR this property is only
- *      set once when object is constructed using its value from
- *      "default" 0.0 state description. Setting this overrides
- *      #EDJE_EXTERNAL_PARAM_FLAGS_STATE.
- * @var EDJE_EXTERNAL_PARAM_FLAGS_REGULAR convenience flag that sets
- *      property as GET, SET and STATE.
+ * Flags that determine how a parameter may be accessed in different
+ * circumstances.
  */
 typedef enum _Edje_External_Param_Flags
 {
-   EDJE_EXTERNAL_PARAM_FLAGS_NONE        = 0,
-   EDJE_EXTERNAL_PARAM_FLAGS_GET         = (1 << 0),
-   EDJE_EXTERNAL_PARAM_FLAGS_SET         = (1 << 1),
-   EDJE_EXTERNAL_PARAM_FLAGS_STATE       = (1 << 2),
-   EDJE_EXTERNAL_PARAM_FLAGS_CONSTRUCTOR = (1 << 3),
+   EDJE_EXTERNAL_PARAM_FLAGS_NONE        = 0, /**< Propery is incapable of operations, this is used to catch bogus flags. */
+   EDJE_EXTERNAL_PARAM_FLAGS_GET         = (1 << 0), /**< Property can be read/get. */
+   EDJE_EXTERNAL_PARAM_FLAGS_SET         = (1 << 1), /**< Property can be written/set. This only enables edje_object_part_external_param_set() and Embryo scripts. To enable the parameter being set from state description whenever it changes state, use #EDJE_EXTERNAL_PARAM_FLAGS_STATE. */
+   EDJE_EXTERNAL_PARAM_FLAGS_STATE       = (1 << 2), /**< Property can be set from state dsecription. */
+   EDJE_EXTERNAL_PARAM_FLAGS_CONSTRUCTOR = (1 << 3), /**< This property is only set once when the object is constructed using its value from "default" 0.0 state description. Setting this overrides #EDJE_EXTERNAL_PARAM_FLAGS_STATE. */
    EDJE_EXTERNAL_PARAM_FLAGS_REGULAR     = (EDJE_EXTERNAL_PARAM_FLAGS_GET |
                                             EDJE_EXTERNAL_PARAM_FLAGS_SET |
-                                            EDJE_EXTERNAL_PARAM_FLAGS_STATE)
+                                            EDJE_EXTERNAL_PARAM_FLAGS_STATE) /**< Convenience flag that sets property as GET, SET and STATE. */
 } Edje_External_Param_Flags;
 
 
@@ -866,49 +790,97 @@ typedef enum _Edje_External_Param_Flags
  */
 EAPI const char *edje_external_param_type_str(Edje_External_Param_Type type) EINA_PURE;
 
+/**
+ * Struct that holds parameters for parts of type EXTERNAL.
+ */
 struct _Edje_External_Param
 {
-   const char               *name;
-   Edje_External_Param_Type  type;
+   const char               *name; /**< The name of the parameter. */
+   Edje_External_Param_Type  type; /**< The type of the parameter. This defines
+                                     which of the next three variables holds
+                                     the value for it. */
    // XXX these could be in a union, but eet doesn't support them (or does it?)
-   int                       i; /**< used by both integer and boolean */
-   double                    d;
-   const char               *s; /**< used by both string and choice */
+   int                       i; /**< Used by both integer and boolean */
+   double                    d; /**< Used by double */
+   const char               *s; /**< Used by both string and choice */
 };
+/**
+ * Struct that holds parameters for parts of type EXTERNAL.
+ */
 typedef struct _Edje_External_Param Edje_External_Param;
 
+/**
+ * Helper macro to indicate an EXTERNAL's integer parameter is undefined.
+ */
 #define EDJE_EXTERNAL_INT_UNSET INT_MAX
+/**
+ * Helper macro to indicate an EXTERNAL's double parameter is undefined.
+ */
 #define EDJE_EXTERNAL_DOUBLE_UNSET DBL_MAX
 
+/**
+ * Struct holding information about an EXTERNAL part's parameters.
+ *
+ * When creating types to use with EXTERNAL parts, an array of this type is
+ * used to describe the different parameters the object uses.
+ *
+ * This struct holds the name, type and flags that define how and when the
+ * parameter is used, as well as information specific to each type, like the
+ * maximum or minimum value, that can be used by editors to restrict the
+ * range of values to set for each parameter.
+ */
 typedef struct _Edje_External_Param_Info Edje_External_Param_Info;
+/**
+ * Struct holding information about an EXTERNAL part's parameters.
+ *
+ * When creating types to use with EXTERNAL parts, an array of this type is
+ * used to describe the different parameters the object uses.
+ *
+ * This struct holds the name, type and flags that define how and when the
+ * parameter is used, as well as information specific to each type, like the
+ * maximum or minimum value, that can be used by editors to restrict the
+ * range of values to set for each parameter.
+ */
 struct _Edje_External_Param_Info
 {
-   const char               *name;
-   Edje_External_Param_Type  type;
-   Edje_External_Param_Flags flags;
+   const char               *name; /**< Name of the parameter. */
+   Edje_External_Param_Type  type; /**< Type of the parameter. */
+   Edje_External_Param_Flags flags; /**< Flags indicating how this parameter is
+                                      used. */
    union {
       struct {
-         int                 def, min, max, step;
-      } i;
+         int                 def, /**< Default value for the paramter. */
+                             min, /**< Minimum value it can have. */
+                             max, /**< Maximum value it can have. */
+                             step; /**< Values will be a multiple of this. */
+      } i; /**< Info about integer type parametrs. Use #EDJE_EXTERNAL_INT_UNSET
+             on any of them to indicate they are not defined.*/
       struct {
-         double              def, min, max, step;
-      } d;
+         double              def, /**< Default value for the paramter. */
+                             min, /**< Minimum value it can have. */
+                             max, /**< Maximum value it can have. */
+                             step; /**< Values will be a multiple of this. */
+      } d; /**< Info about double type parametrs. Use
+#EDJE_EXTERNAL_DOUBLE_UNSET on any of them to indicate they are not defined.*/
       struct {
-         const char         *def;
-         const char         *accept_fmt;
-         const char         *deny_fmt;
-      } s;
+         const char         *def; /**< Default value. */
+         const char         *accept_fmt; /**< Not implemented. */
+         const char         *deny_fmt; /**< Not implemented */
+      } s; /**< Info about string type parameters. NULL indicates undefined. */
       struct {
-         int                 def;
-         const char         *false_str;
-         const char         *true_str;
-      } b;
+         int                 def; /**< Default value. */
+         const char         *false_str; /**< String shown by editors to indicate the false state. */
+         const char         *true_str; /**< String shown by editors to indicate the true state. */
+      } b; /**< Info about boolean type parameters.*/
       struct {
-         const char         *def;
-         const char        **choices; /* NULL terminated array */
-         char               *(*def_get)(void *data, const Edje_External_Param_Info *info); /* return malloc() memory with the default choice, should be used if def is NULL. First parameter is Edje_External_Type::data */
-         char              **(*query)(void *data, const Edje_External_Param_Info *info); /* NULL terminated array of strings, memory is dynamically allocated and should be freed with free() for array and each element. First parameter is Edje_External_Type::data */
-      } c;
+         const char         *def; /**< Default value. */
+         const char        **choices; /* Array of strings, each represents a
+                                         valid value for this parameter. The
+                                         last element of the array must be
+                                         NULL. */
+         char               *(*def_get)(void *data, const Edje_External_Param_Info *info); /** return malloc() memory with the default choice, should be used if def is NULL. First parameter is Edje_External_Type::data */
+         char              **(*query)(void *data, const Edje_External_Param_Info *info); /** NULL terminated array of strings, memory is dynamically allocated and should be freed with free() for array and each element. First parameter is Edje_External_Type::data */
+      } c; /**< Info about choice type parameters. */
    } info;
 };
 
@@ -1001,53 +973,63 @@ struct _Edje_External_Type
                               *  - #EDJE_EXTERNAL_TYPE_ABI_VERSION to declare.
                               *  - edje_external_type_abi_version_get() to check.
                               */
-  const char    *module;
-  const char    *module_name;
-  Evas_Object *(*add) (void *data, Evas *evas, Evas_Object *parent, const Eina_List *params, const char *part_name); /**< creates the object to be used by Edje as the part */
-  void         (*state_set) (void *data, Evas_Object *obj, const void *from_params, const void *to_params, float pos); /**< called upon state changes, including the initial "default" 0.0 state. Parameters are the value returned by params_parse() */
+  const char    *module; /**< Name of the module that holds these definitions,
+                           as used in the externals {} block of a theme
+                           definition. */
+  const char    *module_name; /**< Canonical name of the module, for displaying
+                                in edition programs, for example. */
+  Evas_Object *(*add) (void *data, Evas *evas, Evas_Object *parent, const Eina_List *params, const char *part_name); /**< Creates the object to be used by Edje as the part. @p part_name is the name of the part that holds the object and can be used to forward callbacks from the object as signals from Edje. @p params is the list of #Edje_External_Param, not parsed, from the default state of the part. Parameters of type #EDJE_EXTERNAL_PARAM_FLAGS_CONSTRUCTOR should be set on
+ the object here. */
+  void         (*state_set) (void *data, Evas_Object *obj, const void *from_params, const void *to_params, float pos); /**< Called upon state changes, including the initial "default" 0.0 state. Parameters are the value returned by params_parse(). The @p pos parameter is a value between 0.0 and 1.0 indicating the position in time within the state transition. */
   void         (*signal_emit) (void *data, Evas_Object *obj, const char *emission, const char *source); /**< Feed a signal emitted with emission originally set as part_name:signal to this object (without the "part_name:" prefix) */
-  Eina_Bool    (*param_set) (void *data, Evas_Object *obj, const Edje_External_Param *param); /**< dynamically change a parameter of this external, called by scripts and user code. Returns @c EINA_TRUE on success */
-  Eina_Bool    (*param_get) (void *data, const Evas_Object *obj, Edje_External_Param *param); /**< dynamically fetch a parameter of this external, called by scripts and user code. Returns @c EINA_TRUE on success. (Must check parameter name and type!) */
-  Evas_Object *(*content_get) (void *data, const Evas_Object *obj, const char *content); /**< dynamically fetch a sub object of this external, called by scripts and user code. Returns @c Evas_Object * on success. (Must check parameter name and type!) */
-  void        *(*params_parse) (void *data, Evas_Object *obj, const Eina_List *params); /**< parses the list of parameters, converting into a friendly representation. Used with state_set() */
-  void         (*params_free) (void *params); /**< free parameters parsed with params_parse() */
+  Eina_Bool    (*param_set) (void *data, Evas_Object *obj, const Edje_External_Param *param); /**< Dynamically change a parameter of this external, called by scripts and user code. Returns @c EINA_TRUE on success */
+  Eina_Bool    (*param_get) (void *data, const Evas_Object *obj, Edje_External_Param *param); /**< Dynamically fetch a parameter of this external, called by scripts and user code. Returns @c EINA_TRUE on success. (Must check parameter name and type!) */
+  Evas_Object *(*content_get) (void *data, const Evas_Object *obj, const char *content); /**< Dynamically fetch a sub object of this external, called by scripts and user code. Returns @c Evas_Object * on success. (Must check parameter name and type!) */
+  void        *(*params_parse) (void *data, Evas_Object *obj, const Eina_List *params); /**< Parses the list of parameters, converting into a friendly representation. Used with state_set() */
+  void         (*params_free) (void *params); /**< Free parameters parsed with params_parse() */
 
   /* The following callbacks aren't used by Edje itself, but by UI design
      tools instead */
-  const char  *(*label_get) (void *data);
-  const char  *(*description_get) (void *data);
-  Evas_Object *(*icon_add) (void *data, Evas *e);
-  Evas_Object *(*preview_add) (void *data, Evas *e);
-  const char  *(*translate) (void *data, const char *orig); /**< called to translate parameters_info name properties for use in user interfaces that support internationalization (i18n) */
+  const char  *(*label_get) (void *data); /**< Get a label to use to identify this EXTERNAL. (For editors) */
+  const char  *(*description_get) (void *data); /**< Get a user friendly description of this EXTERNAL. (For editors) */
+  Evas_Object *(*icon_add) (void *data, Evas *e); /**< Get an icon to use to identify this EXTERNAL. (For editors) */
+  Evas_Object *(*preview_add) (void *data, Evas *e); /**< Get a preview of the EXTERNAL object in use. (For editors) */
+  const char  *(*translate) (void *data, const char *orig); /**< called to translate parameters_info name properties for use in user interfaces that support internationalization (i18n) (For editors) */
 
-  Edje_External_Param_Info *parameters_info;
-  void                     *data;
+  Edje_External_Param_Info *parameters_info; /**< An array of #Edje_External_Param_Info describing the different parameters this EXTERNAL may have. The last element in the array must be #EDJE_EXTERNAL_PARAM_INFO_SENTINEL. */
+  void                     *data; /**< Private user data that will be passed to all of the class functions. */
 };
 typedef struct _Edje_External_Type Edje_External_Type;
 
+/**
+ * Convenience struct used to mass-register types of EXTERNAL objects.
+ *
+ * Used with edje_external_type_array_register().
+ */
 struct _Edje_External_Type_Info
 {
-   const char               *name;
-   const Edje_External_Type *info;
+   const char               *name; /**< The name of the type to register. */
+   const Edje_External_Type *info; /**< The type definition. */
 };
 typedef struct _Edje_External_Type_Info Edje_External_Type_Info;
 
-typedef void         (*Edje_Signal_Cb)          (void *data, Evas_Object *obj, const char *emission, const char *source);
+typedef void         (*Edje_Signal_Cb)          (void *data, Evas_Object *obj, const char *emission, const char *source); /**< Edje signal callback functions's prototype definition. @c data will have the auxiliary data pointer set at the time the callback registration. @c obj will be a pointer the Edje object where the signal comes from. @c emission will identify the exact signal's emission string and @c source the exact signal's source one. */
 typedef void         (*Edje_Text_Change_Cb)     (void *data, Evas_Object *obj, const char *part);
-typedef void         (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg);
+typedef void         (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg); /**< Edje message handler callback functions's prototype definition. @c data will have the auxiliary data pointer set at the time the callback registration. @c obj will be a pointer the Edje object where the message comes from. @c type will identify the type of the given message and @c msg will be a pointer the message's contents, de facto, which depend on @c type. */
 typedef void         (*Edje_Text_Filter_Cb)     (void *data, Evas_Object *obj, const char *part, Edje_Text_Filter_Type type, char **text);
 typedef Evas_Object *(*Edje_Item_Provider_Cb)   (void *data, Evas_Object *obj, const char *part, const char *item);
 
 /**
- * @brief Initialize the edje library.
+ * @brief Initialize the Edje library.
  *
  * @return The new init count. The initial value is zero.
  *
- * This function initializes the ejde library, making the propers
- * calls to initialization functions. It makes calls to functions
- * eina_init(), ecore_init(), embryo_init() and eet_init() so
- * there is no need to call those functions again in your code. To
- * shutdown edje there is a function edje_shutdown().
+ * This function initializes the Ejde library, making the proper calls
+ * to internal initialization functions. It will also initialize its
+ * @b dependencies, making calls to @c eina_init(), @c ecore_init(),
+ * @c embryo_init() and @c eet_init(). So, there is no need to call
+ * those functions again, in your code. To shutdown Edje there is the
+ * function edje_shutdown().
  *
  * @see edje_shutdown()
  * @see eina_init()
@@ -1059,14 +1041,15 @@ typedef Evas_Object *(*Edje_Item_Provider_Cb)   (void *data, Evas_Object *obj, c
 EAPI int          edje_init                       (void);
 
 /**
- * @brief Shutdown the edje library.
+ * @brief Shutdown the Edje library.
  *
- * @return The number of times the library has been initialised without being
- *         shutdown.
+ * @return The number of times the library has been initialised
+ *         without being shutdown.
  *
- * This function shuts down the edje library. It calls the functions
- * eina_shutdown(), ecore_shutdown(), embryo_shutdown() and
- * eet_shutdown(), so there is no need to call these functions again
+ * This function shuts down the Edje library. It will also call the
+ * shutdown functions of its @b dependencies, which are @c
+ * eina_shutdown(), @c ecore_shutdown(), @c embryo_shutdown() and @c
+ * eet_shutdown(), so there is no need to call these functions again,
  * in your code.
  *
  * @see edje_init()
@@ -1099,7 +1082,7 @@ EAPI void         edje_frametime_set              (double t);
  * @return The frame time, in seconds.
  *
  * This function returns the edje frame time set by
- * edje_frametime_set().
+ * edje_frametime_set() or the default value 1/30.
  *
  * @see edje_frametime_set()
  *
@@ -1109,19 +1092,23 @@ EAPI double       edje_frametime_get              (void);
 /**
  * @brief Freeze Edje objects.
  *
- * This function freezes every edje objects in the current process.
+ * This function freezes all Edje animations in the current process.
  *
- * See edje_object_freeze().
+ * @note: for freeze a specific object @see edje_object_freeze().
+ *
+ * @see edje_thaw()
  *
  */
 EAPI void         edje_freeze                     (void);
 
 /**
- * @brief Thaw edje objects.
+ * @brief Thaw Edje objects.
  *
- * This function thaw all edje object in the current process.
+ * This function thaws all Edje animations in the current process.
  *
- * See edje_object_thaw().
+ * @note for thaw a specific object @see edje_object_thaw().
+ *
+ * @see edje_freeze()
  *
  */
 EAPI void         edje_thaw                       (void);
@@ -1150,36 +1137,38 @@ EAPI void         edje_fontset_append_set         (const char *fonts);
 EAPI const char  *edje_fontset_append_get         (void);
 
 /**
- * @brief Set edje's global scaling factor.
+ * @brief Set Edje's global scaling factor.
  *
- * @param scale The edje (global) scale factor. The defaul is 1.0.
+ * @param scale The global scaling factor (the default value is @c 1.0)
  *
- * Edje allows one to build scalable interfaces. Scale factors, which
- * are set to neutral values by default (no scaling, actual sizes),
- * are of two types: global and individual. Edje's global scaling
- * factor will affect all its objects which hadn't their individual
- * scaling factors altered from the default value. If they had it set
- * differently, that factor will override the global one.
+ * Edje allows one to build scalable interfaces. Scaling factors,
+ * which are set to neutral (@c 1.0) values by default (no scaling,
+ * actual sizes), are of two types: @b global and @b individual.
+ * Edje's global scaling factor will affect all its objects which
+ * hadn't their individual scaling factors altered from the default
+ * value (which is zero). If they had it set differently, by
+ * edje_object_scale_set(), that factor will @b override the global
+ * one.
  *
- * Scaling affects the values of min/max object sizes, which are
- * multiplied by it. Font sizes are scaled, too.
+ * Scaling affects the values of mininum/maximum @b part sizes, which
+ * are @b multiplied by it. Font sizes are scaled, too.
  *
- * This property can be retrieved with edje_scale_get().
+ * @warning Only parts which, at EDC level, had the @c "scale"
+ * property set to @c 1, will be affected by this function. Check the
+ * complete @ref edcref "syntax reference" for EDC files.
  *
  * @see edje_scale_get().
- *
  */
 EAPI void         edje_scale_set                  (double scale);
 
 /**
- * @brief Get edje's global scaling factor.
+ * @brief Retrieve Edje's global scaling factor.
  *
- * @return The edje (global) scale factor. The defaul is 1.0.
+ * @return The global scaling factor
  *
- * This function returns edje's global scale factor, which can be set
- * by edje_scale_set().
+ * This function returns Edje's global scaling factor.
  *
- * @see edje_scale_set().
+ * @see edje_scale_set() for more details
  *
  */
 EAPI double       edje_scale_get                  (void);
@@ -1267,52 +1256,57 @@ EAPI void         edje_autoperiod_allow_set (Eina_Bool autoperiod);
 EAPI Eina_Bool    edje_autoperiod_allow_get (void);
 
 /**
- * @brief Set the edje object's scaling factor.
+ * @brief Set the scaling factor for a given Edje object.
  *
- * @param obj The edje object's reference.
- * @param scale The edje object scale factor. The defaul is 1.0.
+ * @param obj A handle to an Edje object
+ * @param scale The scaling factor (the default value is @c 0.0,
+ * meaning indivinual scaling @b not set)
  *
- * This function sets the individual scale factor of the @a obj edje
- * object. This property (or edje's global scale factor, when
- * applicable), will affect this object's parts. However, only parts
- * which, at the EDC language level, were declared which the "scale"
- * attribute set to 1 (default is zero) will be affected.
+ * This function sets an @b individual scaling factor on the @a obj
+ * Edje object. This property (or Edje's global scaling factor, when
+ * applicable), will affect this object's part sizes. If @p scale is
+ * not zero, than the individual scaling will @b override any global
+ * scaling set, for the object @p obj's parts. Put it back to zero to
+ * get the effects of the global scaling again.
  *
- * This scale factor can be retrieved with edje_object_scale_get().
- * @see edje_object_scale_get().
+ * @warning Only parts which, at EDC level, had the @c "scale"
+ * property set to @c 1, will be affected by this function. Check the
+ * complete @ref edcref "syntax reference" for EDC files.
  *
+ * @see edje_object_scale_get()
+ * @see edje_scale_get() for more details
  */
 EAPI Eina_Bool    edje_object_scale_set           (Evas_Object *obj, double scale);
 
 /**
- * @brief Get the edje object's scaling factor.
+ * @brief Get a given Edje object's scaling factor.
  *
- * @param obj The edje object's reference.
+ * @param obj A handle to an Edje object
  *
- * This function returns the individual scale factor of the @a obj
- * edje object, which can be set by edje_object_scale_set().
+ * This function returns the @c individual scaling factor set on the
+ * @a obj Edje object.
  *
- * @see edje_object_scale_set().
+ * @see edje_object_scale_set() for more details
  *
  */
 EAPI double       edje_object_scale_get           (const Evas_Object *obj);
 
 /**
- * Set the RTL orientation for this object.
+ * @brief Set the RTL orientation for this object.
  *
- * @param obj the smart object
+ * @param obj A handle to an Edje object.
  * @rtl new value of flag EINA_TRUE/EINA_FALSE
  * @since 1.1.0
  */
 EAPI void         edje_object_mirrored_set        (Evas_Object *obj, Eina_Bool rtl);
 
 /**
- * Get the RTL orientation for this object.
+ * @brief Get the RTL orientation for this object.
  *
  * You can RTL orientation explicitly with edje_object_mirrored_set.
  *
- * @param obj the smart object
- * @return if flag is set or not.
+ * @param obj A handle to an Edje object.
+ * @return @c EINA_TRUE if the flag is set or @c EINA_FALSE if not.
  * @since 1.1.0
  */
 EAPI Eina_Bool    edje_object_mirrored_get        (const Evas_Object *obj);
@@ -1519,8 +1513,33 @@ EAPI Eina_Bool    edje_color_class_set            (const char *color_class, int 
  *       half-transparent white is 255 255 255 128.
  */
 EAPI Eina_Bool    edje_color_class_get            (const char *color_class, int *r, int *g, int *b, int *a, int *r2, int *g2, int *b2, int *a2, int *r3, int *g3, int *b3, int *a3);
-   EAPI void         edje_color_class_del            (const char *color_class);
-   EAPI Eina_List   *edje_color_class_list           (void);
+
+/**
+ * @brief Delete edje color class.
+ *
+ * @param color_class
+ *
+ * This function deletes any values at the process level for the
+ * specified color class.
+ * @note Deleting the color class will revert it to the
+ *       values defined in the theme file.
+ *
+ * Deleting the color class will emit the signal "color_class,del"
+ * to all the Edje objects in the running program.
+ */
+EAPI void         edje_color_class_del            (const char *color_class);
+
+/**
+ * @brief Lists color classes.
+ *
+ * @return A list of color class names (strings). These strings and
+ * the list must be free()'d by the caller.
+ *
+ * This function lists all color classes known about by the current
+ * process.
+ *
+ */
+EAPI Eina_List   *edje_color_class_list           (void);
 
 /**
  * @brief Set the Edje text class.
@@ -1529,28 +1548,38 @@ EAPI Eina_Bool    edje_color_class_get            (const char *color_class, int 
  * @param font The font name
  * @param size The font size
  *
- * This function sets updates all edje members which belong to this
- * text class with the new font attributes.
+ * @return @c EINA_TRUE, on success or @c EINA_FALSE, on error
+ *
+ * This function updates all Edje members at the process level which
+ * belong to this text class with the new font attributes.
  *
  * @see edje_text_class_get().
  *
  */
+EAPI Eina_Bool    edje_text_class_set             (const char *text_class, const char *font, Evas_Font_Size size);
 
 /**
- * @brief Delete the object color class.
+ * @brief Delete the text class.
  *
- * @param obj The edje object's reference.
- * @param color_class The color class to be deleted.
+ * @param text_class The text class name string
  *
- * This function deletes any values at the object level for the
- * specified object and color class.
+ * This function deletes any values at the process level for the
+ * specified text class.
  *
- * Deleting color emits a signal "color_class,del" with source being
- * the given color.
  */
-EAPI Eina_Bool    edje_text_class_set             (const char *text_class, const char *font, Evas_Font_Size size);
-   EAPI void         edje_text_class_del             (const char *text_class);
-   EAPI Eina_List   *edje_text_class_list            (void);
+EAPI void         edje_text_class_del             (const char *text_class);
+
+/**
+ * @brief List text classes.
+ *
+ * @return A list of text class names (strings). These strings are
+ * stringshares and the list must be free()'d by the caller.
+ *
+ * This function lists all text classes known about by the current
+ * process.
+ *
+ */
+EAPI Eina_List   *edje_text_class_list            (void);
 
 /**
  * @brief Set the object minimum size.
@@ -1614,25 +1643,59 @@ EAPI void         edje_extern_object_aspect_set   (Evas_Object *obj, Edje_Aspect
 EAPI void         edje_box_layout_register        (const char *name, Evas_Object_Box_Layout func, void *(*layout_data_get)(void *), void (*layout_data_free)(void *), void (*free_data)(void *), void *data);
 
 /**
- * Constructs the Edje object
- * @param evas A valid Evas handle
- * @return The Evas_Object pointer.
+ * @brief Instantiate a new Edje object
  *
- * Creates the Edje smart object, returning the Evas_Object handle.
+ * @param evas A valid Evas handle, the canvas to place the new object
+ * in
+ * @return A handle to the new object created or @c NULL, on errors.
+ *
+ * This function creates a new Edje smart object, returning its @c
+ * Evas_Object handle. An Edje object is useless without a (source)
+ * file set to it, so you'd most probably call edje_object_file_set()
+ * afterwards, like in:
+ * @code
+ * Evas_Object *edje;
+ *
+ * edje = edje_object_add(canvas);
+ * if (!edje)
+ *   {
+ *      fprintf(stderr, "could not create edje object!\n");
+ *      return NULL;
+ *   }
+ *
+ * if (!edje_object_file_set(edje, "theme.edj", "group_name"))
+ *   {
+ *      int err = edje_object_load_error_get(edje);
+ *      const char *errmsg = edje_load_error_str(err);
+ *      fprintf(stderr, "could not load 'group_name' from theme.edj: %s",
+ *      	errmsg);
+ *
+ *      evas_object_del(edje);
+ *      return NULL;
+ *   }
+ *
+ * @endcode
+ *
+ * @note before creating the first Edje object in your code, remember
+ * to initialize the library, with edje_init(), or unexpected behavior
+ * might occur.
  */
 EAPI Evas_Object *edje_object_add                 (Evas *evas);
 
 /**
- * @brief Get Edje object data.
+ * @brief Retrive an <b>EDC data field's value</b> from a given Edje
+ * object's group.
  *
- * @param obj A valid Evas_Object handle
- * @param key The data key
- * @return The data string
+ * @param obj A handle to an Edje object
+ * @param key The data field's key string
+ * @return The data's value string
  *
- * This function fetches data specified at the object level.
+ * This function fetches an EDC data field's value, which is declared
+ * on the objects building EDC file, <b>under its group</b>. EDC data
+ * blocks are most commonly used to pass arbitrary parameters from an
+ * application's theme to its code.
  *
- * In EDC this comes from a data block within the group block that @a
- * obj was loaded from. E.g.
+ * They look like the following:
  *
  * @code
  * collections {
@@ -1645,107 +1708,192 @@ EAPI Evas_Object *edje_object_add                 (Evas *evas);
  *   }
  * }
  * @endcode
+ *
+ * EDC data fields always hold @b strings as values, hence the return
+ * type of this function. Check the complete @ref edcref "syntax reference"
+ * for EDC files.
+ *
+ * @warning Do not confuse this call with edje_file_data_get(), which
+ * queries for a @b global EDC data field on an EDC declaration file.
+ *
+ * @see edje_object_file_set()
  */
 EAPI const char  *edje_object_data_get            (const Evas_Object *obj, const char *key);
 
 /**
- * Sets the EET file and group to load @a obj from
- * @param obj A valid Evas_Object handle
- * @param file The path to the EET file
- * @param group The group name in the Edje
- * @return 0 on Error\n
- * 1 on Success and sets EDJE_LOAD_ERROR_NONE
+ * @brief Sets the @b EDJ file (and group within it) to load an Edje
+ * object's contents from
  *
- * Edje uses EET files, conventionally ending in .edj, to store object
- * descriptions. A single file contains multiple named groups. This function
- * specifies the file and group name to load @a obj from.
+ * @param obj A handle to an Edje object
+ * @param file The path to the EDJ file to load @p from
+ * @param group The name of the group, in @p file, which implements an
+ * Edje object
+ * @return @c EINA_TRUE, on success or @c EINA_FALSE, on errors (check
+ * edje_object_load_error_get() after this call to get errors causes)
+ *
+ * Edje expects EDJ files, which are theming objects' descriptions and
+ * resources packed together in an EET file, to read Edje object
+ * definitions from. They usually are created with the @c .edj
+ * extension. EDJ files, in turn, are assembled from @b textual object
+ * description files, where one describes Edje objects declaratively
+ * -- the EDC files (see @ref edcref "the syntax" for those files).
+ *
+ * Those description files were designed so that many Edje object
+ * definitions -- also called @b groups (or collections) -- could be
+ * packed together <b>in the same EDJ file</b>, so that a whole
+ * application's theme could be packed in one file only. This is the
+ * reason for the @p group argument.
+ *
+ * Use this function after you instantiate a new Edje object, so that
+ * you can "give him life", telling where to get its contents from.
+ *
+ * @see edje_object_add()
+ * @see edje_object_file_get()
  */
 EAPI Eina_Bool        edje_object_file_set        (Evas_Object *obj, const char *file, const char *group);
 
 /**
- * Get the file and group name that @a obj was loaded from
- * @param obj A valid Evas_Object handle
- * @param file A pointer to store a pointer to the filename in
- * @param group A pointer to store a pointer to the group name in
+ * @brief Get the file and group name that a given Edje object is bound to
  *
- * This gets the EET file location and group for the given Evas_Object.
- * If @a obj is either not an edje file, or has not had its file/group set
- * using edje_object_file_set(), then both @a file and @a group will be set
- * to NULL.
+ * @param obj A handle to an Edje object
+ * @param file A pointer to a variable whero to store the <b>file's
+ * path</b>
+ * @param group A pointer to a variable where to store the <b>group
+ * name</b> in
  *
- * It is valid to pass in NULL for either @a file or @a group if you are not
- * interested in one of the values.
+ * This gets the EDJ file's path, with the respective group set for
+ * the given Edje object. If @a obj is either not an Edje file, or has
+ * not had its file/group set previously, by edje_object_file_set(),
+ * then both @p file and @p group will be set to @c NULL, indicating
+ * an error.
+ *
+ * @see edje_object_file_set()
+ *
+ * @note Use @c NULL pointers on the file/group components you're not
+ * interested in: they'll be ignored by the function.
  */
 EAPI void             edje_object_file_get        (const Evas_Object *obj, const char **file, const char **group);
 
 /**
- * Gets the Edje load error
- * @param obj A valid Evas_Object handle
+ * @brief Gets the (last) file loading error for a given Edje object
  *
- * @return The Edje load error:\n
- * EDJE_LOAD_ERROR_NONE: No Error\n
- * EDJE_LOAD_ERROR_GENERIC: Generic Error\n
- * EDJE_LOAD_ERROR_DOES_NOT_EXIST: Does not Exist\n
- * EDJE_LOAD_ERROR_PERMISSION_DENIED: Permission Denied\n
- * EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED: Resource Allocation Failed\n
- * EDJE_LOAD_ERROR_CORRUPT_FILE: Corrupt File\n
- * EDJE_LOAD_ERROR_UNKNOWN_FORMAT: Unknown Format\n
- * EDJE_LOAD_ERROR_INCOMPATIBLE_FILE: Incompatible File\n
- * EDJE_LOAD_ERROR_UNKNOWN_COLLECTION: Unknown Collection\n
- * EDJE_LOAD_ERROR_RECURSIVE_REFERENCE: Recursive Reference\n
+ * @param obj A handlet to an Edje object
+ *
+ * @return The Edje loading error, one of:
+ * - #EDJE_LOAD_ERROR_NONE
+ * - #EDJE_LOAD_ERROR_GENERIC
+ * - #EDJE_LOAD_ERROR_DOES_NOT_EXIST
+ * - #EDJE_LOAD_ERROR_PERMISSION_DENIED
+ * - #EDJE_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED
+ * - #EDJE_LOAD_ERROR_CORRUPT_FILE
+ * - #EDJE_LOAD_ERROR_UNKNOWN_FORMAT
+ * - #EDJE_LOAD_ERROR_INCOMPATIBLE_FILE
+ * - #EDJE_LOAD_ERROR_UNKNOWN_COLLECTION
+ * - #EDJE_LOAD_ERROR_RECURSIVE_REFERENCE
+ *
+ * This function is meant to be used after an Edje EDJ <b>file
+ * loading</b>, what takes place with the edje_object_file_set()
+ * function. If that function does not return @c EINA_TRUE, one should
+ * check for the reason of failure with this one.
+ *
+ * @see edje_load_error_str()
  */
 EAPI Edje_Load_Error  edje_object_load_error_get  (const Evas_Object *obj);
 
+/**
+ * Converts the given Edje file load error code into a string
+ * describing it in English.
+ *
+ * @param error the error code, a value in ::Edje_Load_Error.
+ * @return Always returns a valid string. If the given @p error is not
+ *         supported, <code>"Unknown error"</code> is returned.
+ *
+ * edje_object_file_set() is a function which sets an error value,
+ * afterwards, which can be fetched with
+ * edje_object_load_error_get(). The function in question is meant
+ * to be used in conjunction with the latter, for pretty-printing any
+ * possible error cause.
+ */
 EAPI const char      *edje_load_error_str         (Edje_Load_Error error);
+
+/**
+ * @brief Preload the images on the Edje Object in the background.
+ *
+ * @param obj A handle to an Edje object
+ * @param cancel @c EINA_FALSE will add it the preloading work queue,
+ *               @c EINA_TRUE will remove it (if it was issued before).
+ * @return @c EINA_FASLE if obj was not a valid Edje object
+ *         otherwise @c EINA_TRUE
+ *
+ * This function requests the preload of all data images (on the given
+ * object) in the background. The work is queued before being processed
+ * (because there might be other pending requests of this type).
+ * It emits a signal "preload,done" when finished.
+ *
+ * @note Use @c EINA_TRUE on scenarios where you don't need
+ *       the image data preloaded anymore.
+ */
 EAPI Eina_Bool        edje_object_preload         (Evas_Object *obj, Eina_Bool cancel);
 
 /**
- * @brief Add a callback for a signal emitted by @a obj.
+ * @brief Add a callback for an arriving Edje signal, emitted by
+ * a given Ejde object.
  *
- * @param obj A valid Evas_Object handle.
- * @param emission The signal's name.
- * @param source The signal's source.
+ * @param obj A handle to an Edje object
+ * @param emission The signal's "emission" string
+ * @param source The signal's "source" string
  * @param func The callback function to be executed when the signal is
  * emitted.
- * @param data A pointer to data to pass in to the callback function.
+ * @param data A pointer to data to pass in to @p func.
  *
- * Connects a callback function to a signal emitted by @a obj.
- * In EDC, a program can emit a signal as follows:
+ * Edje signals are one of the communication interfaces between
+ * @b code and a given Edje object's @b theme. With signals, one can
+ * communicate two string values at a time, which are:
+ * - "emission" value: the name of the signal, in general
+ * - "source" value: a name for the signal's context, in general
  *
+ * Though there are those common uses for the two strings, one is free
+ * to use them however they like.
+ *
+ * This function adds a callback function to a signal emitted by @a obj, to
+ * be issued every time an EDC program like the following
  * @code
  * program {
  *   name: "emit_example";
  *   action: SIGNAL_EMIT "a_signal" "a_source";
  * }
  * @endcode
+ * is run, if @p emission and @p source are given those same values,
+ * here.
  *
- * Assuming a function with the following declaration is definded:
+ * Signal callback registration is powerful, in the way that @b blobs
+ * may be used to match <b>multiple signals at once</b>. All the @c
+ * "*?[\" set of @c fnmatch() operators can be used, both for @p
+ * emission and @p source.
  *
+ * Edje has @b internal signals it will emit, automatically, on
+ * various actions taking place on group parts. For example, the mouse
+ * cursor being moved, pressed, released, etc., over a given part's
+ * area, all generate individual signals.
+ *
+ * By using something like
  * @code
- * void cb_signal(void *data, Evas_Object *o, const char *emission, const char *source);
+ * edje_object_signal_callback_add(obj, "mouse,down,*", "button.*",
+ *                                 signal_cb, NULL);
  * @endcode
+ * being @c "button.*" the pattern for the names of parts implementing
+ * buttons on an interface, you'd be registering for notifications on
+ * events of mouse buttons being pressed down on either of those parts
+ * (those events all have the @c "mouse,down," common prefix on their
+ * names, with a suffix giving the button number). The actual emisson
+ * and source strings of an event will be passed in as the @a emission
+ * and @a source parameters of the callback function (e.g. @c
+ * "mouse,down,2" and @c "button.close"), for each of those events.
  *
- * a callback is attached using:
- *
- * @code
- * edje_object_signal_callback_add(obj, "a_signal", "a_source", cb_signal, data);
- * @endcode
- *
- * Here, @a data is an arbitrary pointer to be used as desired.  Note
- * that @a emission and @a source correspond respectively to the first
- * and the second parameters at the SIGNAL_EMIT action.
- *
- * Internal edje signals can also be attached to, and globs can occur
- * in either the emission or source name, e.g.
- *
- * @code
- * edje_object_signal_callback_add(obj, "mouse,down,*", "button.*", NULL);
- * @endcode
- *
- * Here, any mouse down events on an edje part whose name begins with
- * "button." will trigger the callback. The actual signal and source
- * names will be passed in to the @a emission and @a source parameters
- * of the callback function (e.g. "mouse,down,2" and "button.close").
+ * @note See @ref edcref "the syntax" for EDC files
+ * @see edje_object_signal_emit() on how to emits Edje signals from
+ * code to a an object
+ * @see edje_object_signal_callback_del_full()
  */
 EAPI void         edje_object_signal_callback_add (Evas_Object *obj, const char *emission, const char *source, Edje_Signal_Cb func, void *data);
 
@@ -1771,20 +1919,23 @@ EAPI void         edje_object_signal_callback_add (Evas_Object *obj, const char 
 EAPI void        *edje_object_signal_callback_del (Evas_Object *obj, const char *emission, const char *source, Edje_Signal_Cb func);
 
 /**
- * @brief Remove a signal-triggered callback from an object.
+ * @brief Unregister/delete a callback set for an arriving Edje
+ * signal, emitted by a given Ejde object.
  *
- * @param obj A valid Evas_Object handle.
- * @param emission The emission string.
- * @param source The source string.
- * @param func The callback function.
- * @param data The user data passed to the callback.
- * @return The data pointer
+ * @param obj A handle to an Edje object
+ * @param emission The signal's "emission" string
+ * @param source The signal's "source" string
+ * @param func The callback function passed on the callback's
+ * registration
+ * @param data The pointer given to be passed as data to @p func
+ * @return @p data, on success or @c NULL, on errors (or if @p data
+ * had this value)
  *
  * This function removes a callback, previously attached to the
- * emittion of a signal, from the object @a obj. The parameters @a
- * emission, @a sourcei, @a func and @a data must match exactly those
- * passed to a previous call to edje_object_signal_callback_add(). The data
- * pointer that was passed to this call will be returned.
+ * emittion of a signal, from the object @a obj. The parameters
+ * @a emission, @a source, @a func and @a data must match exactly those
+ * passed to a previous call to edje_object_signal_callback_add(). The
+ * data pointer that was passed to this call will be returned.
  *
  * @see edje_object_signal_callback_add().
  * @see edje_object_signal_callback_del().
@@ -1793,22 +1944,22 @@ EAPI void        *edje_object_signal_callback_del (Evas_Object *obj, const char 
 EAPI void        *edje_object_signal_callback_del_full(Evas_Object *obj, const char *emission, const char *source, Edje_Signal_Cb func, void *data);
 
 /**
- * @brief Send a signal to an edje object.
+ * @brief Send/emit an Edje signal to a given Edje object
  *
- * @param obj A valid Evas_Object handle.
- * @param emission The signal's name.
- * @param source The signal's source.
+ * @param obj A handle to an Edje object
+ * @param emission The signal's "emission" string
+ * @param source The signal's "source" string
  *
- * This function sends a signal to the object @a obj. An edje program
- * can respond to a signal by specifying matching 'signal' and
- * 'source' fields.
+ * This function sends a signal to the object @a obj. An Edje program,
+ * at @p obj's EDC specification level, can respond to a signal by
+ * having declared matching @c 'signal' and @c 'source' fields on its
+ * block (see @ref edcref "the syntax" for EDC files).
  *
+ * As an example,
  * @code
  * edje_object_signal_emit(obj, "a_signal", "");
  * @endcode
- *
- * will trigger a program whose EDC block is:
- *
+ * would trigger a program which had an EDC declaration block like
  * @code
  * program {
  *  name: "a_program";
@@ -1818,18 +1969,19 @@ EAPI void        *edje_object_signal_callback_del_full(Evas_Object *obj, const c
  * }
  * @endcode
  *
- * FIXME: should this signal be sent to children also?
+ * @see edje_object_signal_callback_add() for more on Edje signals.
  */
 EAPI void         edje_object_signal_emit         (Evas_Object *obj, const char *emission, const char *source);
 
 /**
- * @brief Set the edje object to playing or paused states.
+ * @brief Set the Edje object to playing or paused states.
  *
- * @param obj A valid Evas_Object handle.
- * @param play Object state (1 to playing, 0 to pauseed).
+ * @param obj A handle to an Edje object.
+ * @param play Object state (@c EINA_TRUE to playing,
+ *                           @c EINA_FALSE to paused).
  *
- * This function sets the edje object @a obj to playing or paused
- * states, depending on the parameter @a play.  This has no effect if
+ * This function sets the Edje object @a obj to playing or paused
+ * states, depending on the parameter @a play. This has no effect if
  * the object was already at that state.
  *
  * @see edje_object_play_get().
@@ -1838,14 +1990,14 @@ EAPI void         edje_object_signal_emit         (Evas_Object *obj, const char 
 EAPI void         edje_object_play_set            (Evas_Object *obj, Eina_Bool play);
 
 /**
- * @brief Get the edje object's play/pause state.
+ * @brief Get the Edje object's state.
  *
- * @param obj A valid Evas_Object handle.
+ * @param obj A handle to an Edje object.
  * @return @c EINA_FALSE if the object is not connected, its @c delete_me flag
  * is set, or it is at paused state; @c EINA_TRUE if the object is at playing
  * state.
  *
- * This function tells if an edje object is playing or not. This state
+ * This function tells if an Edje object is playing or not. This state
  * is set by edje_object_play_set().
  *
  * @see edje_object_play_set().
@@ -1856,11 +2008,12 @@ EAPI Eina_Bool    edje_object_play_get            (const Evas_Object *obj);
 /**
  * @brief Set the object's animation state.
  *
- * @param obj A valid Evas_Object handle.
- * @param on Animation State.
+ * @param obj A handle to an Edje object.
+ * @param on The animation state. @c EINA_TRUE to starts or
+ *           @c EINA_FALSE to stops.
  *
- * This function starts or stops an edje object's animation. The
- * information if it's runnig can be retrieved by
+ * This function starts or stops an Edje object's animation. The
+ * information if it's stopped can be retrieved by
  * edje_object_animation_get().
  *
  * @see edje_object_animation_get()
@@ -1869,14 +2022,14 @@ EAPI Eina_Bool    edje_object_play_get            (const Evas_Object *obj);
 EAPI void         edje_object_animation_set       (Evas_Object *obj, Eina_Bool on);
 
 /**
- * @brief Get the edje object's animation state.
+ * @brief Get the Edje object's animation state.
  *
- * @param obj A valid Evas_Object handle.
+ * @param obj A handle to an Edje object.
  * @return @c EINA_FALSE on error or if object is not animated;
- * @c EINA_TRUE if animated.
+ *         @c EINA_TRUE if animated.
  *
- * This function returns if the animation is playing or not. The
- * animation state is set by edje_object_play_set().
+ * This function returns if the animation is stopped or not. The
+ * animation state is set by edje_object_animation_set().
  *
  * @see edje_object_animation_set().
  *
@@ -1884,25 +2037,30 @@ EAPI void         edje_object_animation_set       (Evas_Object *obj, Eina_Bool o
 EAPI Eina_Bool    edje_object_animation_get       (const Evas_Object *obj);
 
 /**
- * @brief Freeze object.
+ * @brief Freezes the Edje object.
  *
- * @param obj A valid Evas_Object handle
+ * @param obj A handle to an Edje object.
  * @return The frozen state or 0 on Error
  *
  * This function puts all changes on hold. Successive freezes will
  * nest, requiring an equal number of thaws.
  *
+ * @see edje_object_thaw()
  */
 EAPI int          edje_object_freeze                  (Evas_Object *obj);
 
 /**
- * @brief Thaw object.
+ * @brief Thaws the Edje object.
  *
- * @param obj A valid Evas_Object handle
- * @return The frozen state or 0 on Error
+ * @param obj A handle to an Edje object.
+ * @return The frozen state or 0 if the object is not frozen or on error.
  *
- * This allows frozen changes to occur.
+ * This function thaws the given Edje object.
  *
+ * @note: If sucessives freezes were done, an equal number of
+ *        thaws will be required.
+ *
+ * @see edje_object_freeze()
  */
 EAPI int          edje_object_thaw                    (Evas_Object *obj);
 
@@ -1939,35 +2097,12 @@ EAPI int          edje_object_thaw                    (Evas_Object *obj);
  * @note unlike Evas, Edje colors are @b not pre-multiplied. That is,
  *       half-transparent white is 255 255 255 128.
  */
-
-/**
- * @brief Lists color classes.
- *
- * @return A list of color class names (strings). These strings and
- * the list must be free()'d by the caller.
- *
- * This function lists all color classes known about by the current
- * process.
- *
- */
-
-/**
- * @brief Delete edje color class.
- *
- * @param color_class
- *
- * This function deletes any values at the process level for the
- * specified color class.
- *
- * Deleting color emits a signal "color_class,del" with source being
- * the given color class in all objects.
- */
 EAPI Eina_Bool    edje_object_color_class_set         (Evas_Object *obj, const char *color_class, int r, int g, int b, int a, int r2, int g2, int b2, int a2, int r3, int g3, int b3, int a3);
 
 /**
  * @brief Gets the object color class.
  *
- * @param obj A valid Evas_Object handle
+ * @param o A valid Evas_Object handle
  * @param color_class
  * @param r Object Red value
  * @param g Object Green value
@@ -1997,7 +2132,23 @@ EAPI Eina_Bool    edje_object_color_class_set         (Evas_Object *obj, const c
  *       half-transparent white is 255 255 255 128.
  */
 EAPI Eina_Bool    edje_object_color_class_get         (const Evas_Object *o, const char *color_class, int *r, int *g, int *b, int *a, int *r2, int *g2, int *b2, int *a2, int *r3, int *g3, int *b3, int *a3);
-   EAPI void         edje_object_color_class_del         (Evas_Object *obj, const char *color_class);
+
+/**
+ * @brief Delete the object color class.
+ *
+ * @param obj The edje object's reference.
+ * @param color_class The color class to be deleted.
+ *
+ * This function deletes any values at the object level for the
+ * specified object and color class.
+ * @note Deleting the color class will revert it to the values
+ *       defined by edje_color_class_set() or the color class
+ *       defined in the theme file.
+ *
+ * Deleting the color class will emit the signal "color_class,del"
+ * for the given Edje object.
+ */
+ EAPI void         edje_object_color_class_del         (Evas_Object *obj, const char *color_class);
 
 /**
  * @brief Sets Edje text class.
@@ -2007,53 +2158,85 @@ EAPI Eina_Bool    edje_object_color_class_get         (const Evas_Object *o, con
  * @param font Font name
  * @param size Font Size
  *
+ * @return @c EINA_TRUE, on success or @c EINA_FALSE, on error
+ *
  * This function sets the text class for the Edje.
- *
- */
-
-/**
- * @brief List text classes.
- *
- * @return A list of text class names (strings). These strings are
- * stringshares and the list must be free()'d by the caller.
- *
- * This function lists all text classes known about by the current
- * process.
- *
- */
-
-/**
- * @brief Delete the text class.
- *
- * @param text_class The text class name string
- *
- * This function deletes any values at the process level for the
- * specified text class.
  *
  */
 EAPI Eina_Bool    edje_object_text_class_set          (Evas_Object *obj, const char *text_class, const char *font, Evas_Font_Size size);
 
 /**
- * @brief Get the minimum size for an object.
+ * @brief Get the minimum size specified -- as an EDC property -- for a
+ * given Edje object
  *
- * @param obj A valid Evas_Object handle
- * @param minw Minimum width pointer
- * @param minh Minimum height pointer
+ * @param obj A handle to an Edje object
+ * @param minw Pointer to a variable where to store the minimum width
+ * @param minh Pointer to a variable where to store the minimum height
  *
- * Gets the object's minimum size values from the Edje. These are set
- * to zero if no Edje is connected to the Evas Object.
+ * This function retrieves the @p obj object's minimum size values,
+ * <b>as declared in its EDC group definition</b>. Minimum size of
+ * groups have the following syntax
+ * @code
+ * collections {
+ *   group {
+ *     name: "a_group";
+ *     min: 100 100;
+ *   }
+ * }
+ * @endcode
+ *
+ * where one declares a minimum size of 100 pixels both for width and
+ * height. Those are (hint) values which should be respected when the
+ * given object/group is to be controlled by a given container object
+ * (e.g. an Edje object being "swallowed" into a given @c SWALLOW
+ * typed part, as in edje_object_part_swallow()). Check the complete
+ * @ref edcref "syntax reference" for EDC files.
+ *
+ * @note If the @c min EDC property was not declared for @p obj, this
+ * call will return the value 0, for each axis.
+ *
+ * @note On failure, this function will make all non-@c NULL size
+ * pointers' pointed variables be set to zero.
+ *
+ * @see edje_object_size_max_get()
  */
 EAPI void         edje_object_size_min_get            (const Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh);
 
 /**
- * @brief Get the maximum size for an object.
+ * @brief Get the maximum size specified -- as an EDC property -- for a
+ * given Edje object
  *
- * @param obj A valid Evas_Object handle
- * @param maxw Maximum width pointer
- * @param maxh Maximum height pointer
+ * @param obj A handle to an Edje object
+ * @param maxw Pointer to a variable where to store the maximum width
+ * @param maxh Pointer to a variable where to store the maximum height
  *
- * Gets the object's maximum size values from the Edje. These are set
- * to zero if no Edje is connected to the Evas Object.
+ * This function retrieves the @p obj object's maximum size values,
+ * <b>as declared in its EDC group definition</b>. Maximum size of
+ * groups have the following syntax
+ * @code
+ * collections {
+ *   group {
+ *     name: "a_group";
+ *     max: 100 100;
+ *   }
+ * }
+ * @endcode
+ *
+ * where one declares a maximum size of 100 pixels both for width and
+ * height. Those are (hint) values which should be respected when the
+ * given object/group is to be controlled by a given container object
+ * (e.g. an Edje object being "swallowed" into a given @c SWALLOW
+ * typed part, as in edje_object_part_swallow()). Check the complete
+ * @ref edcref "syntax reference" for EDC files.
+ *
+ * @note If the @c max EDC property was not declared for @p obj, this
+ * call will return the maximum size a given Edje object may have, for
+ * each axis.
+ *
+ * @note On failure, this function will make all non-@c NULL size
+ * pointers' pointed variables be set to zero.
+ *
+ * @see edje_object_size_min_get()
  */
 EAPI void         edje_object_size_max_get            (const Evas_Object *obj, Evas_Coord *maxw, Evas_Coord *maxh);
 
@@ -2068,63 +2251,140 @@ EAPI void         edje_object_size_max_get            (const Evas_Object *obj, E
 EAPI void         edje_object_calc_force              (Evas_Object *obj);
 
 /**
- * @brief Calculate minimum size.
+ * @brief Calculate the minimum required size for a given Edje object.
  *
- * @param obj A valid Evas_Object handle
- * @param minw Minimum width pointer
- * @param minh Minimum height pointer
+ * @param obj A handle to an Edje object
+ * @param minw Pointer to a variable where to store the minimum
+ * required width
+ * @param minh Pointer to a variable where to store the minimum
+ * required height
  *
- * Calculates the object's minimum size ?!
+ * This call works exactly as edje_object_size_min_restricted_calc(),
+ * with the last two arguments set to 0. Please refer to its
+ * documentation, then.
  */
 EAPI void         edje_object_size_min_calc           (Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh);
-   EAPI Eina_Bool    edje_object_parts_extends_calc      (Evas_Object *obj, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
-   EAPI void         edje_object_size_min_restricted_calc(Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh, Evas_Coord restrictedw, Evas_Coord restrictedh);
 
 /**
- * @brief Check if Edje part exists.
+ * Calculate the geometry of the region, relative to a given Edje
+ * object's area, <b>occupied by all parts in the object</b>
  *
- * @param obj A valid Evas_Object handle
- * @param part The part name to check
+ * @param obj A handle to an Edje object
+ * @param part The Edje part's name
+ * @param x A pointer to a variable where to store the parts region's
+ * x coordinate
+ * @param y A pointer to a variable where to store the parts region's
+ * y coordinate
+ * @param w A pointer to a variable where to store the parts region's
+ * width
+ * @param h A pointer to a variable where to store the parts region's
+ * height
  *
- * @return 0 on Error, 1 if Edje part exists.
+ * This function gets the geometry of the rectangle equal to the area
+ * required to group all parts in @p obj's group/collection. The @p x
+ * and @p y coordinates are relative to the top left corner of the
+ * whole @p obj object's area. Parts placed out of the group's
+ * boundaries will also be taken in account, so that @p x and @p y
+ * <b>may be negative</b>.
  *
- * This function returns if a part exists in the edje.
+ * @note Use @c NULL pointers on the geometry components you're not
+ * interested in: they'll be ignored by the function.
  *
+ * @note On failure, this function will make all non-@c NULL geometry
+ * pointers' pointed variables be set to zero.
+ */
+EAPI Eina_Bool    edje_object_parts_extends_calc      (Evas_Object *obj, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
+
+/**
+ * @brief Calculate the minimum required size for a given Edje object.
+ *
+ * @param obj A handle to an Edje object
+ * @param minw Pointer to a variable where to store the minimum
+ * required width
+ * @param minh Pointer to a variable where to store the minimum
+ * required height
+ * @param restrictedw Do not allow object's calculated (minimum) width
+ * to be less than this value
+ * @param restrictedh Do not allow object's calculated (minimum)
+ * height to be less than this value
+ *
+ * This call will trigger an internal recalculation of all parts of
+ * the @p obj object, in order to return its minimum required
+ * dimensions for width and height. The user might choose to @b impose
+ * those minimum sizes, making the resulting calculation to get to values
+ * equal or bigger than @p restrictedw and @p restrictedh, for width and
+ * height, respectively.
+ *
+ * @note At the end of this call, @p obj @b won't be automatically
+ * resized to new dimensions, but just return the calculated
+ * sizes. The caller is the one up to change its geometry or not.
+ *
+ * @warning Be advised that invisible parts in @p obj @b will be taken
+ * into account in this calculation.
+ */
+EAPI void         edje_object_size_min_restricted_calc(Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh, Evas_Coord restrictedw, Evas_Coord restrictedh);
+
+/**
+ * @brief Check if an Edje part exists in a given Edje object's group
+ * definition..
+ *
+ * @param obj A handle to an Edje object
+ * @param part The part's name to check for existence in @p obj's
+ * group
+ * @return @c EINA_TRUE, if the Edje part exists in @p obj's group or
+ * @c EINA_FALSE, otherwise (and on errors)
+ *
+ * This function returns if a given part exists in the Edje group
+ * bound to object @p obj (with edje_object_file_set()).
+ *
+ * This call is useful, for example, when one could expect or not a
+ * given GUI element, depending on the @b theme applied to @p obj.
  */
 EAPI Eina_Bool    edje_object_part_exists             (const Evas_Object *obj, const char *part);
 
 /**
- * @brief Gets the evas object from a part.
+ * @brief Get a handle to the Evas object implementing a given Edje
+ * part, in an Edje object.
  *
- * @param obj A valid Evas_Object handle
- * @param part The Edje part
- * @return Returns the Evas_Object corresponding to the given part, or
- * NULL on failure (if the part doesn't exist)
+ * @param obj A handle to an Edje object
+ * @param part The Edje part's name
+ * @return A pointer to the Evas object implementing the given part,
+ * or @c NULL on failure (e.g. the given part doesn't exist)
  *
- * This functio gets the Evas_Object corresponding to a given part.
+ * This function gets a pointer the Evas object corresponding to a
+ * given part in the @p obj object's group.
  *
- * You should never modify the state of the returned object (with
- * evas_object_move() or evas_object_hide() for example), but you can
- * safely query info about its current state (with
- * evas_object_visible_get() or evas_object_color_get() for example)
- *
- **/
+ * You should @b never modify the state of the returned object (with
+ * @c evas_object_move() or @c evas_object_hide() for example),
+ * because it's meant to be managed be Edje, solely. You are safe to
+ * query information about its current state (with @c
+ * evas_object_visible_get() or @c evas_object_color_get() for
+ * example), though.
+ */
 EAPI const Evas_Object *edje_object_part_object_get   (const Evas_Object *obj, const char *part);
 
 /**
- * @brief Get the geometry of an Edje part.
+ * @brief Retrieve the geometry of a given Edje part, in a given Edje
+ * object's group definition, <b>relative to the object's area</b>
  *
- * @param obj A valid Evas_Object handle
- * @param part The Edje part
- * @param x The x coordinate pointer
- * @param y The y coordinate pointer
- * @param w The width pointer
- * @param h The height pointer
+ * @param obj A handle to an Edje object
+ * @param part The Edje part's name
+ * @param x A pointer to a variable where to store the part's x
+ * coordinate
+ * @param y A pointer to a variable where to store the part's y
+ * coordinate
+ * @param w A pointer to a variable where to store the part's width
+ * @param h A pointer to a variable where to store the part's height
  *
- * This function gets the geometry of an Edje part.
+ * This function gets the geometry of an Edje part within its
+ * group. The @p x and @p y coordinates are relative to the top left
+ * corner of the whole @p obj object's area.
  *
- * It is valid to pass NULL as any of @a x, @a y, @a w or @a h, whose
- * values you are uninterested in.
+ * @note Use @c NULL pointers on the geometry components you're not
+ * interested in: they'll be ignored by the function.
+ *
+ * @note On failure, this function will make all non-@c NULL geometry
+ * pointers' pointed variables be set to zero.
  */
 EAPI Eina_Bool    edje_object_part_geometry_get       (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
 
@@ -2149,16 +2409,13 @@ EAPI void         edje_object_item_provider_set       (Evas_Object *obj, Edje_It
  * @param func The callback function to handle the text change
  * @param data The data associated to the callback function.
  *
- * This function gets the geometry of an Edje part
- *
- * It is valid to pass NULL as any of @a x, @a y, @a w or @a h, whose
- * values you are uninterested in.
- *
+ * This function sets the callback to be called when the text changes.
  */
 EAPI void         edje_object_text_change_cb_set      (Evas_Object *obj, Edje_Text_Change_Cb func, void *data);
 
 /**
- * Sets the text for an object part
+ * @brief Sets the text for an object part
+ *
  * @param obj A valid Evas Object handle
  * @param part The part name
  * @param text The text string
@@ -2175,6 +2432,7 @@ EAPI Eina_Bool    edje_object_part_text_set           (Evas_Object *obj, const c
  *
  * This function returns the text associated to the object part.
  *
+ * @see edje_object_part_text_set().
  */
 EAPI const char  *edje_object_part_text_get           (const Evas_Object *obj, const char *part);
 
@@ -2185,12 +2443,10 @@ EAPI const char  *edje_object_part_text_get           (const Evas_Object *obj, c
  * @param part The part name
  * @param text_to_escape The text string
  *
- * This funciton will do escape for you if it is a TEXTBLOCK part,
- * that is, if text contain tags, these tags will not be
- * interpreted/parsed by TEXTBLOCK.
+ * This funciton will not do escape for you if it is a TEXTBLOCK part, that is,
+ * if text contain tags, these tags will not be interpreted/parsed by TEXTBLOCK.
  *
  * @see edje_object_part_text_unescaped_get().
- *
  */
 EAPI Eina_Bool    edje_object_part_text_unescaped_set (Evas_Object *obj, const char *part, const char *text_to_escape);
 
@@ -2208,7 +2464,6 @@ EAPI Eina_Bool    edje_object_part_text_unescaped_set (Evas_Object *obj, const c
  * when done.
  *
  * @see edje_object_part_text_unescaped_set().
- *
  */
 EAPI char        *edje_object_part_text_unescaped_get (const Evas_Object *obj, const char *part);
 
@@ -2221,6 +2476,8 @@ EAPI char        *edje_object_part_text_unescaped_get (const Evas_Object *obj, c
  *
  * This function returns selection text of the object part.
  *
+ * @see edje_object_part_text_select_all()
+ * @see edje_object_part_text_select_none()
  */
 EAPI const char      *edje_object_part_text_selection_get           (const Evas_Object *obj, const char *part);
 
@@ -2231,7 +2488,6 @@ EAPI const char      *edje_object_part_text_selection_get           (const Evas_
  * @param part The part name
  *
  * This function sets the selection text to be none.
- *
  */
 EAPI void             edje_object_part_text_select_none             (const Evas_Object *obj, const char *part);
 
@@ -2242,7 +2498,6 @@ EAPI void             edje_object_part_text_select_none             (const Evas_
  * @param part The part name
  *
  * This function selects all text of the object of the part.
- *
  */
 EAPI void             edje_object_part_text_select_all              (const Evas_Object *obj, const char *part);
 
@@ -2355,6 +2610,10 @@ EAPI void             edje_object_part_text_cursor_geometry_get     (const Evas_
  * @param obj A valid Evas_Object handle
  * @param part The part name
  * @param allow EINA_TRUE to enable, EINA_FALSE otherwise
+ *
+ * The default is to @b not allow selection. This function only affects user
+ * selection, functions such as edje_object_part_text_select_all() and
+ * edje_object_part_text_select_none() are not affected.
  */
 EAPI void             edje_object_part_text_select_allow_set        (const Evas_Object *obj, const char *part, Eina_Bool allow);
 
@@ -2656,7 +2915,6 @@ EAPI void            *edje_object_text_insert_filter_callback_del       (Evas_Ob
  */
 EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func, void *data);
 
-
 /**
  * @brief Swallows an object into the edje.
  *
@@ -2679,7 +2937,9 @@ EAPI Eina_Bool        edje_object_part_swallow        (Evas_Object *obj, const c
  * @param obj A valid Evas_Object handle
  * @param obj_swallow The swallowed object
  *
- * Causes the edje to regurgitate a previously swallowed object.  :)
+ * Causes the edje to regurgitate a previously swallowed object. :)
+ *
+ * @note @p obj_swallow will @b not be deleted.
  */
 EAPI void             edje_object_part_unswallow      (Evas_Object *obj, Evas_Object *obj_swallow);
 
@@ -2711,10 +2971,14 @@ EAPI const char      *edje_object_part_state_get      (const Evas_Object *obj, c
  * @param obj A valid Evas_Object handle
  * @param part The part name
  *
- * @return 0: Not dragable\n
- * 1: Dragable in X direction\n
- * 2: Dragable in Y direction\n
- * 3: Dragable in X & Y directions
+ * The dragable directions are defined in the EDC file, inside the @c dragable
+ * section, by the attributes @c x and @c y. See the @ref edcref for more
+ * information.
+ *
+ * @return #EDJE_DRAG_DIR_NONE: Not dragable\n
+ * #EDJE_DRAG_DIR_X: Dragable in X direction\n
+ * #EDJE_DRAG_DIR_Y: Dragable in Y direction\n
+ * #EDJE_DRAG_DIR_XY: Dragable in X & Y directions
  */
 EAPI Edje_Drag_Dir    edje_object_part_drag_dir_get   (const Evas_Object *obj, const char *part);
 
@@ -2727,6 +2991,18 @@ EAPI Edje_Drag_Dir    edje_object_part_drag_dir_get   (const Evas_Object *obj, c
  * @param dy The y value
  *
  * Places the dragable object at the given location.
+ *
+ * Values for @p dx and @p dy are real numbers that range from 0 to 1,
+ * representing the relative position to the dragable area on that axis.
+ *
+ * This value means, for the vertical axis, that 0.0 will be at the top if the
+ * first parameter of @c y in the dragable part theme is 1, and at bottom if it
+ * is -1.
+ *
+ * For the horizontal axis, 0.0 means left if the first parameter of @c x in the
+ * dragable part theme is 1, and right if it is -1.
+ *
+ * @see edje_object_part_drag_value_get()
  */
 EAPI Eina_Bool        edje_object_part_drag_value_set (Evas_Object *obj, const char *part, double dx, double dy);
 
@@ -2737,6 +3013,11 @@ EAPI Eina_Bool        edje_object_part_drag_value_set (Evas_Object *obj, const c
  * @param part The part name
  * @param dx The X value pointer
  * @param dy The Y value pointer
+ *
+ * Values for @p dx and @p dy are real numbers that range from 0 to 1,
+ * representing the relative position to the dragable area on that axis.
+ *
+ * @see edje_object_part_drag_value_set()
  *
  * Gets the drag location values.
  */
@@ -2750,7 +3031,12 @@ EAPI Eina_Bool        edje_object_part_drag_value_get (const Evas_Object *obj, c
  * @param dw The drag width
  * @param dh The drag height
  *
+ * Values for @p dw and @p dh are real numbers that range from 0 to 1,
+ * representing the relative size of the dragable area on that axis.
+ *
  * Sets the size of the dragable object.
+ *
+ * @see edje_object_part_drag_size_get()
  */
 EAPI Eina_Bool        edje_object_part_drag_size_set  (Evas_Object *obj, const char *part, double dw, double dh);
 
@@ -2763,6 +3049,8 @@ EAPI Eina_Bool        edje_object_part_drag_size_set  (Evas_Object *obj, const c
  * @param dh The drag height pointer
  *
  * Gets the dragable object size.
+ *
+ * @see edje_object_part_drag_size_set()
  */
 EAPI Eina_Bool        edje_object_part_drag_size_get  (const Evas_Object *obj, const char *part, double *dw, double *dh);
 
@@ -2775,6 +3063,12 @@ EAPI Eina_Bool        edje_object_part_drag_size_get  (const Evas_Object *obj, c
  * @param dy The y step amount
  *
  * Sets the x,y step increments for a dragable object.
+ *
+ * Values for @p dx and @p dy are real numbers that range from 0 to 1,
+ * representing the relative size of the dragable area on that axis by which the
+ * part will be moved.
+ *
+ * @see edje_object_part_drag_step_get()
  */
 EAPI Eina_Bool        edje_object_part_drag_step_set  (Evas_Object *obj, const char *part, double dx, double dy);
 
@@ -2787,6 +3081,9 @@ EAPI Eina_Bool        edje_object_part_drag_step_set  (Evas_Object *obj, const c
  * @param dy The y step increment pointer
  *
  * Gets the x and y step increments for the dragable object.
+ *
+ *
+ * @see edje_object_part_drag_step_set()
  */
 EAPI Eina_Bool        edje_object_part_drag_step_get  (const Evas_Object *obj, const char *part, double *dx, double *dy);
 
@@ -2799,6 +3096,12 @@ EAPI Eina_Bool        edje_object_part_drag_step_get  (const Evas_Object *obj, c
  * @param dy The y page step increment
  *
  * Sets the x,y page step increment values.
+ *
+ * Values for @p dx and @p dy are real numbers that range from 0 to 1,
+ * representing the relative size of the dragable area on that axis by which the
+ * part will be moved.
+ *
+ * @see edje_object_part_drag_page_get()
  */
 EAPI Eina_Bool        edje_object_part_drag_page_set  (Evas_Object *obj, const char *part, double dx, double dy);
 
@@ -2811,6 +3114,8 @@ EAPI Eina_Bool        edje_object_part_drag_page_set  (Evas_Object *obj, const c
  * @param dy The dy page increment pointer
  *
  * Gets the x,y page step increments for the dragable object.
+ *
+ * @see edje_object_part_drag_page_set()
  */
 EAPI Eina_Bool        edje_object_part_drag_page_get  (const Evas_Object *obj, const char *part, double *dx, double *dy);
 
@@ -2824,6 +3129,10 @@ EAPI Eina_Bool        edje_object_part_drag_page_get  (const Evas_Object *obj, c
  *
  * Steps x,y where the step increment is the amount set by
  * edje_object_part_drag_step_set.
+ *
+ * Values for @p dx and @p dy are real numbers that range from 0 to 1.
+ *
+ * @see edje_object_part_drag_page()
  */
 EAPI Eina_Bool        edje_object_part_drag_step      (Evas_Object *obj, const char *part, double dx, double dy);
 
@@ -2836,7 +3145,13 @@ EAPI Eina_Bool        edje_object_part_drag_step      (Evas_Object *obj, const c
  * @param dy The y step
  *
  * Pages x,y where the increment is defined by
- * edje_object_part_drag_page_set.\n WARNING: Paging is bugged!
+ * edje_object_part_drag_page_set.
+ *
+ * Values for @p dx and @p dy are real numbers that range from 0 to 1.
+ *
+ * @warning Paging is bugged!
+ *
+ * @see edje_object_part_drag_step()
  */
 EAPI Eina_Bool        edje_object_part_drag_page      (Evas_Object *obj, const char *part, double dx, double dy);
 
@@ -2924,6 +3239,16 @@ EAPI Eina_Bool                 edje_object_part_external_param_set      (Evas_Ob
  */
 EAPI Eina_Bool                 edje_object_part_external_param_get      (const Evas_Object *obj, const char *part, Edje_External_Param *param);
 
+/**
+ * @brief Get an object contained in an part of type EXTERNAL
+ *
+ * The @p content string must not be NULL. Its actual value depends on the
+ * code providing the EXTERNAL.
+ *
+ * @param obj The Edje object
+ * @param part The name of the part holding the EXTERNAL
+ * @param content A string identifying which content from the EXTERNAL to get
+ */
 EAPI Evas_Object              *edje_object_part_external_content_get    (const Evas_Object *obj, const char *part, const char *content);
 
 /**
@@ -2946,10 +3271,14 @@ EAPI Edje_External_Param_Type  edje_object_part_external_param_type_get (const E
  * @param part The part name
  * @param child The object to append
  *
- * @return 1: Successfully added.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE: Successfully added.\n
+ * @c EINA_FALSE: An error occurred.
  *
  * Appends child to the box indicated by part.
+ *
+ * @see edje_object_part_box_prepend()
+ * @see edje_object_part_box_insert_before()
+ * @see edje_object_part_box_insert_at()
  */
 EAPI Eina_Bool    edje_object_part_box_append             (Evas_Object *obj, const char *part, Evas_Object *child);
 
@@ -2960,10 +3289,14 @@ EAPI Eina_Bool    edje_object_part_box_append             (Evas_Object *obj, con
  * @param part The part name
  * @param child The object to prepend
  *
- * @return 1: Successfully added.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE: Successfully added.\n
+ * @c EINA_FALSE: An error occurred.
  *
  * Prepends child to the box indicated by part.
+ *
+ * @see edje_object_part_box_append()
+ * @see edje_object_part_box_insert_before()
+ * @see edje_object_part_box_insert_at()
  */
 EAPI Eina_Bool    edje_object_part_box_prepend            (Evas_Object *obj, const char *part, Evas_Object *child);
 
@@ -2975,11 +3308,15 @@ EAPI Eina_Bool    edje_object_part_box_prepend            (Evas_Object *obj, con
  * @param child The object to insert
  * @param reference The object to be used as reference
  *
- * @return 1: Successfully added.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE: Successfully added.\n
+ * @c EINA_FALSE: An error occurred.
  *
  * Inserts child in the box given by part, in the position marked by
  * reference.
+ *
+ * @see edje_object_part_box_append()
+ * @see edje_object_part_box_prepend()
+ * @see edje_object_part_box_insert_at()
  */
 EAPI Eina_Bool    edje_object_part_box_insert_before      (Evas_Object *obj, const char *part, Evas_Object *child, const Evas_Object *reference);
 
@@ -2991,11 +3328,15 @@ EAPI Eina_Bool    edje_object_part_box_insert_before      (Evas_Object *obj, con
  * @param child The object to insert
  * @param pos The position where to insert child
  *
- * @return 1: Successfully added.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE: Successfully added.\n
+ * @c EINA_FALSE: An error occurred.
  *
  * Adds child to the box indicated by part, in the position given by
  * pos.
+ *
+ * @see edje_object_part_box_append()
+ * @see edje_object_part_box_prepend()
+ * @see edje_object_part_box_insert_before()
  */
 EAPI Eina_Bool    edje_object_part_box_insert_at          (Evas_Object *obj, const char *part, Evas_Object *child, unsigned int pos);
 
@@ -3006,9 +3347,12 @@ EAPI Eina_Bool    edje_object_part_box_insert_at          (Evas_Object *obj, con
  * @param part The part name
  * @param child The object to remove
  *
- * @return Pointer to the object removed, or NULL.
+ * @return Pointer to the object removed, or @c NULL.
  *
  * Removes child from the box indicated by part.
+ *
+ * @see edje_object_part_box_remove_at()
+ * @see edje_object_part_box_remove_all()
  */
 EAPI Evas_Object *edje_object_part_box_remove             (Evas_Object *obj, const char *part, Evas_Object *child);
 
@@ -3017,12 +3361,15 @@ EAPI Evas_Object *edje_object_part_box_remove             (Evas_Object *obj, con
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param pos
+ * @param pos The position index of the object (starts counting from 0)
  *
- * @return Pointer to the object removed, or NULL.
+ * @return Pointer to the object removed, or @c NULL.
  *
  * Removes from the box indicated by part, the object in the position
  * pos.
+ *
+ * @see edje_object_part_box_remove()
+ * @see edje_object_part_box_remove_all()
  */
 EAPI Evas_Object *edje_object_part_box_remove_at          (Evas_Object *obj, const char *part, unsigned int pos);
 
@@ -3038,6 +3385,9 @@ EAPI Evas_Object *edje_object_part_box_remove_at          (Evas_Object *obj, con
  *
  * Removes all the external objects from the box indicated by part.
  * Elements created from the theme will not be removed.
+ *
+ * @see edje_object_part_box_remove()
+ * @see edje_object_part_box_remove_at()
  */
 EAPI Eina_Bool    edje_object_part_box_remove_all         (Evas_Object *obj, const char *part, Eina_Bool clear);
 
@@ -3063,8 +3413,7 @@ EAPI Evas_Object *edje_object_part_table_child_get        (Evas_Object *obj, con
  * @param colspan Columns the child will take
  * @param rowspan Rows the child will take
  *
- * @return 1: Successfully added.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE object was added, @c EINA_FALSE on failure
  *
  * Packs an object into the table indicated by part.
  */
@@ -3077,8 +3426,7 @@ EAPI Eina_Bool    edje_object_part_table_pack             (Evas_Object *obj, con
  * @param part The part name
  * @param child_obj The object to pack in
  *
- * @return 1: Successfully removed.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE object removed, @c EINA_FALSE on failure
  *
  * Removes an object from the table indicated by part.
  */
@@ -3092,8 +3440,7 @@ EAPI Eina_Bool    edje_object_part_table_unpack           (Evas_Object *obj, con
  * @param cols Pointer where to store number of columns (can be NULL)
  * @param rows Pointer where to store number of rows (can be NULL)
  *
- * @return 1: Successfully get some data.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE get some data, @c EINA_FALSE on failure
  *
  * Retrieves the size of the table in number of columns and rows.
  */
@@ -3106,8 +3453,7 @@ EAPI Eina_Bool    edje_object_part_table_col_row_size_get (const Evas_Object *ob
  * @param part The part name
  * @param clear If set, will delete subobjs on remove
  *
- * @return 1: Successfully clear table.\n
- * 0: An error occurred.
+ * @return @c EINA_TRUE clear the table, @c EINA_FALSE on failure
  *
  * Removes all object from the table indicated by part, except the
  * internal ones set from the theme.
@@ -3115,45 +3461,62 @@ EAPI Eina_Bool    edje_object_part_table_col_row_size_get (const Evas_Object *ob
 EAPI Eina_Bool    edje_object_part_table_clear            (Evas_Object *obj, const char *part, Eina_Bool clear);
 
 /**
- * @brief Send message to object.
+ * @brief Send an (Edje) message to a given Edje object
  *
- * @param obj The edje object reference.
- * @param type The type of message to send.
- * @param id A identification number for the message.
- * @param msg The message to be send.
+ * @param obj A handle to an Edje object
+ * @param type The type of message to send to @p obj
+ * @param id A identification number for the message to be sent
+ * @param msg The message's body, a struct depending on @p type
  *
+ * This function sends an Edje message to @p obj and to all of its
+ * child objects, if it has any (swallowed objects are one kind of
+ * child object). @p type and @p msg @b must be matched accordingly,
+ * as documented in #Edje_Message_Type.
  *
- * This function sends messages to this object and to all of its child
- * objects, if applicable. The function that handles messages arriving
- * at this edje object is is set with
+ * The @p id argument as a form of code and theme defining a common
+ * interface on message communication. One should define the same IDs
+ * on both code and EDC declaration (see @ref edcref "the syntax" for
+ * EDC files), to individualize messages (binding them to a given
+ * context).
+ *
+ * The function to handle messages arriving @b from @b obj is set with
  * edje_object_message_handler_set().
- *
- * @see edje_object_message_handler_set()
- *
  */
 EAPI void         edje_object_message_send                (Evas_Object *obj, Edje_Message_Type type, int id, void *msg);
 
 /**
- * @brief Set the message handler function for this an object.
+ * @brief Set an Edje message handler function for a given Edje object.
  *
- * @param obj The edje object reference.
- * @param func The function to handle messages.
- * @param data The data to be associated to the message handler.
+ * @param obj A handle to an Edje object
+ * @param func The function to handle messages @b coming from @p obj
+ * @param data Auxiliary data to be passed to @p func
  *
+ * Edje messages are one of the communication interfaces between
+ * @b code and a given Edje object's @b theme. With messages, one can
+ * communicate values beyond strings (which are the subject of Edje
+ * signals -- see edje_object_signal_emit()), like float and integer
+ * numbers. Moreover, messages can be identified by integer
+ * numbers. See #Edje_Message_Type for the full list of message types.
  *
- * This function associates a message handler function and data to the
- * edje object.
+ * For scriptable programs on an Edje object's defining EDC file which
+ * send messages with the @c send_message() primitive, one can attach
+ * <b>handler functions</b>, to be called in the code which creates
+ * that object (see @ref edcref "the syntax" for EDC files).
  *
+ * This function associates a message handler function and the
+ * attached data pointer to the object @p obj.
+ *
+ * @see edje_object_message_send()
  */
 EAPI void         edje_object_message_handler_set         (Evas_Object *obj, Edje_Message_Handler_Cb func, void *data);
 
 /**
  * @brief Process an object's message queue.
  *
- * @param obj The edje object reference.
+ * @param obj A handle to an Edje object.
  *
  * This function goes through the object message queue processing the
- * pending messages for *this* specific edje object. Normally they'd
+ * pending messages for @b this specific Edje object. Normally they'd
  * be processed only at idle time.
  *
  */
@@ -3170,7 +3533,12 @@ EAPI void         edje_object_message_signal_process      (Evas_Object *obj);
 EAPI void         edje_message_signal_process             (void);
 
 /**
- * Register given type name to return the given information.
+ * Register a type to be used by EXTERNAL parts.
+ *
+ * Edje supports parts of type EXTERNAL, which will call user defined functions
+ * to create and manipulate the object that's allocated in that part. This is
+ * done by expecifying in the @c source property of the part the name of the
+ * external to use, which must be one registered with this function.
  *
  * @param type_name name to register and be known by edje's "source:"
  *        parameter of "type: EXTERNAL" parts.
@@ -3184,9 +3552,9 @@ EAPI void         edje_message_signal_process             (void);
 EAPI Eina_Bool    edje_external_type_register             (const char *type_name, const Edje_External_Type *type_info);
 
 /**
- * Unregister given type name previously registered.
+ * Unregister a previously registered EXTERNAL type.
  *
- * @param type_name name to unregister. It should be registered with
+ * @param type_name name to unregister. It should have been registered with
  *        edje_external_type_register() before.
  *
  * @return @c EINA_TRUE on success, @c EINA_FALSE on failure (like
@@ -3199,18 +3567,19 @@ EAPI Eina_Bool    edje_external_type_unregister           (const char *type_name
 /**
  * Register a batch of types and their information.
  *
- * This is the recommended function to add information as it's faster
- * than the single version edje_external_type_register().
+ * When several types will be registered it is recommended to use this
+ * function instead of several calls to edje_external_type_register(), as it
+ * is faster.
  *
- * @note the given array is not modified, but the type name strings
- *       are @b not duplicated! That is, all type names must be @b
- *       live until they are unregistered! This was chosen to save
- *       some memory and most people will just define the array as a
- *       global static const type anyway.
+ * @note The contents of the array will be referenced directly for as long as
+ * the type remains registered, so both the @c name and @c info in the
+ * @p array must be kept alive during all this period (usually, the entire
+ * program lifetime). The most common case would be to keep the array as a
+ * @c static @c const type anyway.
  *
  * @param array @c NULL terminated array with type name and
- *        information. Note that type name or information are not
- *        modified by are @b referenced, so they must keep alive after
+ *        information. Note that type name or information are
+ *        referenced directly, so they must be kept alive after
  *        this function returns!
  *
  * @return @c EINA_TRUE on success, @c EINA_FALSE on failure (like
@@ -3230,7 +3599,6 @@ EAPI void         edje_external_type_array_register       (const Edje_External_T
  */
 EAPI void         edje_external_type_array_unregister     (const Edje_External_Type_Info *array);
 
-
 /**
  * Return the current ABI version for Edje_External_Type structure.
  *
@@ -3247,15 +3615,16 @@ EAPI void         edje_external_type_array_unregister     (const Edje_External_T
  *   - use edje_external_type_abi_version_get() to check.
  *   - use #EDJE_EXTERNAL_TYPE_ABI_VERSION to define/declare.
  *
- * @return version this edje library was compiled.
+ * @return The external ABI version the Edje library was compiled with. That
+ * is, the value #EDJE_EXTERNAL_TYPE_ABI_VERSION had at that moment.
  */
 EAPI unsigned int edje_external_type_abi_version_get      (void) EINA_CONST;
 
-
-
 /**
- * Returns an iterator that emits Eina_Hash_Tuple pointers with key
- * being the name and data being the Edje_External_Type pointer.
+ * Returns an interator of all the registered EXTERNAL types.
+ *
+ * Each item in the iterator is an @c Eina_Hash_Tuple which has the type
+ * of the external in the @c key and #Edje_External_Type as @c data.
  *
  * @code
  * const Eina_Hash_Tuple *tuple;
@@ -3295,17 +3664,109 @@ EAPI unsigned int edje_external_type_abi_version_get      (void) EINA_CONST;
  */
 EAPI Eina_Iterator                  *edje_external_iterator_get     (void);
 
+/**
+ * Conevenience function to find a specific parameter in a list of them.
+ *
+ * @param params The list of parameters for the external
+ * @param key The parameter to look for
+ *
+ * @return The matching #Edje_External_Param or NULL if it's not found.
+ */
    EAPI Edje_External_Param            *edje_external_param_find       (const Eina_List *params, const char *key);
+/**
+ * Get the value of the given parameter of integer type.
+ *
+ * Look for the @p key parameter in the @p params list and return its value in
+ * @p ret. If the parameter is found and is of type
+ * #EDJE_EXTERNAL_PARAM_TYPE_INT, its value will be stored in the int pointed
+ * by @p ret, returning EINA_TRUE. In any other case, the function returns
+ * EINA_FALSE.
+ *
+ * @param params List of parameters where to look
+ * @param key Name of the parameter to fetch
+ * @param ret Int pointer where to store the value, must not be NULL.
+ *
+ * @return EINA_TRUE if the parameter was found and is of integer type,
+ * EINA_FALSE otherwise.
+ */
    EAPI Eina_Bool                       edje_external_param_int_get    (const Eina_List *params, const char *key, int *ret);
+/**
+ * Get the value of the given parameter of double type.
+ *
+ * Look for the @p key parameter in the @p params list and return its value in
+ * @p ret. If the parameter is found and is of type
+ * #EDJE_EXTERNAL_PARAM_TYPE_DOUBLE, its value will be stored in the double
+ * pointed by @p ret, returning EINA_TRUE. In any other case, the function
+ * returns EINA_FALSE.
+ *
+ * @param params List of parameters where to look
+ * @param key Name of the parameter to fetch
+ * @param ret Double pointer where to store the value, must not be NULL.
+ *
+ * @return EINA_TRUE if the parameter was found and is of double type,
+ * EINA_FALSE otherwise.
+ */
    EAPI Eina_Bool                       edje_external_param_double_get (const Eina_List *params, const char *key, double *ret);
+/**
+ * Get the value of the given parameter of string type.
+ *
+ * Look for the @p key parameter in the @p params list and return its value in
+ * @p ret. If the parameter is found and is of type
+ * #EDJE_EXTERNAL_PARAM_TYPE_STRING, its value will be stored in the pointer
+ * pointed by @p ret, returning EINA_TRUE. In any other case, the function
+ * returns EINA_FALSE.
+ *
+ * The string stored in @p ret must not be freed or modified.
+ *
+ * @param params List of parameters where to look
+ * @param key Name of the parameter to fetch
+ * @param ret String pointer where to store the value, must not be NULL.
+ *
+ * @return EINA_TRUE if the parameter was found and is of string type,
+ * EINA_FALSE otherwise.
+ */
    EAPI Eina_Bool                       edje_external_param_string_get (const Eina_List *params, const char *key, const char **ret);
+/**
+ * Get the value of the given parameter of boolean type.
+ *
+ * Look for the @p key parameter in the @p params list and return its value in
+ * @p ret. If the parameter is found and is of type
+ * #EDJE_EXTERNAL_PARAM_TYPE_BOOL, its value will be stored in the Eina_Bool
+ * pointed by @p ret, returning EINA_TRUE. In any other case, the function
+ * returns EINA_FALSE.
+ *
+ * @param params List of parameters where to look
+ * @param key Name of the parameter to fetch
+ * @param ret Eina_Bool pointer where to store the value, must not be NULL.
+ *
+ * @return EINA_TRUE if the parameter was found and is of boolean type,
+ * EINA_FALSE otherwise.
+ */
    EAPI Eina_Bool                       edje_external_param_bool_get   (const Eina_List *params, const char *key, Eina_Bool *ret);
+/**
+ * Get the value of the given parameter of choice type.
+ *
+ * Look for the @p key parameter in the @p params list and return its value in
+ * @p ret. If the parameter is found and is of type
+ * #EDJE_EXTERNAL_PARAM_TYPE_CHOICE, its value will be stored in the string
+ * pointed by @p ret, returning EINA_TRUE. In any other case, the function
+ * returns EINA_FALSE.
+ *
+ * The string stored in @p ret must not be freed or modified.
+ *
+ * @param params List of parameters where to look
+ * @param key Name of the parameter to fetch
+ * @param ret String pointer where to store the value, must not be NULL.
+ *
+ * @return EINA_TRUE if the parameter was found and is of integer type,
+ * EINA_FALSE otherwise.
+ */
    EAPI Eina_Bool                       edje_external_param_choice_get (const Eina_List *params, const char *key, const char **ret);
 
 /**
  * Get the array of parameters information about a type given its name.
  *
- * @note the type names and other strings are static, that means they
+ * @note the type names and other strings are static, that means they are
  *       @b NOT translated. One must use
  *       Edje_External_Type::translate() to translate those.
  *
@@ -3316,6 +3777,10 @@ EAPI Eina_Iterator                  *edje_external_iterator_get     (void);
  */
 EAPI const Edje_External_Param_Info *edje_external_param_info_get   (const char *type_name);
 
+/**
+ * Get the #Edje_External_Type that defines an EXTERNAL type registered with
+ * the name @p type_name.
+ */
    EAPI const Edje_External_Type       *edje_external_type_get         (const char *type_name);
 
    EAPI Eina_Bool               edje_module_load                (const char *module);
@@ -3324,13 +3789,132 @@ EAPI const Edje_External_Param_Info *edje_external_param_info_get   (const char 
    /* perspective info for maps inside edje objects */
    typedef struct _Edje_Perspective Edje_Perspective;
 
+   /**
+    * Creates a new perspective in the given canvas.
+    *
+    * @param e The given canvas (Evas).
+    * @return An @ref Edje_Perspective object for this canvas, or @c NULL on errors.
+    *
+    * This function creates a perspective object that can be set on an Edje
+    * object, or globally to all Edje objects on this canvas.
+    *
+    * @see edje_perspective_set()
+    * @see edje_perspective_free()
+    */
    EAPI Edje_Perspective       *edje_perspective_new            (Evas *e);
+   /**
+    * Delete the given perspective object.
+    *
+    * @param ps A valid perspective object, or @c NULL.
+    *
+    * This function will delete the perspective object. If the perspective
+    * effect was being applied to any Edje object or part, this effect won't be
+    * applied anymore.
+    *
+    * @see edje_perspective_new()
+    */
    EAPI void                    edje_perspective_free           (Edje_Perspective *ps);
+   /**
+    * Setup the transform for this perspective object.
+    *
+    * This sets the parameters of the perspective transformation. X, Y and Z
+    * values are used. The px and py points specify the "infinite distance" point
+    * in the 3D conversion (where all lines converge to like when artists draw
+    * 3D by hand). The @p z0 value specifis the z value at which there is a 1:1
+    * mapping between spatial coorinates and screen coordinates. Any points
+    * on this z value will not have their X and Y values modified in the transform.
+    * Those further away (Z value higher) will shrink into the distance, and
+    * those less than this value will expand and become bigger. The @p foc value
+    * determines the "focal length" of the camera. This is in reality the distance
+    * between the camera lens plane itself (at or closer than this rendering
+    * results are undefined) and the "z0" z value. This allows for some "depth"
+    * control and @p foc must be greater than 0.
+    *
+    * @param m map to change.
+    * @param px The pespective distance X coordinate
+    * @param py The pespective distance Y coordinate
+    * @param z0 The "0" z plane value
+    * @param foc The focal distance
+    */
    EAPI void                    edje_perspective_set            (Edje_Perspective *ps, Evas_Coord px, Evas_Coord py, Evas_Coord z0, Evas_Coord foc);
+   /**
+    * Make this perspective object be global for its canvas.
+    *
+    * @param ps The given perspective object
+    * @param global @c EINA_TRUE if the perspective should be global, @c
+    * EINA_FALSE otherwise.
+    *
+    * The canvas which this perspective object is being set as global is the one
+    * given as argument upon the object creation (the @p evas parameter on the
+    * function @c edje_perspective_new(evas) ).
+    *
+    * There can be only one global perspective object set per canvas, and if
+    * a perspective object is set to global when there was already another
+    * global perspective set, the old one will be set as non-global.
+    *
+    * A global perspective just affects a part if its Edje object doesn't have a
+    * perspective object set to it, and if the part doesn't point to another
+    * part to be used as perspective.
+    *
+    * @see edje_object_perspective_set()
+    * @see edje_perspective_global_get()
+    * @see edje_perspective_new()
+    */
    EAPI void                    edje_perspective_global_set     (Edje_Perspective *ps, Eina_Bool global);
+   /**
+    * Get whether the given perspective object is global or not.
+    *
+    * @param ps The given perspective object.
+    * @return @c EINA_TRUE if this perspective object is global, @c EINA_FALSE
+    * otherwise.
+    *
+    * @see edje_perspective_global_set()
+    */
    EAPI Eina_Bool               edje_perspective_global_get     (const Edje_Perspective *ps);
+   /**
+    * Get the global perspective object set for this canvas.
+    *
+    * @param e The given canvas (Evas).
+    * @return The perspective object set as global for this canvas. Or @c NULL
+    * if there is no global perspective set and on errors.
+    *
+    * This function will return the perspective object that was set as global
+    * with edje_perspective_global_set().
+    *
+    * @see edje_perspective_global_set()
+    * @see edje_perspective_global_get()
+    */
    EAPI const Edje_Perspective *edje_evas_global_perspective_get(const Evas *e);
+   /**
+    * Set the given perspective object on this Edje object.
+    *
+    * @param obj The Edje object on the perspective will be set.
+    * @param ps The perspective object that will be used.
+    *
+    * Make the given perspective object be the default perspective for this Edje
+    * object.
+    *
+    * There can be only one perspective object per Edje object, and if a
+    * previous one was set, it will be removed and the new perspective object
+    * will be used.
+    *
+    * An Edje perspective will only affect a part if it doesn't point to another
+    * part to be used as perspective.
+    *
+    * @see edje_object_perspective_new()
+    * @see edje_object_perspective_get()
+    * @see edje_perspective_set()
+    */
    EAPI void                    edje_object_perspective_set     (Evas_Object *obj, Edje_Perspective *ps);
+   /**
+    * Get the current perspective used on this Edje object.
+    *
+    * @param obj the given Edje object.
+    * @return The perspective object being used on this Edje object. Or @c NULL
+    * if there was none, and on errors.
+    *
+    * @see edje_object_perspective_set()
+    */
    EAPI const Edje_Perspective *edje_object_perspective_get     (const Evas_Object *obj);
 
 #ifdef __cplusplus

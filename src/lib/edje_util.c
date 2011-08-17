@@ -38,12 +38,107 @@ struct _Edje_List_Foreach_Data
    Eina_List *list;
 };
 
+typedef struct _Edje_List_Refcount Edje_List_Refcount;
+struct _Edje_List_Refcount
+{
+   EINA_REFCOUNT;
+
+   Eina_List *lookup;
+};
+
 static Eina_Bool _edje_color_class_list_foreach(const Eina_Hash *hash, const void *key, void *data, void *fdata);
 static Eina_Bool _edje_text_class_list_foreach(const Eina_Hash *hash, const void *key, void *data, void *fdata);
 static void _edje_object_image_preload_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
 static void _edje_object_signal_preload_cb(void *data, Evas_Object *obj, const char *emission, const char *source);
 
 Edje_Real_Part *_edje_real_part_recursive_get_helper(const Edje *ed, char **path);
+
+
+static void
+_edje_class_member_direct_del(const char *class, Edje_List_Refcount *lookup, Eina_Hash *hash)
+{
+   Eina_List *members;
+
+   members = eina_hash_find(hash, class);
+   members = eina_list_remove_list(members, lookup->lookup);
+   eina_hash_set(hash, class, members);
+   free(lookup);
+}
+
+static void
+_edje_class_member_add(Edje *ed, Eina_Hash **ehash, Eina_Hash **ghash, const char *class)
+{
+   Edje_List_Refcount *lookup;
+   Eina_List *members;
+
+   if ((!ed) || (!ehash) || (!ghash) || (!class)) return;
+
+   lookup = eina_hash_find(*ehash, class);
+   if (lookup)
+     {
+        EINA_REFCOUNT_REF(lookup);
+        return;
+     }
+
+   lookup = malloc(sizeof (Edje_List_Refcount));
+   if (!lookup) return ;
+   EINA_REFCOUNT_INIT(lookup);
+
+   /* Get members list */
+   members = eina_hash_find(*ghash, class);
+
+   /* Update the member list */
+   lookup->lookup = members = eina_list_prepend(members, ed);
+
+   /* Don't loose track of members list */
+   if (!*ehash)
+     *ehash = eina_hash_string_small_new(NULL);
+   eina_hash_add(*ehash, class, lookup);
+
+   /* Reset the member list to the right pointer */
+   if (!*ghash)
+     *ghash = eina_hash_string_superfast_new(NULL);
+   eina_hash_set(*ghash, class, members);
+}
+
+static void
+_edje_class_member_del(Eina_Hash **ehash, Eina_Hash **ghash, const char *class)
+{
+   Edje_List_Refcount *lookup;
+   Eina_List *members;
+
+   if ((!ehash) || (!ghash) || (!class)) return;
+   members = eina_hash_find(*ghash, class);
+   if (!members) return;
+
+   lookup = eina_hash_find(*ehash, class);
+   if (!lookup) return ;
+
+   EINA_REFCOUNT_UNREF(lookup)
+   {
+      members = eina_list_remove_list(members, lookup->lookup);
+      eina_hash_set(*ghash, class, members);
+
+      eina_hash_del(*ehash, class, lookup);
+      free(lookup);
+   }
+}
+
+static Eina_Bool
+member_list_free(const Eina_Hash *hash __UNUSED__, const void *key __UNUSED__, void *data, void *fdata __UNUSED__)
+{
+   eina_list_free(data);
+   return EINA_TRUE;
+}
+
+static void
+_edje_class_members_free(Eina_Hash **ghash)
+{
+   if (!ghash || !*ghash) return;
+   eina_hash_foreach(*ghash, member_list_free, NULL);
+   eina_hash_free(*ghash);
+   *ghash = NULL;
+}
 
 /************************** API Routines **************************/
 
@@ -642,7 +737,7 @@ edje_object_color_class_del(Evas_Object *obj, const char *color_class)
 	     ed->color_classes = eina_list_remove(ed->color_classes, cc);
 	     eina_stringshare_del(cc->name);
 	     free(cc);
-	     return;
+	     break;
 	  }
      }
 
@@ -1011,11 +1106,6 @@ _edje_object_part_text_raw_append(Evas_Object *obj, Edje_Real_Part *rp, const ch
    return EINA_TRUE;
 }
 
-/** Sets the text for an object part
- * @param obj A valid Evas Object handle
- * @param part The part name
- * @param text The text string
- */
 EAPI Eina_Bool
 edje_object_part_text_set(Evas_Object *obj, const char *part, const char *text)
 {
@@ -1849,12 +1939,12 @@ edje_object_text_insert_filter_callback_del_full(Evas_Object *obj, const char *p
         if ((!strcmp(cb->part, part)) && (cb->func == func) &&
             (cb->data == data))
           {
-             void *data = cb->data;
+             void *tmp = cb->data;
              ed->text_insert_filter_callbacks =
                 eina_list_remove_list(ed->text_insert_filter_callbacks, l);
              eina_stringshare_del(cb->part);
              free(cb);
-             return data;
+             return tmp;
           }
      }
    return NULL;
@@ -2303,15 +2393,6 @@ edje_object_size_min_calc(Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh)
    edje_object_size_min_restricted_calc(obj, minw, minh, 0, 0);
 }
 
-/** Calculate the geometry used by all parts
- * @param obj A valid Evas_Object handle
- * @param x The x coordinate pointer
- * @param y The y coordinate pointer
- * @param w The width pointer
- * @param h The height pointer
- *
- * Calculates the geometry used by all object parts. Including out of bounds parts.
- */
 EAPI Eina_Bool
 edje_object_parts_extends_calc(Evas_Object *obj, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h)
 {
@@ -2365,17 +2446,6 @@ edje_object_parts_extends_calc(Evas_Object *obj, Evas_Coord *x, Evas_Coord *y, E
    return EINA_TRUE;
 }
 
-/** Calculate minimum size
- * @param obj A valid Evas_Object handle
- * @param minw Minimum width pointer
- * @param minh Minimum height pointer
- * @param restrictedw Do not allow object min width calc to be less than this
- * @param restrictedh Do not allow object min height calc to be less than this
- *
- * Calculates the object's minimum size. Be advised that invisible parts *ARE*
- * taken into account in this calculation, if you don't want that to happen,
- * resize them to 0.
- */
 EAPI void
 edje_object_size_min_restricted_calc(Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh, Evas_Coord restrictedw, Evas_Coord restrictedh)
 {
@@ -3783,40 +3853,21 @@ _edje_color_class_find(Edje *ed, const char *color_class)
 void
 _edje_color_class_member_add(Edje *ed, const char *color_class)
 {
-   Eina_List *members;
+   _edje_class_member_add(ed, &ed->members.color_class, &_edje_color_class_member_hash, color_class);
+}
 
-   if ((!ed) || (!color_class)) return;
-   if (!_edje_color_class_member_hash) _edje_color_class_member_hash = eina_hash_string_superfast_new(NULL);
-   members = eina_hash_find(_edje_color_class_member_hash, color_class);
-
-   members = eina_list_prepend(members, ed);
-   eina_hash_set(_edje_color_class_member_hash, color_class, members);
+void
+_edje_color_class_member_direct_del(const char *color_class, void *l)
+{
+   _edje_class_member_direct_del(color_class, l, _edje_color_class_member_hash);
 }
 
 void
 _edje_color_class_member_del(Edje *ed, const char *color_class)
 {
-   Eina_List *members;
-
    if ((!ed) || (!color_class)) return;
-   if (!_edje_color_class_member_hash) return;
 
-   members = eina_hash_find(_edje_color_class_member_hash, color_class);
-   if (!members) return;
-
-   members = eina_list_remove(members, ed);
-   eina_hash_set(_edje_color_class_member_hash, color_class, members);
-}
-
-/**
- * Used to free the member lists that are stored in the text_class and
- * color_class hashtables.
- */
-static Eina_Bool
-member_list_free(const Eina_Hash *hash __UNUSED__, const void *key __UNUSED__, void *data, void *fdata __UNUSED__)
-{
-   eina_list_free(data);
-   return EINA_TRUE;
+   _edje_class_member_del(&ed->members.color_class, &_edje_color_class_member_hash, color_class);
 }
 
 void
@@ -3874,56 +3925,30 @@ _edje_text_class_find(Edje *ed, const char *text_class)
 }
 
 void
+_edje_text_class_member_direct_del(const char *text_class,
+                                   void *l)
+{
+   _edje_class_member_direct_del(text_class, l, _edje_text_class_member_hash);
+}
+
+void
 _edje_text_class_member_add(Edje *ed, const char *text_class)
 {
-   Eina_List *members;
-
-   if ((!ed) || (!text_class)) return;
-
-   /* Get members list */
-   members = eina_hash_find(_edje_text_class_member_hash, text_class);
-
-   /* Update the member list */
-   members = eina_list_prepend(members, ed);
-
-   /* Don't loose track of members list */
-   if (!ed->members)
-     ed->members = eina_hash_string_small_new(NULL);
-   eina_hash_set(ed->members, text_class, members);
-
-   /* Reset the member list to the right pointer */
-   if (!_edje_text_class_member_hash)
-     _edje_text_class_member_hash = eina_hash_string_superfast_new(NULL);
-   eina_hash_set(_edje_text_class_member_hash, text_class, members);
+   _edje_class_member_add(ed, &ed->members.text_class, &_edje_text_class_member_hash, text_class);
 }
 
 void
 _edje_text_class_member_del(Edje *ed, const char *text_class)
 {
-   Eina_List *members;
-   Eina_List *lookup;
-
    if ((!ed) || (!text_class)) return;
-   members = eina_hash_find(_edje_text_class_member_hash, text_class);
-   if (!members) return;
 
-   lookup = eina_hash_find(ed->members, text_class);
-
-   if (!lookup) return ;
-
-   eina_hash_del(ed->members, text_class, lookup);
-   members = eina_list_remove_list(members, lookup);
-
-   eina_hash_set(_edje_text_class_member_hash, text_class, members);
+   _edje_class_member_del(&ed->members.text_class, &_edje_text_class_member_hash, text_class);
 }
 
 void
 _edje_text_class_members_free(void)
 {
-   if (!_edje_text_class_member_hash) return;
-   eina_hash_foreach(_edje_text_class_member_hash, member_list_free, NULL);
-   eina_hash_free(_edje_text_class_member_hash);
-   _edje_text_class_member_hash = NULL;
+   _edje_class_members_free(&_edje_text_class_member_hash);
 }
 
 static Eina_Bool

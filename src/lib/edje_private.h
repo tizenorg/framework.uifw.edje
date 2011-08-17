@@ -1010,7 +1010,10 @@ struct _Edje
    int                   table_programs_size;
    unsigned int          table_parts_size;
 
-   Eina_Hash            *members;
+   struct {
+      Eina_Hash         *text_class;
+      Eina_Hash         *color_class;
+   } members;
 
    Edje_Perspective     *persp;
 
@@ -1454,6 +1457,9 @@ extern Eina_Bool        _edje_input_panel_enable;
 extern Eina_Bool        _edje_password_show_last;
 extern FLOAT_T          _edje_password_show_last_timeout;
 
+extern Eina_Bool        _edje_password_show_last;
+extern FLOAT_T          _edje_password_show_last_timeout;
+
 extern Eina_Mempool *_edje_real_part_mp;
 extern Eina_Mempool *_edje_real_part_state_mp;
 
@@ -1543,6 +1549,7 @@ const char *   _edje_text_class_font_get(Edje *ed,
 Edje_Real_Part   *_edje_real_part_get(const Edje *ed, const char *part);
 Edje_Real_Part   *_edje_real_part_recursive_get(const Edje *ed, const char *part);
 Edje_Color_Class *_edje_color_class_find(Edje *ed, const char *color_class);
+void              _edje_color_class_member_direct_del(const char *color_class, void *lookup);
 void              _edje_color_class_member_add(Edje *ed, const char *color_class);
 void              _edje_color_class_member_del(Edje *ed, const char *color_class);
 void              _edje_color_class_on_del(Edje *ed, Edje_Part *ep);
@@ -1552,6 +1559,7 @@ void              _edje_color_class_hash_free(void);
 Edje_Text_Class  *_edje_text_class_find(Edje *ed, const char *text_class);
 void              _edje_text_class_member_add(Edje *ed, const char *text_class);
 void              _edje_text_class_member_del(Edje *ed, const char *text_class);
+void              _edje_text_class_member_direct_del(const char *text_class, void *lookup);
 void              _edje_text_class_members_free(void);
 void              _edje_text_class_hash_free(void);
 
@@ -1886,5 +1894,8 @@ const char *edje_string_get(const Edje_String *es);
 const char *edje_string_id_get(const Edje_String *es);
 
 void _edje_object_orientation_inform(Evas_Object *obj);
+
+void _edje_lib_ref(void);
+void _edje_lib_unref(void);
 
 #endif

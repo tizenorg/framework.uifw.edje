@@ -123,3 +123,26 @@
 
 	* Fix an issue with ellipsis not working properly with small
 	  text parts.
+
+2011-06-21  Cedric Bail
+
+	* Make it possible to define part.description.max only on one axis.
+
+2011-07-24  Mike Blumenkrantz
+
+        * Add signals entry,paste,request,1 (PRIMARY) and entry,paste,request,3 (CLIPBOARD)
+          to differentiate between paste types
+        * Add entry,selection,all,request for signalling ctrl+a in an entry
+        * Add entry,selection,none,request for signalling ctrl+shift+a in an entry
+        * Fix entry,paste,request* to be emitted after cursor,changed (fixes middle mouse paste location)
+        
+2011-05-27  Carsten Haitzler (The Rasterman)
+
+	* Fix edje_shutdown() being called before all evas objects created
+        by edje (edje objects) are gone. Delay internal core shutdown
+        until all references gone.
+
+2011-08-03  Tom Hacohen (TAsn)
+
+	* Entry: Added changed,user signal. This signal indicates the entry
+	has changed because of user interaction, i.e not by code.
