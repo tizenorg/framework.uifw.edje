@@ -39,13 +39,15 @@ Requires:   %{name} = %{version}-%{release}
 %description devel
 Edje is a graphical layout and animation library (devel)
 
-%package bin
-Summary:    Complex Graphical Design/Layout Engine (bin)
+%package tools
+Summary:    Complex Graphical Design/Layout Engine (tools)
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
+Provides:   %{name}-bin
+Obsoletes:  %{name}-bin
 
-%description bin
-Edje is a graphical layout and animation library (bin)
+%description tools
+Edje is a graphical layout and animation library (tools)
 
 %prep
 %setup -q
@@ -76,7 +78,7 @@ rm -rf %{buildroot}
 %{_libdir}/pkgconfig/edje.pc
 %exclude /usr/share/edje/examples/*
 
-%files bin
+%files tools
 %defattr(-,root,root,-)
 %{_bindir}/edje_external_inspector
 %{_bindir}/edje_inspector
