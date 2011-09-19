@@ -480,9 +480,6 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
    _edje_entry_imf_context_reset(en);
-#ifdef HAVE_ECORE_IMF
-   _input_panel_hide(en);
-#endif
 }
 
 static void
@@ -506,9 +503,6 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
    _edje_entry_imf_context_reset(en);
-#ifdef HAVE_ECORE_IMF
-   _input_panel_hide(en);
-#endif
 }
 
 static void
@@ -1560,17 +1554,21 @@ _edje_key_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, voi
 static int
 _get_char_type(const char* str)
 {
-   if ((*str == '\n') || (*str == 0x20) || (!strcmp(str, "ps"))) /* paragraph separator */
-      return _ENTRY_CHAR_SEPARATOR;
+   if (!str) return _ENTRY_CHAR_NONE;
+
+   if ((*str == '\n') || (*str == 0x20) ||
+       (!strcmp(str, "<ps>")) || /* paragraph separator */
+       (!strcmp(str, "<br>")))
+     return _ENTRY_CHAR_SEPARATOR;
    else
-      return _ENTRY_CHAR_NONE;
+     return _ENTRY_CHAR_NONE;
 }
 
-static void
+static Eina_Bool
 _edje_entry_select_word(Edje_Real_Part *rp)
 {
    Entry *en;
-   if (!rp) return;
+   if (!rp) return EINA_FALSE;
    en = rp->entry_data;
 
    const char *ct = NULL;
@@ -1580,15 +1578,15 @@ _edje_entry_select_word(Edje_Real_Part *rp)
 
    ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
    if (!ct || strlen(ct) == 0)
-   {
-      if (_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN))
-        {
-           ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
-           if (!ct || strlen(ct) == 0) return;
-        }
-      else
-        return;
-   }
+     {
+        if (_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN))
+          {
+             ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+             if (!ct || strlen(ct) == 0) return EINA_FALSE;
+          }
+        else
+          return EINA_FALSE;
+     }
 
    block_type = _get_char_type(ct);
 
@@ -1596,30 +1594,32 @@ _edje_entry_select_word(Edje_Real_Part *rp)
    if (en->cursor_bg) evas_object_hide(en->cursor_bg);
 
    do	/* move cursor to the start point of the words */
-   {
-      ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
-      if (block_type != _get_char_type(ct))
-        {
-           _edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN);
-           break;
-        }
-   } while (_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN));
+     {
+        ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+        if (!ct || strlen(ct) == 0) return EINA_FALSE;
+
+        if (block_type != _get_char_type(ct))
+          {
+             _edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN);
+             break;
+          }
+     } while (_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN));
 
    _edje_entry_select_begin(rp);
 
    do	/* move cursor to the end point of the words */
-   {
-      ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
-      if (block_type != _get_char_type(ct))
-        {
-           //_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
-           break;
-        }
-      if (*ct == 0) break;
+     {
+        ct = _edje_entry_cursor_content_get(rp, EDJE_CURSOR_MAIN);
+        if (block_type != _get_char_type(ct))
+          {
+             //_edje_entry_cursor_prev(rp, EDJE_CURSOR_MAIN);
+             break;
+          }
+        if (*ct == 0) break;
 
-      eina_strbuf_append(str, ct);
-      //printf( "ct : %s (%d) \n", ct, *ct );
-   } while (_edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN));
+        eina_strbuf_append(str, ct);
+        //printf("ct : %s (%d) \n", ct, *ct);
+     } while (_edje_entry_cursor_next(rp, EDJE_CURSOR_MAIN));
 
    _edje_entry_select_extend(rp);
 
@@ -1629,6 +1629,8 @@ _edje_entry_select_word(Edje_Real_Part *rp)
 
    //printf("string : %s \n", eina_strbuf_string_get(str));
    eina_strbuf_free(str);
+
+   return EINA_TRUE;
 }
 
 static void
@@ -1642,7 +1644,7 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    if (!en) return;
    en->double_clicked = EINA_TRUE;
 
-   _edje_entry_select_word(rp);
+   if (!_edje_entry_select_word(rp)) return;
    _edje_emit(en->rp->edje, "selection,end", en->rp->part->name);
 }
 
@@ -2890,7 +2892,7 @@ _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow)
 
    if ((allow) && (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
      {
-        _edje_entry_select_word(rp);
+        if (!_edje_entry_select_word(rp)) return;
         _edje_emit(en->rp->edje, "selection,end", en->rp->part->name);
      }
 }
