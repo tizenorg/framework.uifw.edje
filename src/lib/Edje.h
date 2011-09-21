@@ -2854,6 +2854,16 @@ EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_
 EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get (const Evas_Object *obj, const char *part);
 
 /**
+ * @brief Set the viewport object of the text.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * Viewport object is used for showing or hiding text selection handlers.
+ */
+EAPI void             edje_object_part_text_viewport_object_set     (const Evas_Object *obj, const char *part, Evas_Object *viewport_obj);
+
+/**
  * Add a filter function for newly inserted text.
  *
  * Whenever text is inserted (not the same as set) into the given @p part,

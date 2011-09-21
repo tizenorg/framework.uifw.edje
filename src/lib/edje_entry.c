@@ -29,6 +29,14 @@ typedef enum _Entry_Char_Type
    _ENTRY_CHAR_NONE
 } Entry_Char_Type;
 
+typedef enum _Entry_Long_Press_State
+{
+   _ENTRY_LONG_PRESSING,
+   _ENTRY_LONG_PRESSED,
+   _ENTRY_LONG_PRESS_RELEASED
+} Entry_Long_Press_State;
+
+
 static void _edje_entry_imf_cursor_info_set(Entry *en);
 static void _edje_entry_imf_context_reset(Entry *en);
 
@@ -38,6 +46,7 @@ struct _Entry
    Evas_Coord ox, oy;
    Evas_Coord sx, sy;
    Evas_Coord rx, ry;
+   Evas_Object *viewport_obj;
    Evas_Object *cursor_bg;
    Evas_Object *cursor_fg;
    Evas_Object *block_handler_top;
@@ -58,7 +67,6 @@ struct _Entry
    Eina_Bool select_mod_start : 1;
    Eina_Bool select_mod_end : 1;
    Eina_Bool double_clicked : 1;
-   Eina_Bool long_pressed : 1;
    Eina_Bool had_sel : 1;
    int select_dragging_state;
    double space_key_time;
@@ -73,6 +81,7 @@ struct _Entry
 #endif
 
    Ecore_Timer *longpress_timer;
+   Entry_Long_Press_State long_press_state;
 };
 
 struct _Sel
@@ -640,19 +649,51 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                {
                   if (list_idx == 1)
                     {
+                       Evas_Coord vx, vy, vw, vh;
+                       Evas_Coord nx, ny;
                        const char *bh_position = edje_object_data_get(en->block_handler_top, "position");
-                       evas_object_hide(en->block_handler_top);
                        if (bh_position && !strcmp(bh_position, "BOTTOM"))
-                         evas_object_move(en->block_handler_top, x + r->x, y + r->y + r->h);
+                         {
+                            nx = x + r->x;
+                            ny = y + r->y + r->h;
+                         }
                        else
-                         evas_object_move(en->block_handler_top, x + r->x, y + r->y);
-                       evas_object_show(en->block_handler_top);
+                         {
+                            nx = x + r->x;
+                            ny = y + r->y;
+                         }
+                       evas_object_hide(en->block_handler_top);
+                       evas_object_move(en->block_handler_top, nx, ny);
+
+                       if (en->viewport_obj)
+                         {
+                            evas_object_geometry_get(en->viewport_obj, &vx, &vy, &vw, &vh);
+                            if ((nx >= vx) && (nx <= (vx + vw)) &&
+                                ((ny >= vy) && (ny <= (vy + vh))))
+                              evas_object_show(en->block_handler_top);
+                         }
+                       else
+                         evas_object_show(en->block_handler_top);
                     }
                   if (list_idx == list_cnt)
                     {
+                       Evas_Coord vx, vy, vw, vh;
+                       Evas_Coord nx, ny;
+                       nx = x + r->x + r->w;
+                       ny = y + r->y + r->h;
+
                        evas_object_hide(en->block_handler_btm);
-                       evas_object_move(en->block_handler_btm, x + r->x + r->w, y + r->y + r->h);
-                       evas_object_show(en->block_handler_btm);
+                       evas_object_move(en->block_handler_btm, nx, ny);
+
+                       if (en->viewport_obj)
+                         {
+                            evas_object_geometry_get(en->viewport_obj, &vx, &vy, &vw, &vh);
+                            if ((nx >= vx) && (nx <= (vx + vw)) &&
+                                ((ny >= vy) && (ny <= (vy + vh))))
+                              evas_object_show(en->block_handler_btm);
+                         }
+                       else
+                         evas_object_show(en->block_handler_btm);
                     }
                }
              *(&(sel->rect)) = *r;
@@ -1662,8 +1703,10 @@ _long_press(void *data)
         en->longpress_timer = NULL;
      }
 
-   en->long_pressed = EINA_TRUE;
+   en->long_press_state = _ENTRY_LONG_PRESSED;
    en->longpress_timer = NULL;
+
+   _edje_emit(en->rp->edje, "long,pressed", en->rp->part->name);
    return ECORE_CALLBACK_CANCEL;
 }
 
@@ -1693,7 +1736,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return;
    en = rp->entry_data;
    en->double_clicked = EINA_FALSE;
-   en->long_pressed = EINA_FALSE;
+   en->long_press_state = _ENTRY_LONG_PRESSING;
 
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
@@ -1833,7 +1876,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (evas_textblock_cursor_compare(tc, en->cursor))
      _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    evas_textblock_cursor_free(tc);
-   
+
    _edje_entry_imf_context_reset(en);
    _edje_entry_imf_cursor_info_set(en);
 
@@ -1875,11 +1918,13 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
      }
 
    if (en->double_clicked) return;
-   if (en->long_pressed)
+
+   if (en->long_press_state == _ENTRY_LONG_PRESSED)
      {
-        en->long_pressed = EINA_FALSE;
+        en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
         return;
      }
+   en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
 
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
@@ -2002,94 +2047,105 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
    if (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
         _edje_entry_real_part_configure(rp);
-		if (en->long_pressed)
-		{
-			tc = evas_object_textblock_cursor_new(rp->object);
-			evas_textblock_cursor_copy(en->cursor, tc);
-			evas_object_geometry_get(rp->object, &x, &y, &w, &h);
 
-			cx = ev->cur.canvas.x - x;
-			cy = ev->cur.canvas.y - y;
-			evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
+        if (en->long_press_state == _ENTRY_LONG_PRESSING)
+          {
+             en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
 
-			if (evas_textblock_cursor_compare(tc, en->cursor))
-				_edje_emit(rp->edje, "cursor,changed", rp->part->name);
-			evas_textblock_cursor_free(tc);
+             if (en->longpress_timer)
+               {
+                  ecore_timer_del(en->longpress_timer);
+                  en->longpress_timer = NULL;
+               }
+          }
+        else if (en->long_press_state == _ENTRY_LONG_PRESSED)
+          {
+             tc = evas_object_textblock_cursor_new(rp->object);
+             evas_textblock_cursor_copy(en->cursor, tc);
+             evas_object_geometry_get(rp->object, &x, &y, &w, &h);
 
-			_edje_emit(en->rp->edje, "magnifier,changed", en->rp->part->name);
-		}
+             cx = ev->cur.canvas.x - x;
+             cy = ev->cur.canvas.y - y;
+             evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
+
+             if (evas_textblock_cursor_compare(tc, en->cursor))
+               _edje_emit(rp->edje, "cursor,changed", rp->part->name);
+             evas_textblock_cursor_free(tc);
+
+             _edje_emit(en->rp->edje, "magnifier,changed", en->rp->part->name);
+          }
      }
    else
      {
-   if (en->selecting)
-     {
-        tc = evas_object_textblock_cursor_new(rp->object);
-        evas_textblock_cursor_copy(en->cursor, tc);
-        evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-        cx = ev->cur.canvas.x - x;
-        cy = ev->cur.canvas.y - y;
-        if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, cy))
+        if (en->selecting)
           {
-             Evas_Coord lx, ly, lw, lh;
-
-             if (evas_textblock_cursor_line_coord_set(en->cursor, cy) < 0)
+             tc = evas_object_textblock_cursor_new(rp->object);
+             evas_textblock_cursor_copy(en->cursor, tc);
+             evas_object_geometry_get(rp->object, &x, &y, &w, &h);
+             cx = ev->cur.canvas.x - x;
+             cy = ev->cur.canvas.y - y;
+             if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, cy))
                {
-                  if (rp->part->multiline)
-                    _curs_end(en->cursor, rp->object, en);
+                  Evas_Coord lx, ly, lw, lh;
+
+                  if (evas_textblock_cursor_line_coord_set(en->cursor, cy) < 0)
+                    {
+                       if (rp->part->multiline)
+                         _curs_end(en->cursor, rp->object, en);
+                       else
+                         {
+                            evas_textblock_cursor_paragraph_first(en->cursor);
+                            evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
+                            if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, ly + (lh / 2)))
+                              _curs_end(en->cursor, rp->object, en);
+                         }
+                    }
                   else
                     {
-                       evas_textblock_cursor_paragraph_first(en->cursor);
                        evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
-                       if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, ly + (lh / 2)))
-                         _curs_end(en->cursor, rp->object, en);
+                       if (cx <= lx)
+                         _curs_lin_start(en->cursor, rp->object, en);
+                       else
+                         _curs_lin_end(en->cursor, rp->object, en);
+                    }
+               }
+
+             if ((rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_EXPLICIT) ||
+                 (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
+               {
+                  if (en->select_allow)
+                    {
+                       if (en->had_sel)
+                         {
+                            if (en->select_mod_end)
+                              _sel_extend(en->cursor, rp->object, en);
+                            else if (en->select_mod_start)
+                              _sel_preextend(en->cursor, rp->object, en);
+                         }
+                       else
+                         _sel_extend(en->cursor, rp->object, en);
                     }
                }
              else
                {
-                  evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
-                  if (cx <= lx)
-                    _curs_lin_start(en->cursor, rp->object, en);
-                  else
-                    _curs_lin_end(en->cursor, rp->object, en);
+                  _sel_extend(en->cursor, rp->object, en);
                }
-          }
-
-        if ((rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_EXPLICIT) ||
-            (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
-          {
              if (en->select_allow)
                {
-                  if (en->had_sel)
-                    {
-                       if (en->select_mod_end)
-                         _sel_extend(en->cursor, rp->object, en);
-                       else if (en->select_mod_start)
-                         _sel_preextend(en->cursor, rp->object, en);
-                    }
-                  else
-                    _sel_extend(en->cursor, rp->object, en);
+                  if (evas_textblock_cursor_compare(en->sel_start, en->sel_end) != 0)
+                    _sel_enable(en->cursor, rp->object, en);
+                  if (en->have_selection)
+                    _sel_update(en->cursor, rp->object, en);
                }
-          }
-        else
-          {
-             _sel_extend(en->cursor, rp->object, en);
-          }
-        if (en->select_allow)
-          {
-             if (evas_textblock_cursor_compare(en->sel_start, en->sel_end) != 0)
-               _sel_enable(en->cursor, rp->object, en);
-             if (en->have_selection)
-               _sel_update(en->cursor, rp->object, en);
-          }
-        if (evas_textblock_cursor_compare(tc, en->cursor))
-          _edje_emit(rp->edje, "cursor,changed", rp->part->name);
-        evas_textblock_cursor_free(tc);
+             if (evas_textblock_cursor_compare(tc, en->cursor))
+               _edje_emit(rp->edje, "cursor,changed", rp->part->name);
+             evas_textblock_cursor_free(tc);
 
-        _edje_entry_imf_context_reset(en);
-        _edje_entry_imf_cursor_info_set(en);
+             _edje_entry_imf_context_reset(en);
+             _edje_entry_imf_cursor_info_set(en);
 
-        _edje_entry_real_part_configure(rp);
-     }
+             _edje_entry_real_part_configure(rp);
+          }
      }
 }
 
@@ -2112,7 +2168,8 @@ _edje_entry_top_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Objec
    evas_textblock_cursor_line_geometry_get(en->cursor, &lx, &ly, &lw, &lh);
 
    en->ox = ox + ow/2 - en->rx;
-   en->oy = oy + oh - en->ry + lh/2;
+   //en->oy = oy + oh - en->ry + lh/2;
+   en->oy = oy + oh - en->ry - lh/2;
 
    en->select_mod_start = EINA_TRUE;
    en->selecting = EINA_TRUE;
@@ -2850,6 +2907,16 @@ _edje_entry_items_list(Edje_Real_Part *rp)
         en->itemlist = items;
      }
    return en->itemlist;
+}
+
+void
+_edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj)
+{
+   Entry *en = rp->entry_data;
+   if (!en) return;
+   if (!obj) return;
+
+   en->viewport_obj = obj;
 }
 
 void
