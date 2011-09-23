@@ -1,3 +1,13 @@
+edje (1.0.0.001+svn.62640slp2+build06) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] fixed bug in text selection handlers
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build06
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 23 Sep 2011 16:16:07 +0900
+
 edje (1.0.0.001+svn.62640slp2+build05) unstable; urgency=low
 
   * Package Upload
