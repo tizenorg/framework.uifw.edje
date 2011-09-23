@@ -477,8 +477,9 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 
    if (en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
-        if (evas_textblock_cursor_compare(en->sel_start, c) > 0)
-			evas_textblock_cursor_copy(en->sel_start, c);
+        /* Do NOT allow sel_end to pass sel_start while extending */
+        if (evas_textblock_cursor_compare(c, en->sel_start) <= 0)
+          evas_textblock_cursor_pos_set(c, evas_textblock_cursor_pos_get(en->sel_start) + 1);
      }
 
    evas_textblock_cursor_copy(c, en->sel_end);
@@ -500,8 +501,9 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 
    if (en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)
      {
-        if (evas_textblock_cursor_compare(c, en->sel_end) > 0)
-           evas_textblock_cursor_copy(en->sel_end, c);
+        /* Do NOT allow sel_start to pass sel_end while pre-extending */
+        if (evas_textblock_cursor_compare(c, en->sel_end) >= 0)
+          evas_textblock_cursor_pos_set(c, evas_textblock_cursor_pos_get(en->sel_end) - 1);
      }
 
    evas_textblock_cursor_copy(c, en->sel_start);
@@ -2192,7 +2194,7 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
    Evas_Event_Mouse_Move *ev = event_info;
    Edje_Real_Part *rp = data;
    Entry *en = rp->entry_data;
-   Evas_Coord x, y, tx, ty;
+   Evas_Coord x, y, tx, ty, tw, th;
    Evas_Coord cx, cy;
 
    if (ev->buttons != 1) return;
@@ -2205,27 +2207,24 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
    en->sx = ev->cur.canvas.x;
    en->sy = ev->cur.canvas.y;
 
-   evas_object_geometry_get(rp->object, &tx, &ty, NULL, NULL);
+   evas_object_geometry_get(rp->object, &tx, &ty, &tw, &th);
 
    cx = en->rx + en->ox - tx;
    cy = en->ry + en->oy - ty;
 
    if (cx < 0) cx = 0;
    if (cy < 0) cy = 0;
+   if (cy > th) cy = th - 1;
 
    if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, cy))
      {
         int line;
         line = evas_textblock_cursor_line_coord_set(en->cursor, cy);
 
-        if (line == -1)
-          {
-             //_curs_end(en->cursor, rp->object, en);
-          }
-        else
-          {
-             _curs_lin_start(en->cursor, rp->object, en);
-          }
+        if (line != -1)
+          _curs_lin_start(en->cursor, rp->object, en);
+        //else
+        //_curs_end(en->cursor, rp->object, en);
      }
 
    if (en->select_allow)
@@ -2233,14 +2232,10 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
         if (en->had_sel)
           {
              if (en->select_mod_start)
-               {
-                  _sel_preextend(en->cursor, rp->object, en);
-               }
+               _sel_preextend(en->cursor, rp->object, en);
           }
      }
-
    _edje_entry_real_part_configure(rp);
-
    _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
 }
 
@@ -2313,29 +2308,20 @@ _edje_entry_bottom_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
         int line;
         line = evas_textblock_cursor_line_coord_set(en->cursor, cy);
 
-        if (line == -1)
-          {
-             //_curs_end(en->cursor, rp->object, en);
-          }
-        else
-          {
-             _curs_lin_end(en->cursor, rp->object, en);
-          }
+        if (line != -1)
+          _curs_lin_end(en->cursor, rp->object, en);
+        //else
+        //_curs_end(en->cursor, rp->object, en);
      }
-
    if (en->select_allow)
      {
         if (en->had_sel)
           {
              if (en->select_mod_end)
-               {
-                  _sel_extend(en->cursor, rp->object, en);
-               }
+               _sel_extend(en->cursor, rp->object, en);
           }
      }
-
    _edje_entry_real_part_configure(rp);
-
    _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
 }
 
