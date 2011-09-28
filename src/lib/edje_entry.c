@@ -3327,6 +3327,58 @@ _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur)
    return evas_textblock_cursor_pos_get(c);
 }
 
+Eina_Bool
+_edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h)
+{
+   Entry *en = rp->entry_data;
+   if (!en || !en->have_selection || !en->sel)
+     return EINA_FALSE;
+
+   Sel *sel;
+   Eina_List *l;
+   Evas_Textblock_Rectangle rect;
+   Evas_Coord tx, ty, tw, th;
+
+   l = en->sel;
+   if (!l) return EINA_FALSE;
+   sel = eina_list_data_get(l);
+   if (!sel) return EINA_FALSE;
+   rect = sel->rect;
+   ty = rect.y;
+   tw = rect.w;
+
+   l = eina_list_last(en->sel);
+   if (!l) return EINA_FALSE;
+   sel = eina_list_data_get(l);
+   if (!sel) return EINA_FALSE;
+   rect = sel->rect;
+
+   tx = rect.x;
+   th = rect.y - ty + rect.h;
+
+   EINA_LIST_FOREACH(en->sel, l, sel)
+     {
+        if (sel)
+          {
+             if (tw < sel->rect.w) tw = sel->rect.w;
+             if (sel->rect.x < tx) tx = sel->rect.x;
+          }
+     }
+
+   Evas_Coord vx, vy, vw, vh;
+   evas_object_geometry_get(rp->object, &vx, &vy, NULL, NULL);
+   tx += vx;
+   ty += vy;
+
+   if (x) *x = tx;
+   if (y) *y = ty;
+   if (w) *w = tw;
+   if (h) *h = th;
+
+   return EINA_TRUE;
+}
+
+
 static void
 _edje_entry_imf_context_reset(Entry *en)
 {

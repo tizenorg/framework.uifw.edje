@@ -2799,6 +2799,20 @@ EAPI void             edje_object_part_text_cursor_pos_set              (Evas_Ob
 EAPI int              edje_object_part_text_cursor_pos_get              (const Evas_Object *obj, const char *part, Edje_Cursor cur);
 
 /**
+ * @brief Retrieves the current position of the selection
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param x A pointer to a variable where to selection the part's x
+ * coordinate
+ * @param y A pointer to a variable where to selection the part's y
+ * coordinate
+ * @param w A pointer to a variable where to selection the part's width
+ * @param h A pointer to a variable where to selection the part's height
+ * @return EINA_TRUE if part has selection or EINA_FALSE otherwise
+ */
+EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
+/**
  * @brief Enables autocapitalization.
  *
  * @param obj A valid Evas_Object handle

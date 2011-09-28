@@ -1900,6 +1900,20 @@ edje_object_part_text_cursor_pos_get(const Evas_Object *obj, const char *part, E
    return 0;
 }
 
+EAPI Eina_Bool
+edje_object_part_text_selection_geometry_get(const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return 0;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return 0;
+
+   return _edje_entry_selection_geometry_get(rp, x, y, w, h);
+}
+
 EAPI void
 edje_object_text_insert_filter_callback_add(Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func, void *data)
 {
