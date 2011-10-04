@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.62640slp2+build07) unstable; urgency=low
+
+  * Add new APIs getting the size of selection block in entry.
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build07
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 04 Oct 2011 17:41:59 +0900
+
 edje (1.0.0.001+svn.62640slp2+build06) unstable; urgency=low
 
   * Package Upload
