@@ -1713,7 +1713,7 @@ _long_press(void *data)
 }
 
 static void
-_edje_part_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info)
+_edje_part_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, void *event_info __UNUSED__)
 {
    Edje_Real_Part *rp = data;
    Entry *en;
@@ -2634,7 +2634,7 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
    evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, cur_type);
    if (ww < 1) ww = 1;
-   if (hh < 1) ww = 1;
+   if (hh < 1) hh = 1;
    if (en->cursor_bg)
      {
         evas_object_move(en->cursor_bg, x + xx, y + yy);
@@ -2928,7 +2928,7 @@ _edje_entry_cursor_geometry_get(Edje_Real_Part *rp, Evas_Coord *cx, Evas_Coord *
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
    evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, cur_type);
    if (ww < 1) ww = 1;
-   if (hh < 1) ww = 1;
+   if (hh < 1) hh = 1;
    if (cx) *cx = x + xx;
    if (cy) *cy = y + yy;
    if (cw) *cw = ww;
@@ -3377,7 +3377,6 @@ _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord
 
    return EINA_TRUE;
 }
-
 
 static void
 _edje_entry_imf_context_reset(Entry *en)
