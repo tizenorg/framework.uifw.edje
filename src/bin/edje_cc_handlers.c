@@ -7361,8 +7361,6 @@ ob_collections_group_programs_program_script(void)
                   exit(-1);
                }
              cd->is_lua = 0;
-	     cd->programs = eina_list_append(cd->programs, cp);
-	     data_queue_anonymous_lookup(pc, current_program, &(cp->id));
 
              len = strlen(cp->script);
              for (i = 0; i < len; i++)
