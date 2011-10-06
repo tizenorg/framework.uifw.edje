@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.63811slp2+build03) unstable; urgency=low
+
+  * Fix crash in edje_cc
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build03
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 06 Oct 2011 16:56:12 +0900
+
 edje (1.0.0.001+svn.63811slp2+build02) unstable; urgency=low
 
   * Fix dependencies for dev package
