@@ -2920,6 +2920,10 @@ EAPI void             edje_object_part_text_input_panel_layout_set (const Evas_O
 
 /**
  * @brief Get the layout of the input panel.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
  * @return Layout type of the input panel
  *
  * @see edje_object_part_text_input_panel_layout_set

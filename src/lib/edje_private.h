@@ -991,6 +991,7 @@ struct _Edje_Signals_Sources_Patterns
 };
 
 typedef struct _Edje_Signals_Sources_Patterns Edje_Signals_Sources_Patterns;
+
 struct _Edje
 {
    Evas_Object_Smart_Clipped_Data base;

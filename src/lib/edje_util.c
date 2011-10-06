@@ -4162,7 +4162,7 @@ _edje_real_part_swallow_hints_update(Edje_Real_Part *rp)
 	rp->swallow_params.min.h = h1;
 	if (w2 > 0) rp->swallow_params.max.w = w2;
 	if (h2 > 0) rp->swallow_params.max.h = h2;
-	switch (am)
+  	switch (am)
 	  {
 	   case EVAS_ASPECT_CONTROL_NONE:
              rp->swallow_params.aspect.mode = EDJE_ASPECT_CONTROL_NONE;
