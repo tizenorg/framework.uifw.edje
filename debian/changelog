@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.63811slp2+build01) unstable; urgency=low
+
+  * Merge with upstream
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build01
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 06 Oct 2011 09:48:47 +0900
+
 edje (1.0.0.001+svn.62640slp2+build07) unstable; urgency=low
 
   * Add new APIs getting the size of selection block in entry.
