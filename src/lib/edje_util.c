@@ -578,6 +578,8 @@ edje_color_class_list(void)
 {
    Edje_List_Foreach_Data fdata;
 
+   if (!_edje_color_class_member_hash) return NULL;
+
    memset(&fdata, 0, sizeof(Edje_List_Foreach_Data));
    eina_hash_foreach(_edje_color_class_member_hash,
                      _edje_color_class_list_foreach, &fdata);
@@ -1912,6 +1914,39 @@ edje_object_part_text_selection_geometry_get(const Evas_Object *obj, const char 
    if (!rp) return 0;
 
    return _edje_entry_selection_geometry_get(rp, x, y, w, h);
+}
+
+EAPI void
+edje_object_part_text_input_panel_layout_set(const Evas_Object *obj, const char *part, Edje_Input_Panel_Layout layout)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     {
+        return _edje_entry_input_panel_layout_set(rp, layout);
+     }
+}
+
+EAPI Edje_Input_Panel_Layout
+edje_object_part_text_input_panel_layout_get(const Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return EDJE_INPUT_PANEL_LAYOUT_INVALID;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return EINA_FALSE;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     {
+        return _edje_entry_input_panel_layout_get(rp);
+     }
+   return EDJE_INPUT_PANEL_LAYOUT_INVALID;
 }
 
 EAPI void

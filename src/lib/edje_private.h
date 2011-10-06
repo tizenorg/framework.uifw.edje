@@ -267,6 +267,7 @@ typedef struct _Edje_Image_Directory                 Edje_Image_Directory;
 typedef struct _Edje_Image_Directory_Entry           Edje_Image_Directory_Entry;
 typedef struct _Edje_Image_Directory_Set             Edje_Image_Directory_Set;
 typedef struct _Edje_Image_Directory_Set_Entry       Edje_Image_Directory_Set_Entry;
+typedef struct _Edje_Limit                           Edje_Limit;
 typedef struct _Edje_Program                         Edje_Program;
 typedef struct _Edje_Program_Target                  Edje_Program_Target;
 typedef struct _Edje_Program_After                   Edje_Program_After;
@@ -579,6 +580,13 @@ struct _Edje_Program_After /* the action to run after another action */
 };
 
 /*----------*/
+struct _Edje_Limit
+{
+   const char *name;
+   int value;
+};
+
+/*----------*/
 #define PART_TYPE_FIELDS(TYPE)    \
       TYPE      RECTANGLE;        \
       TYPE      TEXT;             \
@@ -659,6 +667,14 @@ struct _Edje_Part_Collection
       Edje_Program **nocmp; /* Empty signal/source that will never match */
       unsigned int nocmp_count;
    } programs;
+
+   struct { /* list of limit that need to be monitored */
+      Edje_Limit **vertical;
+      unsigned int vertical_count;
+
+      Edje_Limit **horizontal;
+      unsigned int horizontal_count;
+   } limits;
 
    Edje_Part **parts; /* an array of Edje_Part */
    unsigned int parts_count;
@@ -1007,6 +1023,7 @@ struct _Edje
    Eina_List            *subobjs;
    Eina_List            *text_insert_filter_callbacks;
    void                 *script_only_data;
+
    int                   table_programs_size;
    unsigned int          table_parts_size;
 
@@ -1039,11 +1056,20 @@ struct _Edje
       void                    *data;
       int                      num;
    } message;
-   int                      processing_messages;
+   int                   processing_messages;
 
    int                   state;
 
    int			 preload_count;
+
+   lua_State            *L;
+   Eina_Inlist          *lua_objs;
+   int                   lua_ref;
+
+   struct {
+      Edje_Item_Provider_Cb  func;
+      void                  *data;
+   } item_provider;
 
    unsigned int          dirty : 1;
    unsigned int          recalc : 1;
@@ -1066,15 +1092,6 @@ struct _Edje
    unsigned int          all_part_change : 1;
 #endif
    unsigned int          have_mapped_part : 1;
-
-   lua_State            *L;
-   Eina_Inlist          *lua_objs;
-   int                   lua_ref;
-   
-   struct {
-      Edje_Item_Provider_Cb  func;
-      void                  *data;
-   } item_provider;
 };
 
 struct _Edje_Calc_Params
@@ -1355,10 +1372,19 @@ typedef enum _Edje_Queue
 typedef struct _Edje_Message_Signal Edje_Message_Signal;
 typedef struct _Edje_Message        Edje_Message;
 
+typedef struct _Edje_Message_Signal_Data Edje_Message_Signal_Data;
+struct _Edje_Message_Signal_Data
+{
+   int ref;
+   void *data;
+   void (*free_func)(void *);
+};
+
 struct _Edje_Message_Signal
 {
    const char *sig;
    const char *src;
+   Edje_Message_Signal_Data *data;
 };
 
 struct _Edje_Message
@@ -1529,7 +1555,8 @@ void  _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char 
 void _edje_programs_patterns_clean(Edje *ed);
 void _edje_programs_patterns_init(Edje *ed);
 void  _edje_emit(Edje *ed, const char *sig, const char *src);
-void  _edje_emit_handle(Edje *ed, const char *sig, const char *src);
+void _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data, void (*free_func)(void *));
+void _edje_emit_handle(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data);
 void  _edje_signals_sources_patterns_clean(Edje_Signals_Sources_Patterns *ssp);
 void  _edje_callbacks_patterns_clean(Edje *ed);
 
@@ -1829,8 +1856,10 @@ Eina_Bool _edje_entry_cursor_is_visible_format_get(Edje_Real_Part *rp, Edje_Curs
 const char *_edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur);
 void _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos);
 int _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur);
+void _edje_entry_input_panel_layout_set(Edje_Real_Part *rp, Edje_Input_Panel_Layout layout);
+Edje_Input_Panel_Layout _edje_entry_input_panel_layout_get(Edje_Real_Part *rp);
 Eina_Bool _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
-    
+
 void _edje_external_init();
 void _edje_external_shutdown();
 Evas_Object *_edje_external_type_add(const char *type_name, Evas *evas, Evas_Object *parent, const Eina_List *params, const char *part_name);

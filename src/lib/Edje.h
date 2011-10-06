@@ -441,7 +441,7 @@ param in edje programs
  * language is in order. Lua is that language.
  *
  * To get you started, here's an example:
- * @include lua_script.edc
+ * @ref lua_script.edc
  *
  */
 
@@ -650,6 +650,29 @@ typedef enum _Edje_Cursor
    // more later
 } Edje_Cursor;
 
+struct _Edje_Entry_Change_Info
+{
+   union {
+        struct {
+             const char *content;
+             size_t pos;
+             size_t plain_length; /* Number of cursor positions represented
+                                     in content. */
+        } insert;
+        struct {
+             const char *content;
+             size_t start, end;
+        } del;
+   } change;
+   Eina_Bool insert : 1; /**< True if the "change" union's "insert" is valid */
+   Eina_Bool merge : 1; /**< True if can be merged with the previous one. Used for example with insertion when something is already selected. */
+};
+
+/**
+ * @since 1.1.0
+ */
+typedef struct _Edje_Entry_Change_Info        Edje_Entry_Change_Info;
+
 typedef struct _Edje_Message_String           Edje_Message_String;
 typedef struct _Edje_Message_Int              Edje_Message_Int;
 typedef struct _Edje_Message_Float            Edje_Message_Float;
@@ -779,6 +802,18 @@ typedef enum _Edje_External_Param_Flags
                                             EDJE_EXTERNAL_PARAM_FLAGS_STATE) /**< Convenience flag that sets property as GET, SET and STATE. */
 } Edje_External_Param_Flags;
 
+typedef enum
+{
+   EDJE_INPUT_PANEL_LAYOUT_NORMAL,          /**< Default layout */
+   EDJE_INPUT_PANEL_LAYOUT_NUMBER,          /**< Number layout */
+   EDJE_INPUT_PANEL_LAYOUT_EMAIL,           /**< Email layout */
+   EDJE_INPUT_PANEL_LAYOUT_URL,             /**< URL layout */
+   EDJE_INPUT_PANEL_LAYOUT_PHONENUMBER,     /**< Phone Number layout */
+   EDJE_INPUT_PANEL_LAYOUT_IP,              /**< IP layout */
+   EDJE_INPUT_PANEL_LAYOUT_MONTH,           /**< Month layout */
+   EDJE_INPUT_PANEL_LAYOUT_NUMBERONLY,      /**< Number Only layout */
+   EDJE_INPUT_PANEL_LAYOUT_INVALID
+} Edje_Input_Panel_Layout;
 
 /**
  * @brief Converts type identifier to string nicer representation.
@@ -1974,6 +2009,19 @@ EAPI void        *edje_object_signal_callback_del_full(Evas_Object *obj, const c
 EAPI void         edje_object_signal_emit         (Evas_Object *obj, const char *emission, const char *source);
 
 /**
+ * @brief Get extra data passed to callbacks.
+ *
+ * @return the extra data for that callback.
+ *
+ * Some callbacks pass extra information. This function gives access to that
+ * extra information. It's somehow like event_info in smart callbacks.
+ *
+ * @see edje_object_signal_callback_add() for more on Edje signals.
+ * @since 1.1.0
+ */
+EAPI void *       edje_object_signal_callback_extra_data_get(void);
+
+/**
  * @brief Set the Edje object to playing or paused states.
  *
  * @param obj A handle to an Edje object.
@@ -2854,6 +2902,30 @@ EAPI void              *edje_object_part_text_imf_context_get (const Evas_Object
  * @see edje_object_part_text_input_panel_enabled_get
  */
 EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_Object *obj, const char *part, Eina_Bool enabled);
+
+/*
+ * @brief Set the layout of the input panel.
+ *
+ * The layout of the input panel or virtual keyboard can make it easier or
+ * harder to enter content. This allows you to hint what kind of input you
+ * are expecting to enter and thus have the input panel automatically
+ * come up with the right mode.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param layout layout type
+ * @since 1.1
+ */
+EAPI void             edje_object_part_text_input_panel_layout_set (const Evas_Object *obj, const char *part, Edje_Input_Panel_Layout layout);
+
+/**
+ * @brief Get the layout of the input panel.
+ * @return Layout type of the input panel
+ *
+ * @see edje_object_part_text_input_panel_layout_set
+ * @since 1.1
+ */
+EAPI Edje_Input_Panel_Layout edje_object_part_text_input_panel_layout_get (const Evas_Object *obj, const char *part);
 
 /**
  * @brief Get whether the entry supports to show input panel automatically.

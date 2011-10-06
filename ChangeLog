@@ -135,7 +135,7 @@
         * Add entry,selection,all,request for signalling ctrl+a in an entry
         * Add entry,selection,none,request for signalling ctrl+shift+a in an entry
         * Fix entry,paste,request* to be emitted after cursor,changed (fixes middle mouse paste location)
-        
+
 2011-05-27  Carsten Haitzler (The Rasterman)
 
 	* Fix edje_shutdown() being called before all evas objects created
@@ -146,3 +146,32 @@
 
 	* Entry: Added changed,user signal. This signal indicates the entry
 	has changed because of user interaction, i.e not by code.
+
+2011-08-22  Cedric Bail
+
+	* Add collection.group.limits {
+	          vertical: "name" value;
+	          horizontal: "name" value;
+	      }.
+
+2011-08-25  Jihoon Kim
+
+	* Add entry input panel layout setting api's
+
+2011-08-10  Tom Hacohen (TAsn)
+
+	* Signals: Added the ability to pass extra data with edje signals.
+	Added edje_object_signal_callback_extra_data_get to support that.
+
+2011-08-29  Jaehwan Kim
+
+	* Add group's inheritance.
+	* Add insert_before, insert_after to can change the part's order.
+
+2011-10-02  Boris Faure (billiob)
+
+	* Fix edje_cc to accept -1 in description.max
+
+2011-10-03  Tom Hacohen (TAsn)
+
+	* Entry: Added change information to entry,changed,user
