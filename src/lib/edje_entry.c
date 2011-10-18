@@ -101,21 +101,6 @@ struct _Anchor
 
 #ifdef HAVE_ECORE_IMF
 static void
-_input_panel_hide(Entry *en)
-{
-   Ecore_IMF_Input_Panel_State state;
-
-   if (!en || !en->imf_context) return;
-
-   if (!ecore_imf_context_input_panel_enabled_get(en->imf_context)) return;
-
-   state = ecore_imf_context_input_panel_state_get(en->imf_context);
-
-   if (state == ECORE_IMF_INPUT_PANEL_STATE_SHOW)
-      ecore_imf_context_input_panel_hide(en->imf_context);
-}
-
-static void
 _preedit_clear(Entry *en)
 {
    if (en->preedit_start)
