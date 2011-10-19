@@ -1,3 +1,11 @@
+edje (1.0.0.001+svn.63811slp2+build05) unstable; urgency=low
+
+  * Package Upload for sync between arm and i386
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build05
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 19 Oct 2011 14:19:27 +0900
+
 edje (1.0.0.001+svn.63811slp2+build04) unstable; urgency=low
 
   * Fix dependencies for edje_cc
