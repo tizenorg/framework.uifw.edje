@@ -3663,14 +3663,17 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
         /* extract the tag string */
         char *str = evas_textblock_cursor_range_text_get(en->preedit_start, en->preedit_end, EVAS_TEXTBLOCK_TEXT_MARKUP);
 
-        preedit_tag_index = strstr(str, "<preedit");
-
-        if ((preedit_tag_index - str) > 0)
+        if (str)
           {
-             pretag = calloc(1, sizeof(char)*(preedit_tag_index-str+1));
-             if (preedit_tag_index)
+             preedit_tag_index = strstr(str, "<preedit");
+
+             if ((preedit_tag_index - str) > 0)
                {
-                  strncpy(pretag, str, preedit_tag_index-str);
+                  pretag = calloc(1, sizeof(char)*(preedit_tag_index-str+1));
+                  if (preedit_tag_index)
+                    {
+                       strncpy(pretag, str, preedit_tag_index-str);
+                    }
                }
           }
      }
