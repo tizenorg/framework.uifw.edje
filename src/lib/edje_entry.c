@@ -3444,7 +3444,7 @@ _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord
           }
      }
 
-   Evas_Coord vx, vy, vw, vh;
+   Evas_Coord vx, vy;
    evas_object_geometry_get(rp->object, &vx, &vy, NULL, NULL);
    tx += vx;
    ty += vy;

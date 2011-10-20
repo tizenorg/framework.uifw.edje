@@ -1836,6 +1836,7 @@ void _edje_entry_cursor_geometry_get(Edje_Real_Part *rp, Evas_Coord *cx, Evas_Co
 void _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow);
 Eina_Bool _edje_entry_select_allow_get(const Edje_Real_Part *rp);
 void _edje_entry_select_abort(Edje_Real_Part *rp);
+void _edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj);
 void _edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool autocap);
 void _edje_entry_autoperiod_set(Edje_Real_Part *rp, Eina_Bool autoperiod);
 #ifdef HAVE_ECORE_IMF
