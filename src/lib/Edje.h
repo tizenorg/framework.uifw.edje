@@ -772,6 +772,14 @@ typedef enum _Edje_Text_Filter_Type
    EDJE_TEXT_FILTER_MARKUP = 2
 } Edje_Text_Filter_Type;
 
+typedef enum _Edje_Text_Autocapital_Type
+{
+   EDJE_TEXT_AUTOCAPITAL_TYPE_NONE,
+   EDJE_TEXT_AUTOCAPITAL_TYPE_WORD,
+   EDJE_TEXT_AUTOCAPITAL_TYPE_SENTENCE,
+   EDJE_TEXT_AUTOCAPITAL_TYPE_ALLCHARACTER
+} Edje_Text_Autocapital_Type;
+
 /**
  * The possible types the parameters of an EXTERNAL part can be.
  */
@@ -2893,19 +2901,9 @@ EAPI Ecore_IMF_Context *edje_object_part_text_imf_context_get (const Evas_Object
 EAPI void              *edje_object_part_text_imf_context_get (const Evas_Object *obj, const char *part);
 #endif
 
-/**
- * @brief Set the edje's global input panel.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- *
- * @see edje_object_part_text_input_panel_enabled_get
- */
-EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_Object *obj, const char *part, Eina_Bool enabled);
-
 /*
  * @brief Set the layout of the input panel.
- *
+ * 
  * The layout of the input panel or virtual keyboard can make it easier or
  * harder to enter content. This allows you to hint what kind of input you
  * are expecting to enter and thus have the input panel automatically
@@ -2932,14 +2930,43 @@ EAPI void             edje_object_part_text_input_panel_layout_set (const Evas_O
 EAPI Edje_Input_Panel_Layout edje_object_part_text_input_panel_layout_get (const Evas_Object *obj, const char *part);
 
 /**
- * @brief Get whether the entry supports to show input panel automatically.
+ * @brief Set the autocapitalization type on the immodule.
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
+ * @param autocapital_type The type of autocapitalization
+ * @since 1.1.0
+ */
+EAPI void         edje_object_part_text_autocapital_type_set        (const Evas_Object *obj, const char *part, Edje_Text_Autocapital_Type autocapital_type);
+
+/**
+ * @brief Retrieves the autocapitalization type
  *
- * @return EINA_TRUE if it supports or EINA_FALSE otherwise
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @return The autocapitalization type
+ * @since 1.1.0
+ */
+EAPI Edje_Text_Autocapital_Type edje_object_part_text_autocapital_type_get (const Evas_Object *obj, const char *part);
+
+/**
+ * @brief Sets the attribute to show the input panel automatically.
  *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param enabled If true, the input panel is appeared when entry is clicked or has a focus
+ * @since 1.1.0
+ */
+EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_Object *obj, const char *part, Eina_Bool enabled);
+
+/**
+ * @brief Retrieve the attribute to show the input panel automatically.
  * @see edje_object_part_text_input_panel_enabled_set
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @return EINA_TRUE if it supports or EINA_FALSE otherwise
+ * @since 1.1.0
  */
 EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get (const Evas_Object *obj, const char *part);
 

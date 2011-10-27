@@ -1842,8 +1842,6 @@ void _edje_entry_autoperiod_set(Edje_Real_Part *rp, Eina_Bool autoperiod);
 #ifdef HAVE_ECORE_IMF
 Ecore_IMF_Context *_edje_entry_imf_context_get(Edje_Real_Part *rp);
 #endif
-void _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled);
-Eina_Bool _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp);
 Eina_Bool _edje_entry_cursor_next(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_prev(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_up(Edje_Real_Part *rp, Edje_Cursor cur);
@@ -1860,6 +1858,10 @@ void _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos);
 int _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur);
 void _edje_entry_input_panel_layout_set(Edje_Real_Part *rp, Edje_Input_Panel_Layout layout);
 Edje_Input_Panel_Layout _edje_entry_input_panel_layout_get(Edje_Real_Part *rp);
+void _edje_entry_autocapital_type_set(Edje_Real_Part *rp, Edje_Text_Autocapital_Type autocapital_type);
+Edje_Text_Autocapital_Type _edje_entry_autocapital_type_get(Edje_Real_Part *rp);
+void _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled);
+Eina_Bool _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp);
 Eina_Bool _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
 
 void _edje_external_init();
