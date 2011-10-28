@@ -1,3 +1,12 @@
+edje (1.0.0.001+svn.63811slp2+build06) unstable; urgency=low
+
+  * Add input_panel_enable_set/get and autocapital_type_set/get APIs
+  * Fix group inheritance bugs
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 28 Oct 2011 11:02:36 +0900
+
 edje (1.0.0.001+svn.63811slp2+build05) unstable; urgency=low
 
   * Package Upload for sync between arm and i386
