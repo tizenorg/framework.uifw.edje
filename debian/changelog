@@ -1,3 +1,9 @@
+edje (1.0.0.001+svn.64675slp2+build01) unstable; urgency=low
+
+  * Merge with upstream @64675
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 03 Nov 2011 15:50:34 +0900
+
 edje (1.0.0.001+svn.63811slp2+build06) unstable; urgency=low
 
   * Add input_panel_enable_set/get and autocapital_type_set/get APIs
