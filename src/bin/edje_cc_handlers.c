@@ -191,6 +191,7 @@ static void st_collections_group_parts_part_description_image_tween(void);
 static void st_collections_group_parts_part_description_image_border(void);
 static void st_collections_group_parts_part_description_image_middle(void);
 static void st_collections_group_parts_part_description_image_border_scale(void);
+static void st_collections_group_parts_part_description_image_border_scale_by(void);
 static void st_collections_group_parts_part_description_image_scale_hint(void);
 static void st_collections_group_parts_part_description_fill_smooth(void);
 static void st_collections_group_parts_part_description_fill_origin_relative(void);
@@ -450,6 +451,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.image.border", st_collections_group_parts_part_description_image_border},
      {"collections.group.parts.part.description.image.middle", st_collections_group_parts_part_description_image_middle},
      {"collections.group.parts.part.description.image.border_scale", st_collections_group_parts_part_description_image_border_scale},
+     {"collections.group.parts.part.description.image.border_scale_by", st_collections_group_parts_part_description_image_border_scale_by},
      {"collections.group.parts.part.description.image.scale_hint", st_collections_group_parts_part_description_image_scale_hint},
      {"collections.group.parts.part.description.fill.smooth", st_collections_group_parts_part_description_fill_smooth},
      {"collections.group.parts.part.description.fill.origin.relative", st_collections_group_parts_part_description_fill_origin_relative},
@@ -1968,8 +1970,12 @@ _edje_data_item_list_foreach(const Eina_Hash *hash __UNUSED__, const void *key, 
     @parameters
         [parent group name]
     @effect
-        Parent group name for inheritance. The parent group have to defined
-        in advance.
+        Parent group name for inheritance.
+        Group "inherit" is used to inherit any predefined group and change
+        some property which belongs to "part", "description", "items" or "program".
+        The child group has the same property as parent group. If you specify the
+        type again in an inherited part, it will cause an error (unless you plan
+        to fix that).
     @endproperty
     @since 1.1.0
 */
@@ -2332,6 +2338,7 @@ ob_collections_group_script(void)
 		  exit(-1);
 	       }
 	     cd->shared = s;
+             cd->original = strdup(s);
 	     cd->is_lua = 0;
 	     set_verbatim(NULL, 0, 0);
 	  }
@@ -2644,13 +2651,14 @@ st_collections_group_parts_part_name(void)
    check_arg_count(1);
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
-   ep = pc->parts[pc->parts_count - 1];
+   ep = current_part;
    ep->name = parse_str(0);
 
+   if (ep->name)
      {
         unsigned int i;
 
-        for (i = 0; i < pc->parts_count - 1; ++i)
+        for (i = 0; i < (pc->parts_count - 1); i++)
           {
              if (pc->parts[i]->name && (!strcmp(pc->parts[i]->name, ep->name)))
                {
@@ -2666,7 +2674,7 @@ st_collections_group_parts_part_name(void)
                        free(ep);
                        pc->parts_count--;
                        pc->parts = realloc(pc->parts, pc->parts_count * sizeof (Edje_Part *));
-                       current_part = pc->parts[i];
+                       ep = current_part = pc->parts[i];
                        epp->can_override = EINA_FALSE;
                     }
                }
@@ -4559,7 +4567,8 @@ st_collections_group_parts_part_description_rel1_offset(void)
         [another part's name]
     @effect
         Causes a corner to be positioned relatively to another part's
-        container.
+        container. Setting to "" will un-set this value for inherited
+        parts.
     @endproperty
 */
 static void
@@ -4590,6 +4599,7 @@ st_collections_group_parts_part_description_rel1_to(void)
     @effect
         Causes a corner to be positioned relatively to the X axis of another
         part's container. Simply put affects the first parameter of "relative".
+        Setting to "" will un-set this value for inherited parts.
     @endproperty
 */
 static void
@@ -4619,7 +4629,7 @@ st_collections_group_parts_part_description_rel1_to_x(void)
     @effect
         Causes a corner to be positioned relatively to the Y axis of another
         part's container. Simply put, affects the second parameter of
-        "relative".
+        "relative". Setting to "" will un-set this value for inherited parts.
     @endproperty
 */
 static void
@@ -4891,6 +4901,43 @@ st_collections_group_parts_part_description_image_middle(void)
 					  "NONE", 1,
 					  "SOLID", 2,
 					  NULL);
+}
+
+/**
+    @page edcref
+    @property
+        border_scale_by
+    @parameters
+        0.0 or bigger (0.0 or 1.0 to turn it off)
+    @effect
+        If border scaling is enabled then normally the OUTPUT border sizes
+        (e.g. if 3 pixels on the left edge are set as a border, then normally
+        at scale 1.0, those 3 columns will always be the exact 3 columns of
+        output, or at scale 2.0 they will be 6 columns, or 0.33 they will merge
+        into a single column). This property multiplies the input scale
+        factor by this multiplier, allowing the creation of "supersampled"
+        borders to make much higher resolution outputs possible by always using
+        the highest resolution artwork and then runtime scaling it down.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_image_border_scale_by(void)
+{
+   Edje_Part_Description_Image *ed;
+
+   check_arg_count(1);
+
+   if (current_part->type != EDJE_PART_TYPE_IMAGE)
+     {
+	ERR("%s: Error. parse error %s:%i. "
+	    "image attributes in non-IMAGE part.",
+	    progname, file_in, line - 1);
+	exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Image*) current_desc;
+
+   ed->image.border.scale_by = FROM_DOUBLE(parse_float_range(0, 0.0, 999999999.0));
 }
 
 /**
@@ -7075,7 +7122,7 @@ st_collections_group_programs_program_action(void)
     @property
         transition
     @parameters
-        [type] [length] [[interp val 1]] [[interp val 2]]
+        [type] [length] [[interp val 1]] [[interp val 2]] [[option]]
     @effect
         Defines how transitions occur using STATE_SET action.\n
         Where 'type' is the style of the transition and 'length' is a double
@@ -7111,6 +7158,11 @@ st_collections_group_programs_program_action(void)
         spring "swings" and val 1 specifies the decay, but it can exceed 1.0
         on the outer swings.
 
+        Valid option is CURRENT.
+
+        CURRENT is the option which the edje object moves from current position.
+        It can be used as the last parameter of the every type.
+
     @endproperty
 */
 static void
@@ -7144,15 +7196,30 @@ st_collections_group_programs_program_transition(void)
 					    "SPRING", EDJE_TWEEN_MODE_SPRING,
 					    NULL);
    current_program->tween.time = FROM_DOUBLE(parse_float_range(1, 0.0, 999999999.0));
+   if ((current_program->tween.mode >= EDJE_TWEEN_MODE_LINEAR) &&
+       (current_program->tween.mode <= EDJE_TWEEN_MODE_DECELERATE))
+     {
+        if ((get_arg_count() == 3) && (!strcmp(parse_str(2), "CURRENT")))
+          current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+        else if (get_arg_count() != 2)
+          {
+             ERR("%s: Error. parse error %s:%i. "
+                 "Need 2rd parameter to set time",
+                 progname, file_in, line - 1);
+             exit(-1);
+          }
+     }
    // the following need v1
    // EDJE_TWEEN_MODE_ACCELERATE_FACTOR
    // EDJE_TWEEN_MODE_DECELERATE_FACTOR
    // EDJE_TWEEN_MODE_SINUSOIDAL_FACTOR
    // current_program->tween.v1
-   if ((current_program->tween.mode >= EDJE_TWEEN_MODE_ACCELERATE_FACTOR) &&
+   else if ((current_program->tween.mode >= EDJE_TWEEN_MODE_ACCELERATE_FACTOR) &&
        (current_program->tween.mode <= EDJE_TWEEN_MODE_SINUSOIDAL_FACTOR))
      {
-        if (get_arg_count() != 3)
+        if ((get_arg_count() == 4) && (!strcmp(parse_str(3), "CURRENT")))
+          current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+        else if (get_arg_count() != 3)
           {
 	     ERR("%s: Error. parse error %s:%i. "
 		 "Need 3rd parameter to set factor",
@@ -7169,7 +7236,9 @@ st_collections_group_programs_program_transition(void)
    else if ((current_program->tween.mode >= EDJE_TWEEN_MODE_DIVISOR_INTERP) &&
             (current_program->tween.mode <= EDJE_TWEEN_MODE_SPRING))
      {
-        if (get_arg_count() != 4)
+        if ((get_arg_count() == 5) && (!strcmp(parse_str(4), "CURRENT")))
+          current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+        else if (get_arg_count() != 4)
           {
 	     ERR("%s: Error. parse error %s:%i. "
 		 "Need 3rd and 4th parameters to set factor and counts",
@@ -7354,6 +7423,7 @@ ob_collections_group_programs_program_script(void)
              cp->l1 = get_verbatim_line1();
              cp->l2 = get_verbatim_line2();
              cp->script = s;
+             cp->original = strdup(s);
              if (cd->shared && cd->is_lua)
                {
                   ERR("%s: Error. parse error %s:%i. You're trying to mix Embryo and Lua scripting in the same group",

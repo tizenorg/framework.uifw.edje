@@ -84,6 +84,7 @@ struct _Code
 {
    int       l1, l2;
    char      *shared;
+   char      *original;
    Eina_List *programs;
    int		is_lua;
 };
@@ -93,6 +94,7 @@ struct _Code_Program
    int        l1, l2;
    int        id;
    char      *script;
+   char      *original;
 };
 
 struct _SrcFile
@@ -203,6 +205,7 @@ extern int                    verbose;
 extern int                    no_lossy;
 extern int                    no_comp;
 extern int                    no_raw;
+extern int                    no_save;
 extern int                    min_quality;
 extern int                    max_quality;
 extern int                    line;

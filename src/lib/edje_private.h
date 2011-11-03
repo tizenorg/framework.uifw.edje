@@ -850,6 +850,7 @@ struct _Edje_Part_Description_Spec_Border
    int            l, r, t, b; /* border scaling on image fill */
    unsigned char  no_fill; /* do we fill the center of the image if bordered? 1 == NO!!!! */
    unsigned char  scale; /* scale image border by same as scale factor */
+   FLOAT_T        scale_by; /* when border scale above is enabled, border width OUTPUT is scaled by the object or global scale factor. this value adds another multiplier that the global scale is multiplued by first. if <= 0.0 it is not used, and if 1.0 it i s "ineffective" */
 };
 
 struct _Edje_Part_Description_Spec_Image
@@ -1214,6 +1215,7 @@ struct _Edje_Real_Part
    Edje_Real_Part_State      param1; // 20
    // WITH EDJE_CALC_CACHE: 140
    Edje_Real_Part_State     *param2, *custom; // 8
+   Edje_Calc_Params         *current; // 4
 
 #ifdef EDJE_CALC_CACHE
    int                       state; // 4
@@ -1232,8 +1234,8 @@ struct _Edje_Real_Part
 #ifdef EDJE_CALC_CACHE
    unsigned char             invalidate : 1; // 0
 #endif
-}; //  260
-// WITH EDJE_CALC_CACHE: 400
+}; //  264
+// WITH EDJE_CALC_CACHE: 404
 
 struct _Edje_Running_Program
 {

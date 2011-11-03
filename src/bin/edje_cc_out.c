@@ -849,7 +849,7 @@ data_write_scripts(Eet_File *ef)
 	char tmpo[PATH_MAX];
 	int fd;
 	Code *cd = eina_list_data_get(l);
-	
+
 	if (cd->is_lua)
 	  continue;
 	if ((!cd->shared) && (!cd->programs))
@@ -875,6 +875,27 @@ data_write_scripts(Eet_File *ef)
 
 	unlink(tmpn);
 	unlink(tmpo);
+
+        if (!no_save)
+          {
+             char buf[PATH_MAX];
+             Eina_List *ll;
+             Code_Program *cp;
+
+             if (cd->original)
+               {
+                  snprintf(buf, PATH_MAX, "edje/scripts/embryo/source/%i", i);
+                  eet_write(ef, buf, cd->original, strlen(cd->original) + 1, 1);
+               }
+             EINA_LIST_FOREACH(cd->programs, ll, cp)
+               {
+                  if (!cp->original)
+                    continue;
+                  snprintf(buf, PATH_MAX, "edje/scripts/embryo/source/%i/%i", i,
+                           cp->id);
+                  eet_write(ef, buf, cp->original, strlen(cp->original) + 1, 1);
+               }
+          }
      }
 }
 
