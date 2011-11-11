@@ -2976,14 +2976,24 @@ EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_
 EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get (const Evas_Object *obj, const char *part);
 
 /**
- * @brief Set the viewport object of the text.
+ * @brief Set the viewport region of the text.
  *
- * @param obj A valid Evas_Object handle
+ * @param viewport A valid Evas_Object geometry
  * @param part The part name
  *
- * Viewport object is used for showing or hiding text selection handlers.
+ * Viewport region is used for showing or hiding text selection handlers.
  */
-EAPI void             edje_object_part_text_viewport_object_set     (const Evas_Object *obj, const char *part, Evas_Object *viewport_obj);
+EAPI void             edje_object_part_text_viewport_region_set     (const Evas_Object *obj, const char *part, Evas_Coord_Rectangle viewport);
+
+/**
+ * @brief Set the layout region of the text.
+ *
+ * @param layout A valid layout object geometry
+ * @param part The part name
+ *
+ * Layout region is used for showing or hiding text selection handlers.
+ */
+EAPI void             edje_object_part_text_layout_region_set     (const Evas_Object *obj, const char *part, Evas_Coord_Rectangle layout);
 
 /**
  * Add a filter function for newly inserted text.

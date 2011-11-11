@@ -46,7 +46,8 @@ struct _Entry
    Evas_Coord ox, oy;
    Evas_Coord sx, sy;
    Evas_Coord rx, ry;
-   Evas_Object *viewport_obj;
+   Evas_Coord_Rectangle layout_region;
+   Evas_Coord_Rectangle viewport_region;
    Evas_Object *cursor_bg;
    Evas_Object *cursor_fg;
    Evas_Object *block_handler_top;
@@ -632,9 +633,13 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                {
                   if (list_idx == 1)
                     {
-                       Evas_Coord vx, vy, vw, vh;
-                       Evas_Coord nx, ny;
+                       Evas_Coord nx, ny, handler_height = 0;
                        const char *bh_position = edje_object_data_get(en->block_handler_top, "position");
+                       const char *key_data = NULL;
+
+                       key_data = edje_object_data_get(en->block_handler_top, "height");
+                       if (key_data) handler_height = atoi(key_data);
+
                        if (bh_position && !strcmp(bh_position, "BOTTOM"))
                          {
                             nx = x + r->x;
@@ -648,32 +653,47 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                        evas_object_hide(en->block_handler_top);
                        evas_object_move(en->block_handler_top, nx, ny);
 
-                       if (en->viewport_obj)
+                       if (en->viewport_region.w != -1 && en->viewport_region.h != -1)
                          {
-                            evas_object_geometry_get(en->viewport_obj, &vx, &vy, &vw, &vh);
-                            if ((nx >= vx) && (nx <= (vx + vw)) &&
-                                ((ny >= vy) && (ny <= (vy + vh))))
-                              evas_object_show(en->block_handler_top);
+                            if ((nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
+                                ((ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h))))
+                              {
+                                 if ((ny + handler_height) > (en->layout_region.y + en->layout_region.h))
+                                   edje_object_signal_emit(en->block_handler_top, "elm,state,top", "elm");
+                                 else
+                                   edje_object_signal_emit(en->block_handler_top, "elm,state,bottom", "elm");
+                                 evas_object_show(en->block_handler_top);
+                              }
                          }
                        else
                          evas_object_show(en->block_handler_top);
                     }
                   if (list_idx == list_cnt)
                     {
-                       Evas_Coord vx, vy, vw, vh;
-                       Evas_Coord nx, ny;
+                       Evas_Coord nx, ny, handler_height = 0;
+                       const char *key_data = NULL;
+
+                       key_data = edje_object_data_get(en->block_handler_btm, "height");
+                       if (key_data) handler_height = atoi(key_data);
+
                        nx = x + r->x + r->w;
                        ny = y + r->y + r->h;
 
                        evas_object_hide(en->block_handler_btm);
                        evas_object_move(en->block_handler_btm, nx, ny);
 
-                       if (en->viewport_obj)
+                       if (en->viewport_region.w != -1 && en->viewport_region.h != -1)
                          {
-                            evas_object_geometry_get(en->viewport_obj, &vx, &vy, &vw, &vh);
-                            if ((nx >= vx) && (nx <= (vx + vw)) &&
-                                ((ny >= vy) && (ny <= (vy + vh))))
-                              evas_object_show(en->block_handler_btm);
+                            if ((nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
+                                ((ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h))))
+                              {
+                                 if ((ny + handler_height) > (en->layout_region.y + en->layout_region.h))
+                                   edje_object_signal_emit(en->block_handler_btm, "elm,state,top", "elm");
+                                 else
+                                   edje_object_signal_emit(en->block_handler_btm, "elm,state,bottom", "elm");
+
+                                 evas_object_show(en->block_handler_btm);
+                              }
                          }
                        else
                          evas_object_show(en->block_handler_btm);
@@ -2634,9 +2654,9 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    evas_object_del(en->cursor_fg);
 
    if (en->block_handler_top)
-	   evas_object_del(en->block_handler_top);
+     evas_object_del(en->block_handler_top);
    if (en->block_handler_btm)
-	   evas_object_del(en->block_handler_btm);
+     evas_object_del(en->block_handler_btm);
 
    if (en->longpress_timer)
      {
@@ -2973,13 +2993,21 @@ _edje_entry_items_list(Edje_Real_Part *rp)
 }
 
 void
-_edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj)
+_edje_entry_layout_region_set(Edje_Real_Part *rp, Evas_Coord_Rectangle layout)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-   if (!obj) return;
 
-   en->viewport_obj = obj;
+   en->layout_region = layout;
+}
+
+void
+_edje_entry_viewport_region_set(Edje_Real_Part *rp, Evas_Coord_Rectangle viewport)
+{
+   Entry *en = rp->entry_data;
+   if (!en) return;
+
+   en->viewport_region = viewport;
 }
 
 void
