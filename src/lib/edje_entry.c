@@ -658,15 +658,20 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                             if ((nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
                                 ((ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h))))
                               {
-                                 if ((ny + handler_height) > (en->layout_region.y + en->layout_region.h))
+                                 if (en->layout_region.w != -1 && en->layout_region.h != -1 &&
+                                     ((ny + handler_height) > (en->layout_region.y + en->layout_region.h)))
                                    edje_object_signal_emit(en->block_handler_top, "elm,state,top", "elm");
                                  else
                                    edje_object_signal_emit(en->block_handler_top, "elm,state,bottom", "elm");
+
                                  evas_object_show(en->block_handler_top);
                               }
                          }
                        else
-                         evas_object_show(en->block_handler_top);
+                         {
+                            edje_object_signal_emit(en->block_handler_top, "elm,state,bottom", "elm");
+                            evas_object_show(en->block_handler_top);
+                         }
                     }
                   if (list_idx == list_cnt)
                     {
@@ -687,7 +692,8 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                             if ((nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
                                 ((ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h))))
                               {
-                                 if ((ny + handler_height) > (en->layout_region.y + en->layout_region.h))
+                                 if (en->layout_region.w != -1 && en->layout_region.h != -1 &&
+                                     ((ny + handler_height) > (en->layout_region.y + en->layout_region.h)))
                                    edje_object_signal_emit(en->block_handler_btm, "elm,state,top", "elm");
                                  else
                                    edje_object_signal_emit(en->block_handler_btm, "elm,state,bottom", "elm");
@@ -696,7 +702,10 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                               }
                          }
                        else
-                         evas_object_show(en->block_handler_btm);
+                         {
+                            edje_object_signal_emit(en->block_handler_btm, "elm,state,bottom", "elm");
+                            evas_object_show(en->block_handler_btm);
+                         }
                     }
                }
              *(&(sel->rect)) = *r;
