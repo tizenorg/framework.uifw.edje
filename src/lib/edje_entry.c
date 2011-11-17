@@ -3787,7 +3787,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
           {
              _edje_entry_hide_visible_password(en->rp);
              _text_filter_format_prepend(en, en->cursor, "+ password=off");
-             _text_filter_text_prepend(en, en->cursor, eina_strbuf_string_get(buf));
+             _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
              _text_filter_format_prepend(en, en->cursor, "- password");
              if (en->pw_timer)
                {
@@ -3799,7 +3799,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, int type __UNUSED__, void *
           }
         else
           {
-             _text_filter_text_prepend(en, en->cursor, eina_strbuf_string_get(buf));
+             _text_filter_markup_prepend(en, en->cursor, eina_strbuf_string_get(buf));
           }
         eina_strbuf_free(buf);
      }
