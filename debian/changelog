@@ -1,3 +1,9 @@
+edje (1.1.0+svn.65305slp2+build01) unstable; urgency=low
+
+  * Merge with upstream @65305
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 17 Nov 2011 09:36:27 +0900
+
 edje (1.0.0.001+svn.64969slp2+build03) unstable; urgency=low
 
   * Package Upload
