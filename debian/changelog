@@ -1,3 +1,14 @@
+edje (1.1.0+svn.65305slp2+build02) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] preedit tag should not be shown : fixed
+       [edje_entry]        [edje_entry] preedit tag should not be shown : fixed , < could not be inserted when password mode
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build02
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Thu, 17 Nov 2011 16:58:56 +0900
+
 edje (1.1.0+svn.65305slp2+build01) unstable; urgency=low
 
   * Merge with upstream @65305
