@@ -2964,20 +2964,36 @@ EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get (const Evas_
  *
  * @param viewport A valid Evas_Object geometry
  * @param part The part name
+ * @param x A pointer to a variable where to set the viewport's x
+ * @param y A pointer to a variable where to set the viewport's y
+ * @param w A pointer to a variable where to set the viewport's width
+ * @param h A pointer to a variable where to set the viewport's height
  *
  * Viewport region is used for showing or hiding text selection handlers.
  */
-EAPI void             edje_object_part_text_viewport_region_set     (const Evas_Object *obj, const char *part, Evas_Coord_Rectangle viewport);
+EAPI void             edje_object_part_text_viewport_region_set     (const Evas_Object *obj, const char *part, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h);
 
 /**
  * @brief Set the layout region of the text.
  *
  * @param layout A valid layout object geometry
  * @param part The part name
+ * @param x A pointer to a variable where to set the layout's x
+ * @param y A pointer to a variable where to set the layout's y
+ * @param w A pointer to a variable where to set the layout's width
+ * @param h A pointer to a variable where to set the layout's height
  *
  * Layout region is used for showing or hiding text selection handlers.
  */
-EAPI void             edje_object_part_text_layout_region_set     (const Evas_Object *obj, const char *part, Evas_Coord_Rectangle layout);
+EAPI void             edje_object_part_text_layout_region_set     (const Evas_Object *obj, const char *part, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h);
+
+/**
+ * @brief Set whether entry uses copy paste feature or not.
+ *
+ * @param disabled If SET, disable double click word selection
+ * @param part The part name
+ */
+EAPI void             edje_object_part_text_copy_paste_disabled_set     (const Evas_Object *obj, const char *part, Eina_Bool disabled);
 
 /**
  * Add a filter function for newly inserted text.

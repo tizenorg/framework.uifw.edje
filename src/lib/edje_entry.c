@@ -69,6 +69,7 @@ struct _Entry
    Eina_Bool select_mod_end : 1;
    Eina_Bool double_clicked : 1;
    Eina_Bool had_sel : 1;
+   Eina_Bool copy_paste_disabled : 1;
    int select_dragging_state;
    double space_key_time;
 
@@ -653,10 +654,18 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                        evas_object_hide(en->block_handler_top);
                        evas_object_move(en->block_handler_top, nx, ny);
 
-                       if (en->viewport_region.w != -1 && en->viewport_region.h != -1)
+                       // if viewport region is not set, show handlers
+                       if (en->viewport_region.x == -1 && en->viewport_region.y == -1 &&
+                           en->viewport_region.w == -1 && en->viewport_region.h == -1)
                          {
-                            if ((nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
-                                ((ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h))))
+                            edje_object_signal_emit(en->block_handler_top, "elm,state,bottom", "elm");
+                            evas_object_show(en->block_handler_top);
+                         }
+                       else
+                         {
+                            if ((en->viewport_region.w > 0 && en->viewport_region.h > 0) &&
+                                (nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
+                                (ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h)))
                               {
                                  if (en->layout_region.w != -1 && en->layout_region.h != -1 &&
                                      ((ny + handler_height) > (en->layout_region.y + en->layout_region.h)))
@@ -666,11 +675,6 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 
                                  evas_object_show(en->block_handler_top);
                               }
-                         }
-                       else
-                         {
-                            edje_object_signal_emit(en->block_handler_top, "elm,state,bottom", "elm");
-                            evas_object_show(en->block_handler_top);
                          }
                     }
                   if (list_idx == list_cnt)
@@ -687,10 +691,18 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                        evas_object_hide(en->block_handler_btm);
                        evas_object_move(en->block_handler_btm, nx, ny);
 
-                       if (en->viewport_region.w != -1 && en->viewport_region.h != -1)
+                       // if viewport region is not set, show handlers
+                       if (en->viewport_region.x == -1 && en->viewport_region.y == -1 &&
+                           en->viewport_region.w == -1 && en->viewport_region.h == -1)
                          {
-                            if ((nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
-                                ((ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h))))
+                            edje_object_signal_emit(en->block_handler_btm, "elm,state,bottom", "elm");
+                            evas_object_show(en->block_handler_btm);
+                         }
+                       else
+                         {
+                            if ((en->viewport_region.w > 0 && en->viewport_region.h > 0) &&
+                                (nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
+                                (ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h)))
                               {
                                  if (en->layout_region.w != -1 && en->layout_region.h != -1 &&
                                      ((ny + handler_height) > (en->layout_region.y + en->layout_region.h)))
@@ -700,11 +712,6 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
 
                                  evas_object_show(en->block_handler_btm);
                               }
-                         }
-                       else
-                         {
-                            edje_object_signal_emit(en->block_handler_btm, "elm,state,bottom", "elm");
-                            evas_object_show(en->block_handler_btm);
                          }
                     }
                }
@@ -1793,7 +1800,9 @@ _edje_entry_mouse_double_clicked(void *data, Evas_Object *obj __UNUSED__, const 
    if (!en) return;
    en->double_clicked = EINA_TRUE;
 
-   if (!_edje_entry_select_word(rp)) return;
+   if (en->copy_paste_disabled) return;
+
+   _edje_entry_select_word(rp);
    _edje_emit(en->rp->edje, "selection,end", en->rp->part->name);
 }
 
@@ -3002,21 +3011,36 @@ _edje_entry_items_list(Edje_Real_Part *rp)
 }
 
 void
-_edje_entry_layout_region_set(Edje_Real_Part *rp, Evas_Coord_Rectangle layout)
+_edje_entry_copy_paste_disabled_set(Edje_Real_Part *rp, Eina_Bool disabled)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
 
-   en->layout_region = layout;
+   en->copy_paste_disabled = disabled;
 }
 
 void
-_edje_entry_viewport_region_set(Edje_Real_Part *rp, Evas_Coord_Rectangle viewport)
+_edje_entry_layout_region_set(Edje_Real_Part *rp, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
 
-   en->viewport_region = viewport;
+   en->layout_region.x = x;
+   en->layout_region.y = y;
+   en->layout_region.w = w;
+   en->layout_region.h = h;
+}
+
+void
+_edje_entry_viewport_region_set(Edje_Real_Part *rp, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h)
+{
+   Entry *en = rp->entry_data;
+   if (!en) return;
+
+   en->viewport_region.x = x;
+   en->viewport_region.y = y;
+   en->viewport_region.w = w;
+   en->viewport_region.h = h;
 }
 
 void

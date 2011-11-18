@@ -1468,7 +1468,7 @@ edje_object_part_text_item_geometry_get(const Evas_Object *obj, const char *part
 }
 
 EAPI void
-edje_object_part_text_viewport_region_set(const Evas_Object *obj, const char *part, Evas_Coord_Rectangle viewport)
+edje_object_part_text_copy_paste_disabled_set(const Evas_Object *obj, const char *part, Eina_Bool disabled)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1478,12 +1478,12 @@ edje_object_part_text_viewport_region_set(const Evas_Object *obj, const char *pa
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_viewport_region_set(rp, viewport);
+     _edje_entry_copy_paste_disabled_set(rp, disabled);
    return;
 }
 
 EAPI void
-edje_object_part_text_layout_region_set(const Evas_Object *obj, const char *part, Evas_Coord_Rectangle layout)
+edje_object_part_text_viewport_region_set(const Evas_Object *obj, const char *part, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1493,7 +1493,22 @@ edje_object_part_text_layout_region_set(const Evas_Object *obj, const char *part
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_layout_region_set(rp, layout);
+     _edje_entry_viewport_region_set(rp, x, y, w, h);
+   return;
+}
+
+EAPI void
+edje_object_part_text_layout_region_set(const Evas_Object *obj, const char *part, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     _edje_entry_layout_region_set(rp, x, y, w, h);
    return;
 }
 
