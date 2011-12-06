@@ -261,12 +261,9 @@ static void st_collections_group_programs_program_after(void);
 static void st_collections_group_programs_program_api(void);
 
 static void ob_collections_group_programs_program_script(void);
-
-#ifdef ENABLE_MULTISENSE
 static void st_collections_group_sound_sample_name(void);
 static void st_collections_group_sound_sample_source(void);
 static void st_collections_group_sound_tone(void);
-#endif
 
 /*****/
 
@@ -305,14 +302,13 @@ New_Statement_Handler statement_handlers[] =
      {"collections.color_classes.color_class.color", st_color_class_color}, /* dup */
      {"collections.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.color_classes.color_class.color3", st_color_class_color3}, /* dup */
-#ifdef ENABLE_MULTISENSE
+
      {"collections.sounds.sample.name", st_collections_group_sound_sample_name},
      {"collections.sounds.sample.source", st_collections_group_sound_sample_source},
      {"collections.group.sounds.sample.name", st_collections_group_sound_sample_name}, /* dup */
      {"collections.group.sounds.sample.source", st_collections_group_sound_sample_source}, /* dup */
      {"collections.sounds.tone", st_collections_group_sound_tone},
      {"collections.group.sounds.tone", st_collections_group_sound_tone}, /* dup */
-#endif
      {"collections.group.name", st_collections_group_name},
      {"collections.group.inherit", st_collections_group_inherit},
      {"collections.group.script_only", st_collections_group_script_only},
@@ -677,12 +673,10 @@ New_Object_Handler object_handlers[] =
      {"collections.styles.style", ob_styles_style}, /* dup */
      {"collections.color_classes", NULL}, /* dup */
      {"collections.color_classes.color_class", ob_color_class}, /* dup */
-#ifdef ENABLE_MULTISENSE
      {"collections.sounds", NULL},
      {"collections.group.sounds", NULL}, /* dup */
      {"collections.sounds.sample", NULL},
      {"collections.group.sounds.sample", NULL}, /* dup */
-#endif
      {"collections.group", ob_collections_group},
      {"collections.group.data", NULL},
      {"collections.group.script", ob_collections_group_script},
@@ -1836,12 +1830,6 @@ st_styles_style_tag(void)
    stl->tags = eina_list_append(stl->tags, tag);
 }
 
-#ifdef ENABLE_MULTISENSE
-/* add to below doc
-sounds { }
- */
-#endif
-
 /**
     @page edcref
     @block
@@ -1851,6 +1839,7 @@ sounds { }
             ..
             group { }
             group { }
+            sounds { }
             ..
         }
     @description
@@ -1866,8 +1855,7 @@ ob_collections(void)
      edje_file->collection = eina_hash_string_small_new(NULL);
 }
 
-#ifdef ENABLE_MULTISENSE
-/* * delete space before *
+/**
     @page edcref
     @block
         sounds
@@ -1980,7 +1968,7 @@ st_collections_group_sound_sample_name(void)
 
 }
 
-/* * delete space before *
+/**
     @page edcref
     @property
         source
@@ -2016,7 +2004,7 @@ st_collections_group_sound_sample_source(void)
    check_arg_count(1);
 }
 
-/* * delete space before *
+/**
     @page edcref
     @property
         tone
@@ -2079,7 +2067,6 @@ st_collections_group_sound_tone(void)
    tone->value = value;
    tone->id = edje_file->sound_dir->tones_count - 1;
 }
-#endif
 
 /**
    @edcsection{group,Group sub blocks}
@@ -2674,20 +2661,32 @@ st_collections_group_orientation(void)
 
 /**
     @page edcref
-    @property
+    @block
+        limits
+    @context
 	group {
             limits {
 	        vertical: "limit_name" height_barrier;
+	        horizontal: "limit_name" width_barrier;
 		..
 	    }
+	    ..
 	}
+        ..
+    @description
+        This block is used to trigger some signal when the Edje object is resized.
+    @endblock
+
+    @edcref
+    @property
+        vertical
     @parameters
-       [name] [height barrier]
+        [name] [height barrier]
     @effect
-        This defines when to trigger some even when the Edje object is resized.
 	It will send a signal: "limit,name,over" when the object is resized and pass
 	the limit by growing over it. And it will send: "limit,name,below" when
 	it pass below that limit.
+	This limit will be applied on the y absis.
     @endproperty
 */
 static void
@@ -2718,19 +2717,14 @@ st_collections_group_limits_vertical(void)
 /**
     @page edcref
     @property
-	group {
-            limits {
-	        horizontal: "limit_name" width_barrier;
-		..
-	    }
-	}
+        horizontal
     @parameters
-       [name] [width barrier]
+        [name] [width barrier]
     @effect
-        This defines when to trigger some signal when the Edje object is resized.
 	It will send a signal: "limit,name,over" when the object is resized and pass
 	the limit by growing over it. And it will send: "limit,name,below" when
 	it pass below that limit.
+	This limit will be applied on the x absis.
     @endproperty
 */
 static void
@@ -2965,13 +2959,6 @@ st_collections_group_parts_part_type(void)
                                    "EXTERNAL", EDJE_PART_TYPE_EXTERNAL,
                                    "PROXY", EDJE_PART_TYPE_PROXY,
                                    NULL);
-
-   if (current_part->default_desc || current_part->other.desc_count > 0)
-     {
-        ERR("%s: Error. parse error %s:%i. You can't change the part type in inherited group. (part: %s)",
-            progname, file_in, line - 1, current_part->name);
-        exit(-1);
-     }
 }
 
 /**
@@ -7237,15 +7224,6 @@ st_collections_group_programs_program_in(void)
    current_program->in.range = parse_float_range(1, 0.0, 999999999.0);
 }
 
-#ifdef ENABLE_MULTISENSE
-/* add to docs below
-, PLAY_SAMPLE, PLAY_TONE
-
-           action: PLAY_SAMPLE "sample name";\n
-           action: PLAY_TONE "tone name" duration in seconds ( Range 0.1 to 10.0 );\n
-*/
-#endif
-
 /**
     @page edcref
     @property
@@ -7255,7 +7233,7 @@ st_collections_group_programs_program_in(void)
     @effect
         Action to be performed by the program. Valid actions are: STATE_SET,
         ACTION_STOP, SIGNAL_EMIT, DRAG_VAL_SET, DRAG_VAL_STEP, DRAG_VAL_PAGE,
-        FOCUS_SET, PARAM_COPY, PARAM_SET
+        FOCUS_SET, PARAM_COPY, PARAM_SET, PLAY_SAMPLE, PLAY_TONE
         Only one action can be specified per program. Examples:\n
            action: STATE_SET "statename" 0.5;\n
            action: ACTION_STOP;\n
@@ -7267,6 +7245,8 @@ st_collections_group_programs_program_in(void)
            action: FOCUS_OBJECT;\n
            action: PARAM_COPY "src_part" "src_param" "dst_part" "dst_param";\n
            action: PARAM_SET "part" "param" "value";\n
+           action: PLAY_SAMPLE "sample name";\n
+           action: PLAY_TONE "tone name" duration in seconds ( Range 0.1 to 10.0 );\n
     @endproperty
 */
 static void
@@ -7274,6 +7254,7 @@ st_collections_group_programs_program_action(void)
 {
    Edje_Part_Collection *pc;
    Edje_Program *ep;
+   int i;
    
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = current_program;
@@ -7289,10 +7270,8 @@ st_collections_group_programs_program_action(void)
                            "FOCUS_OBJECT", EDJE_ACTION_TYPE_FOCUS_OBJECT,
                            "PARAM_COPY", EDJE_ACTION_TYPE_PARAM_COPY,
                            "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
-#ifdef ENABLE_MULTISENSE
                            "PLAY_SAMPLE", EDJE_ACTION_TYPE_SOUND_SAMPLE,
                            "PLAY_TONE", EDJE_ACTION_TYPE_SOUND_TONE,
-#endif
                            NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
@@ -7304,11 +7283,8 @@ st_collections_group_programs_program_action(void)
 	ep->state = parse_str(1);
 	ep->state2 = parse_str(2);
      }
-#ifdef ENABLE_MULTISENSE
    else if (ep->action == EDJE_ACTION_TYPE_SOUND_SAMPLE)
      {
-        int i;
-        
         ep->sample_name = parse_str(1);
         for (i = 0; i < (int)edje_file->sound_dir->samples_count; i++)
           {
@@ -7325,8 +7301,6 @@ st_collections_group_programs_program_action(void)
      }
    else if (ep->action == EDJE_ACTION_TYPE_SOUND_TONE)
      {
-        int i;
-        
         ep->tone_name = parse_str(1);
         for (i = 0; i < (int)edje_file->sound_dir->tones_count; i++)
           {
@@ -7341,7 +7315,6 @@ st_collections_group_programs_program_action(void)
           }
         ep->duration = parse_float_range(2, 0.1, 10.0);
      }
-#endif   
    else if (ep->action == EDJE_ACTION_TYPE_DRAG_VAL_SET)
      {
 	ep->value = parse_float(1);
@@ -7403,14 +7376,12 @@ st_collections_group_programs_program_action(void)
       case EDJE_ACTION_TYPE_PARAM_SET:
         check_arg_count(4);
         break;
-#ifdef ENABLE_MULTISENSE
       case EDJE_ACTION_TYPE_SOUND_SAMPLE:
         check_arg_count(3);
         break;
       case EDJE_ACTION_TYPE_SOUND_TONE:
         check_arg_count(3);
         break;
-#endif        
       default:
 	check_arg_count(3);
      }
@@ -7579,6 +7550,15 @@ st_collections_group_programs_program_target(void)
 	char *copy;
 
 	name = parse_str(0);
+        
+	EINA_LIST_FOREACH(ep->targets, l, etw)
+          {
+             if (!strcmp(name, (char*) (etw + 1)))
+               {
+                  free(name);
+                  return;
+               }
+          }
 
 	et = mem_alloc(SZ(Edje_Program_Target) + strlen(name) + 1);
 	ep->targets = eina_list_append(ep->targets, et);
@@ -7607,14 +7587,6 @@ st_collections_group_programs_program_target(void)
 		 progname, file_in, line - 1);
 	     exit(-1);
 	  }
-	EINA_LIST_FOREACH(ep->targets, l, etw)
-	  if (et != etw && strcmp(name, (char*) (etw + 1)) == 0)
-	    {
-	      ERR("%s: Error. parse error %s:%i. "
-		  "target is targetted twice",
-		  progname, file_in, line - 1);
-	      exit(-1);
-	    }
 	free(name);
      }
 }

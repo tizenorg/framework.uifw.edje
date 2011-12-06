@@ -21,18 +21,40 @@ collections {
          local count = 0;
          local fndata = 99;
          local text_geom;
- 
+
+         --// Functions to print tables.
+         local print_table, print_table_start;
+
+         function print_table_start(table, space, name)
+            print(space .. name .. ": ");
+            print(space .. "{");
+            print_table(table, space .. "  ");
+            print(space .. "}");
+         end
+
+         function print_table(table, space)
+            for k, v in pairs(table) do 
+               if type(v) == "table" then
+                  print_table_start(v, space, k);
+               elseif type(v) == "string" then
+                  print(space .. k .. ': "' .. v .. '";')
+               else
+                  print(space .. k .. ": " .. v .. ";")
+               end
+            end
+         end
+
          local function mycb3 (v)
             print("lua::callback transition " .. D.val .. " v: " .. v);
             d = {};
-            edje.size(d);
+            d = edje.size(d);
             print("lua::objsize= " .. d.w .. " , " .. d.h);
             sz = {w=v * 80, h=v * 40};
             D.rect:geom(((d.w / 2) * math.sin(v * 2 * math.pi)) + ((d.w - sz.w) / 2),
                         ((d.h / 2) * math.cos(v * 2 * math.pi)) + ((d.h - sz.h) / 2),
                         sz.w, sz.h);
             D.rect:color(255, 128, v * 255, 255);
-            D.rect:move(d);
+            d = D.rect:move(d);
             print("lua::pos= " .. d.x .. " , " .. d.y);
  
             r = D.rect:above();
@@ -68,7 +90,7 @@ collections {
          end
  
          local function mycb ()
-            print("lua::callback " .. count .. " fndata = " .. fndata);
+            print("lua::callback timer " .. count .. " fndata = " .. fndata);
             count = count + 1; --// keep count of calls - object data
             fndata = fndata + 3; --// play with object vars to see if they persist
             D.tim = edje.timer(0.25, mycb); --// inside cb add new timer
@@ -225,6 +247,9 @@ collections {
          text = edje.text_class("test_text_class", "Sans:style=Bold", 8);
          print("lua::text_class= " .. text.font .. " size " .. text.size);
  
+         --// Do something bad, just to see what happens.
+--//         edje.color_class(nil);
+ 
          --// shutdown func - generally empty or not there. everything garbage collected for you
          function shutdown ()
             print("lua::shutdown ... " .. D.val);
@@ -249,12 +274,35 @@ collections {
             D.edje:resize(w, h);
          end
 
-         function message (id, type, v1, v2)
+         function message (id, type, ...)
             print("lua::message id=" .. id .. " type=" .. type);
-            --// handle your message type here. check id + type then use v1
-            --// and/or v2 (or neither) appropriately. they are the same as
-            --// the 2nd and 3rd param passed to edje.messagesend() (if any
-            --// are passed at all)
+            --// handle your message type here. check id + type then use the
+            --// vararg appropriately. they are the same as the params passed 
+            --// to edje:messagesend() (if any are passed at all).  Any array
+            --// arguments are passed as a single table.
+
+            if ("none" == type) then
+               print("lua::message no args");
+            elseif ("strset" == type) then
+               strs = ... ;
+               print_table_start(strs, "", "lua::message strings");
+            elseif ("intset" == type) then
+               ints = ... ;
+               print_table_start(ints, "", "lua::message ints");
+            elseif ("floatset" == type) then
+               floats = ... ;
+               print_table_start(floats, "", "lua::message floats");
+            elseif ("strintset" == type) then
+               str, ints = ... ;
+               print("lua::message " .. str);
+               print_table_start(ints, "", "lua::message ints");
+            elseif ("strfloatset" == type) then
+               str, floats = ... ;
+               print("lua::message " .. str);
+               print_table_start(floats, "", "lua::message floats");
+            else
+               print("lua::message " .. ... );
+            end
          end
 
          function signal (sig, src)

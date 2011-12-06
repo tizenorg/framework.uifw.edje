@@ -722,6 +722,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 				   }
 			      }
 			    ed->load_error = edje_object_load_error_get(child_obj);
+                            evas_object_del(child_obj);
                             evas_event_thaw(tev);
                             evas_event_thaw_eval(tev);
 			    return 0;
@@ -730,10 +731,13 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 		       group_path = eina_list_remove(group_path, group_path_entry);
 		       eina_stringshare_del(group_path_entry);
 
-		       edje_object_signal_callback_add(child_obj, "*", "*", _cb_signal_repeat, obj);
+                       edje_object_propagate_callback_add(child_obj,
+                                                          _cb_signal_repeat,
+                                                          obj);
 		       if (rp->part->type == EDJE_PART_TYPE_GROUP)
 			 {
                             _edje_real_part_swallow(rp, child_obj, EINA_TRUE);
+                            _edje_subobj_register(ed, child_obj);
 			    source = NULL;
 			 }
 		       else
@@ -741,7 +745,6 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
                             pack_it->parent = rp;
 
 			    _edje_object_pack_item_hints_set(child_obj, pack_it);
-			    evas_object_show(child_obj);
 			    if (pack_it->name)
                                  evas_object_name_set(child_obj, pack_it->name);
 
@@ -750,11 +753,13 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 				 _edje_real_part_box_append(rp, child_obj);
 				 evas_object_data_set(child_obj, "\377 edje.box_item", pack_it);
 			      }
-			    else if(rp->part->type == EDJE_PART_TYPE_TABLE)
+			    else if (rp->part->type == EDJE_PART_TYPE_TABLE)
 			      {
 				 _edje_real_part_table_pack(rp, child_obj, pack_it->col, pack_it->row, pack_it->colspan, pack_it->rowspan);
 				 evas_object_data_set(child_obj, "\377 edje.table_item", pack_it);
 			      }
+                            _edje_subobj_register(ed, child_obj);
+			    evas_object_show(child_obj);
 			    rp->items = eina_list_append(rp->items, child_obj);
 
 			    if (item_count > 0)
@@ -1041,8 +1046,8 @@ _edje_file_del(Edje *ed)
 	     free(pp);
 	  }
      }
-   if (ed->L)
-      _edje_lua2_script_shutdown(ed);
+   if (ed->L) _edje_lua2_script_shutdown(ed);
+   while (ed->subobjs) evas_object_del(ed->subobjs->data);
    if (ed->table_parts) free(ed->table_parts);
    ed->table_parts = NULL;
    ed->table_parts_size = 0;
@@ -1416,6 +1421,7 @@ _cb_signal_repeat(void *data, Evas_Object *obj, const char *sig, const char *sou
    size_t	 length_source;
    int           i = 0;
    const char   *alias = NULL;
+   Edje_Message_Signal emsg;
 
    parent = data;
    ed = _edje_fetch(obj);
@@ -1510,6 +1516,10 @@ _cb_signal_repeat(void *data, Evas_Object *obj, const char *sig, const char *sou
                }
           }
      }
-
-   edje_object_signal_emit(parent, sig, alias ? alias : new_src);
+   
+   emsg.sig = sig;
+   emsg.src = alias ? alias : new_src;
+   emsg.data = NULL;
+   _edje_message_send(ed_parent, EDJE_QUEUE_SCRIPT, 
+                      EDJE_MESSAGE_SIGNAL, 0, &emsg);
 }
