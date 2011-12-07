@@ -1,3 +1,11 @@
+edje (1.1.0+svn.65305slp2+build07) unstable; urgency=low
+
+  * Package Upload
+  * Git: git-server:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build07
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 07 Dec 2011 12:39:40 +0900
+
 edje (1.1.0+svn.65305slp2+build06) unstable; urgency=low
 
   * Deprecate some unused APIs
