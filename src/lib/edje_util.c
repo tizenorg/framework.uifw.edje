@@ -333,21 +333,21 @@ edje_object_mirrored_set(Evas_Object *obj, Eina_Bool rtl)
    return;
 }
 
-EAPI void
+EINA_DEPRECATED EAPI void
 edje_input_panel_enabled_set(Eina_Bool enabled)
 {
    if (_edje_input_panel_enable == enabled) return;
    _edje_input_panel_enable = enabled;
 }
 
-EAPI void
+EINA_DEPRECATED EAPI void
 edje_input_panel_allow_set(Eina_Bool enabled)
 {
    if (_edje_input_panel_allow == enabled) return;
    _edje_input_panel_allow = enabled;
 }
 
-EAPI Eina_Bool
+EINA_DEPRECATED EAPI Eina_Bool
 edje_input_panel_allow_get(void)
 {
    return _edje_input_panel_allow;
@@ -358,14 +358,14 @@ edje_input_panel_allow_get(void)
  *
  * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
  */
-EAPI void
+EINA_DEPRECATED EAPI void
 edje_autocapitalization_allow_set(Eina_Bool autocap)
 {
    if (_edje_autocapital_allow == autocap) return;
    _edje_autocapital_allow = autocap;
 }
 
-EAPI Eina_Bool
+EINA_DEPRECATED EAPI Eina_Bool
 edje_autocapitalization_allow_get(void)
 {
    return _edje_autocapital_allow;
@@ -376,14 +376,14 @@ edje_autocapitalization_allow_get(void)
  *
  * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
  */
-EAPI void
+EINA_DEPRECATED EAPI void
 edje_autoperiod_allow_set(Eina_Bool autoperiod)
 {
    if (_edje_autoperiod_allow == autoperiod) return;
    _edje_autoperiod_allow = autoperiod;
 }
 
-EAPI Eina_Bool
+EINA_DEPRECATED EAPI Eina_Bool
 edje_autoperiod_allow_get(void)
 {
    return _edje_autoperiod_allow;
@@ -1591,7 +1591,7 @@ edje_object_part_text_select_extend(const Evas_Object *obj, const char *part)
      _edje_entry_select_extend(rp);
 }
 
-EAPI void
+EINA_DEPRECATED EAPI void
 edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool autocap)
 {
    Edje *ed;

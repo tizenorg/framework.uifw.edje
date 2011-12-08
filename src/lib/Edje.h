@@ -1239,7 +1239,7 @@ EAPI void edje_password_show_last_timeout_set(double password_show_last_timeout)
  * @param enabled TRUE if you want to use the input panel.
  *
  */
-EAPI void         edje_input_panel_enabled_set (Eina_Bool enabled);
+EINA_DEPRECATED EAPI void         edje_input_panel_enabled_set (Eina_Bool enabled);
 
 /**
  * @brief Set whether the input panel is used or not.
@@ -1247,7 +1247,7 @@ EAPI void         edje_input_panel_enabled_set (Eina_Bool enabled);
  * @param enabled TRUE if you want to use the input panel.
  *
  */
-EAPI void         edje_input_panel_allow_set (Eina_Bool enabled);
+EINA_DEPRECATED EAPI void         edje_input_panel_allow_set (Eina_Bool enabled);
 
 /**
  * @brief Get whether the input panel is used or not.
@@ -1256,35 +1256,35 @@ EAPI void         edje_input_panel_allow_set (Eina_Bool enabled);
  *
  * @see edje_input_panel_allow_set().
  */
-EAPI Eina_Bool    edje_input_panel_allow_get (void);
+EINA_DEPRECATED EAPI Eina_Bool    edje_input_panel_allow_get (void);
 
 /**
  * @brief Turn on/off the edje's global autocapitalization function.
  *
  * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
  */
-EAPI void         edje_autocapitalization_allow_set (Eina_Bool autocap);
+EINA_DEPRECATED EAPI void         edje_autocapitalization_allow_set (Eina_Bool autocap);
 
 /**
  * @brief Get the edje's global autocapitalization allowance.
  *
  * @return The allowance of the edje's global autocapitalization.
  */
-EAPI Eina_Bool    edje_autocapitalization_allow_get (void);
+EINA_DEPRECATED EAPI Eina_Bool    edje_autocapitalization_allow_get (void);
 
 /**
  * @brief Turn on/off the edje's global autoperiod function.
  *
  * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
  */
-EAPI void         edje_autoperiod_allow_set (Eina_Bool autoperiod);
+EINA_DEPRECATED EAPI void         edje_autoperiod_allow_set (Eina_Bool autoperiod);
 
 /**
  * @brief Get the edje's global autoperiod allowance.
  *
  * @return The allowance of the edje's global autoperiod.
  */
-EAPI Eina_Bool    edje_autoperiod_allow_get (void);
+EINA_DEPRECATED EAPI Eina_Bool    edje_autoperiod_allow_get (void);
 
 /**
  * @brief Set the scaling factor for a given Edje object.
@@ -2864,7 +2864,7 @@ EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Ev
  * @param part The part name
  * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
  */
-EAPI void             edje_object_part_text_autocapitalization_set (const Evas_Object *obj, const char *part, Eina_Bool autocap);
+EINA_DEPRECATED EAPI void             edje_object_part_text_autocapitalization_set (const Evas_Object *obj, const char *part, Eina_Bool autocap);
 
 /**
  * @brief Enables autoperiod.
