@@ -1,3 +1,11 @@
+edje (1.1.0+svn.65864slp2+build02) unstable; urgency=low
+
+  * delete some autoperiod, autocaptial setting APIs
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65864slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 08 Dec 2011 15:04:02 +0900
+
 edje (1.1.0+svn.65864slp2+build01) unstable; urgency=low
 
   * Package Upload for migration

@@ -1234,59 +1234,6 @@ EAPI void edje_password_show_last_set(Eina_Bool password_show_last);
 EAPI void edje_password_show_last_timeout_set(double password_show_last_timeout);
 
 /**
- * @brief Set the edje object's global input panel usage.
- *
- * @param enabled TRUE if you want to use the input panel.
- *
- */
-EINA_DEPRECATED EAPI void         edje_input_panel_enabled_set (Eina_Bool enabled);
-
-/**
- * @brief Set whether the input panel is used or not.
- *
- * @param enabled TRUE if you want to use the input panel.
- *
- */
-EINA_DEPRECATED EAPI void         edje_input_panel_allow_set (Eina_Bool enabled);
-
-/**
- * @brief Get whether the input panel is used or not.
- *
- * @return The allowance of the edje's global input panel.
- *
- * @see edje_input_panel_allow_set().
- */
-EINA_DEPRECATED EAPI Eina_Bool    edje_input_panel_allow_get (void);
-
-/**
- * @brief Turn on/off the edje's global autocapitalization function.
- *
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EINA_DEPRECATED EAPI void         edje_autocapitalization_allow_set (Eina_Bool autocap);
-
-/**
- * @brief Get the edje's global autocapitalization allowance.
- *
- * @return The allowance of the edje's global autocapitalization.
- */
-EINA_DEPRECATED EAPI Eina_Bool    edje_autocapitalization_allow_get (void);
-
-/**
- * @brief Turn on/off the edje's global autoperiod function.
- *
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EINA_DEPRECATED EAPI void         edje_autoperiod_allow_set (Eina_Bool autoperiod);
-
-/**
- * @brief Get the edje's global autoperiod allowance.
- *
- * @return The allowance of the edje's global autoperiod.
- */
-EINA_DEPRECATED EAPI Eina_Bool    edje_autoperiod_allow_get (void);
-
-/**
  * @brief Set the scaling factor for a given Edje object.
  *
  * @param obj A handle to an Edje object
@@ -2857,14 +2804,6 @@ EAPI int              edje_object_part_text_cursor_pos_get              (const E
  * @return EINA_TRUE if part has selection or EINA_FALSE otherwise
  */
 EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
-/**
- * @brief Enables autocapitalization.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EINA_DEPRECATED EAPI void             edje_object_part_text_autocapitalization_set (const Evas_Object *obj, const char *part, Eina_Bool autocap);
 
 /**
  * @brief Enables autoperiod.

@@ -27,10 +27,6 @@ FLOAT_T _edje_password_show_last_timeout = ZERO;
 int _edje_freeze_val = 0;
 int _edje_freeze_calc_count = 0;
 Eina_List *_edje_freeze_calc_list = NULL;
-Eina_Bool _edje_input_panel_enable = EINA_FALSE;
-Eina_Bool _edje_input_panel_allow = EINA_FALSE;
-Eina_Bool _edje_autocapital_allow = EINA_FALSE;
-Eina_Bool _edje_autoperiod_allow = EINA_FALSE;
 
 typedef struct _Edje_List_Foreach_Data Edje_List_Foreach_Data;
 struct _Edje_List_Foreach_Data
@@ -331,62 +327,6 @@ edje_object_mirrored_set(Evas_Object *obj, Eina_Bool rtl)
    _edje_object_orientation_inform(obj);
 
    return;
-}
-
-EINA_DEPRECATED EAPI void
-edje_input_panel_enabled_set(Eina_Bool enabled)
-{
-   if (_edje_input_panel_enable == enabled) return;
-   _edje_input_panel_enable = enabled;
-}
-
-EINA_DEPRECATED EAPI void
-edje_input_panel_allow_set(Eina_Bool enabled)
-{
-   if (_edje_input_panel_allow == enabled) return;
-   _edje_input_panel_allow = enabled;
-}
-
-EINA_DEPRECATED EAPI Eina_Bool
-edje_input_panel_allow_get(void)
-{
-   return _edje_input_panel_allow;
-}
-
-/**
- * @brief Turn on/off the edje's global autocapitalization function
- *
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EINA_DEPRECATED EAPI void
-edje_autocapitalization_allow_set(Eina_Bool autocap)
-{
-   if (_edje_autocapital_allow == autocap) return;
-   _edje_autocapital_allow = autocap;
-}
-
-EINA_DEPRECATED EAPI Eina_Bool
-edje_autocapitalization_allow_get(void)
-{
-   return _edje_autocapital_allow;
-}
-
-/**
- * @brief Turn on/off the edje's global autoperiod function
- *
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EINA_DEPRECATED EAPI void
-edje_autoperiod_allow_set(Eina_Bool autoperiod)
-{
-   if (_edje_autoperiod_allow == autoperiod) return;
-   _edje_autoperiod_allow = autoperiod;
-}
-
-EINA_DEPRECATED EAPI Eina_Bool
-edje_autoperiod_allow_get(void)
-{
-   return _edje_autoperiod_allow;
 }
 
 EAPI const char *
@@ -1589,22 +1529,6 @@ edje_object_part_text_select_extend(const Evas_Object *obj, const char *part)
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_extend(rp);
-}
-
-EINA_DEPRECATED EAPI void
-edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool autocap)
-{
-   Edje *ed;
-   Edje_Real_Part *rp;
-
-   ed = _edje_fetch(obj);
-   if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
-   if (!rp) return;
-   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     {
-        _edje_entry_autocapitalization_set(rp, autocap);
-     }
 }
 
 EAPI void

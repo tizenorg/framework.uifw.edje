@@ -36,7 +36,6 @@ typedef enum _Entry_Long_Press_State
    _ENTRY_LONG_PRESS_RELEASED
 } Entry_Long_Press_State;
 
-
 static void _edje_entry_imf_cursor_info_set(Entry *en);
 static void _edje_entry_imf_context_reset(Entry *en);
 
@@ -3102,23 +3101,6 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
         _edje_entry_imf_cursor_info_set(en);
         _edje_entry_real_part_configure(rp);
      }
-}
-
-void
-_edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool autocap)
-{
-   Entry *en = rp->entry_data;
-   if (!en) return;
-
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     {
-        if (autocap)
-          ecore_imf_context_autocapital_type_set(en->imf_context, ECORE_IMF_AUTOCAPITAL_TYPE_SENTENCE);
-        else
-          ecore_imf_context_autocapital_type_set(en->imf_context, ECORE_IMF_AUTOCAPITAL_TYPE_NONE);
-     }
-#endif
 }
 
 void
