@@ -19,7 +19,8 @@ Build-Depends: debhelper (>= 6),
  liblua5.1-0-dev,
  doxygen,
  pkg-config,
- libtool
+ libtool,
+ libsndfile1-dev
 Standards-Version: 3.8.1
 Homepage: http://enlightenment.org
 
