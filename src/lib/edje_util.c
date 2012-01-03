@@ -1862,14 +1862,14 @@ edje_object_part_text_input_panel_layout_get(const Evas_Object *obj, const char 
    Edje_Real_Part *rp;
 
    ed = _edje_fetch(obj);
-   if ((!ed) || (!part)) return EDJE_INPUT_PANEL_LAYOUT_INVALID;
+   if ((!ed) || (!part)) return EDJE_INPUT_PANEL_LAYOUT_NORMAL;
    rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
         return _edje_entry_input_panel_layout_get(rp);
      }
-   return EDJE_INPUT_PANEL_LAYOUT_INVALID;
+   return EDJE_INPUT_PANEL_LAYOUT_NORMAL;
 }
 
 EAPI void
