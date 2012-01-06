@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+
+DEB_CONFIGURE_SCRIPT := ./autogen.sh
+DEB_MAKE_CLEAN_TARGET := distclean
+DEB_DH_STRIP_ARGS := --dbg-package=libedje-dbg
+DEB_CONFIGURE_EXTRA_FLAGS :=
+#DEB_SOURCE_VERSION := $(shell grep AC_INIT $(DEB_SRCDIR)/configure.ac | cut -d, -f2 | tr -d ' []')
+DEB_SOURCE_VERSION := $(shell )
+CFLAGS += -fvisibility=hidden -ffast-math -fPIC
+LDFLAGS += -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed
+
+#build/libedje-doc::
+#	cd $(DEB_SRCDIR)/doc && make doc
+
+#install/libedje-doc::
+#	tar jxf edje-*-doc.tar.bz2 -C $(DEB_SRCDIR)
+#	cp -R $(DEB_SRCDIR)/`ls -d */ | grep edje-*-doc | tr -d ' :MSP/'`/doc/html debian/libedje-doc/usr/share/doc/libedje-doc/
+#	rm -rf $(DEB_SRCDIR)/`ls -d */ | grep edje-*-doc | tr -d ' :MSP/'`/
+
+clean::
+	[ ! -f Makefile ] || make distclean
+	rm -f edje-*.tar.bz2 edje-*.tar.bz2.cdbs-config_list
