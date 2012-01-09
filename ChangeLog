@@ -223,3 +223,62 @@
 
         1.1.0 release
 
+2011-12-12 Mike Blumenkrantz (discomfitor/zmike)
+
+        * Fix potential crash from buffer overflow on copying map data.
+
+2011-12-15  Tom Hacohen (TAsn)
+
+	* Entry: Added support for various new key bindings:
+	Ctrl+Arrows, Ctrl+Del and Ctrl+Backspace.
+	* Entry: Added cursor,changed,manual signal.
+	This signal indicates the cursor has been manually changed, i.e by
+	either mouse click or arrows.
+
+2011-12-15  Cedric Bail
+
+	* Fix detections of limits by edje_cc parser.
+
+2011-12-16  Cedric Bail
+
+	* Fix wrong call to free() in edje_load.
+	* Reduce parts walk to the strict minimum.
+
+2011-12-19  Cedric Bail
+
+	* Check existence of group at compile time also.
+
+2012-01-02 Carsten Haitzler (The Rasterman)
+
+        * Fix prototype for edje_object_part_text_cursor_content_get()
+          as it returned a strduped string and not an internal one, so
+          this just formalizes its existing behavior correctly.
+
+2012-01-03  Tom Hacohen (TAsn)
+
+	* Entry: Fixed undo/redo with IMF.
+
+2012-01-04  Carsten Haitzler (The Rasterman)
+
+        * Add HEX, TERMINAL and PASSWORD layouts to edje
+        * Add "recalc" smart callback for object size changes
+
+2012-01-05  Cedric Bail
+
+	* Reduce call to stat during edje_object_file_set.
+
+2012-01-06  Cedric Bail
+
+	* Unswallow object that are about to be swallowed if necessary.
+	* Add EDJE_ASPECT_PREFER_SOURCE.
+
+2012-01-07  David Seikel (onefang)
+
+	* Lua: Calling non exstent functions no longer crashes scripts.
+	   This is so that future scripts will still work with old libraries,
+	   and lets us add the "host can provide Lua API" feature soon.
+
+2012-01-09  David Seikel (onefang)
+
+	* Lua: Added edje.version().
+

@@ -1775,7 +1775,7 @@ edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const
    return 0;
 }
 
-EAPI const char *
+EAPI char *
 edje_object_part_text_cursor_content_get(const Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
@@ -2022,6 +2022,13 @@ edje_object_part_swallow(Evas_Object *obj, const char *part, Evas_Object *obj_sw
    // XXX: by Sachiel, January 21th 2009, 19:30 UTC
    _edje_recalc_do(ed);
 
+   rp = evas_object_data_get(obj_swallow, "\377 edje.swallowing_part");
+   if (rp)
+     {
+        /* The object is already swallowed somewhere, unswallow it first */
+        edje_object_part_unswallow(rp->edje->obj, obj_swallow);
+     }
+
    rp = _edje_real_part_recursive_get(ed, (char *)part);
    if (!rp) return EINA_FALSE;
    if (rp->part->type != EDJE_PART_TYPE_SWALLOW)
@@ -2224,11 +2231,7 @@ _edje_box_layout_external_new(const char *name, Evas_Object_Box_Layout func, voi
 
    name_len = strlen(name) + 1;
    l = malloc(sizeof(Edje_Box_Layout) + name_len);
-   if (!l)
-     {
-	perror("malloc");
-	return NULL;
-     }
+   if (!l) return NULL;
 
    l->func = func;
    l->layout_data_get = layout_data_get;
@@ -2326,6 +2329,7 @@ edje_object_part_unswallow(Evas_Object *obj __UNUSED__, Evas_Object *obj_swallow
                                             _edje_object_part_swallow_changed_hints_cb,
                                             rp);
 	evas_object_clip_unset(rp->swallowed_object);
+	evas_object_hide(rp->swallowed_object);
 	evas_object_data_del(rp->swallowed_object, "\377 edje.swallowing_part");
 
 	if (rp->part->mouse_events)

@@ -104,6 +104,10 @@ collections {
          print("lua::init ... " .. D.val);
          edje.echo("lua::echo('hello world')");
 
+         --// How to check the edje version.
+         version = edje.version();
+         print("The edje version number is " .. version.major .. "." .. version.minor);
+
          --// actually add the timer to call mycb in 1.23 sec
          D.tim = edje.timer(1.23, mycb);
          D.tra = edje.transition(5.0, mycb3);
@@ -167,6 +171,14 @@ collections {
          text_geom = D.text:geom();
          print(D.text:text());
          D.text:show();
+
+	--// Put a few bogus API calls here to test the bogus API protection,
+	--// If the bogus API protection works, these should get ignored, but everything else runs smoothly.
+	--// Otherwise, the map is not done, the bubbles are not done, but the timers keep runinng.
+         bogus.failme(1, "two", D.rect);
+         temp = bogus.failme2();
+         D.text.bogus();
+         edje.bogus2();
 
          --// Fun with maps!
          D.map = edje.map(4);  --// 4 is the only supported map size at the moment.

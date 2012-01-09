@@ -679,6 +679,7 @@ New_Object_Handler object_handlers[] =
      {"collections.group.sounds.sample", NULL}, /* dup */
      {"collections.group", ob_collections_group},
      {"collections.group.data", NULL},
+     {"collections.group.limits", NULL},
      {"collections.group.script", ob_collections_group_script},
      {"collections.group.lua_script", ob_collections_group_lua_script},
      {"collections.group.externals", NULL}, /* dup */
@@ -2664,14 +2665,14 @@ st_collections_group_orientation(void)
     @block
         limits
     @context
-	group {
+        group {
             limits {
-	        vertical: "limit_name" height_barrier;
-	        horizontal: "limit_name" width_barrier;
-		..
-	    }
-	    ..
-	}
+                vertical: "limit_name" height_barrier;
+                horizontal: "limit_name" width_barrier;
+                ..
+            }
+            ..
+        }
         ..
     @description
         This block is used to trigger some signal when the Edje object is resized.
@@ -2683,10 +2684,10 @@ st_collections_group_orientation(void)
     @parameters
         [name] [height barrier]
     @effect
-	It will send a signal: "limit,name,over" when the object is resized and pass
-	the limit by growing over it. And it will send: "limit,name,below" when
-	it pass below that limit.
-	This limit will be applied on the y absis.
+        It will send a signal: "limit,name,over" when the object is resized and pass
+        the limit by growing over it. And it will send: "limit,name,below" when
+        it pass below that limit.
+        This limit will be applied on the y absis and is expressed in pixels.
     @endproperty
 */
 static void
@@ -2721,10 +2722,10 @@ st_collections_group_limits_vertical(void)
     @parameters
         [name] [width barrier]
     @effect
-	It will send a signal: "limit,name,over" when the object is resized and pass
-	the limit by growing over it. And it will send: "limit,name,below" when
-	it pass below that limit.
-	This limit will be applied on the x absis.
+        It will send a signal: "limit,name,over" when the object is resized and pass
+        the limit by growing over it. And it will send: "limit,name,below" when
+        it pass below that limit.
+        This limit will be applied on the x absis and is expressed in pixels.
     @endproperty
 */
 static void
@@ -3211,6 +3212,7 @@ st_collections_group_parts_part_source(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    current_part->source = parse_str(0);
+   data_queue_group_lookup(current_part->source, current_part);
 }
 
 /**
@@ -3232,6 +3234,7 @@ st_collections_group_parts_part_source2(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    current_part->source2 = parse_str(0);
+   data_queue_group_lookup(current_part->source2, current_part);
 }
 
 /**
@@ -3253,6 +3256,7 @@ st_collections_group_parts_part_source3(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    current_part->source3 = parse_str(0);
+   data_queue_group_lookup(current_part->source3, current_part);
 }
 
 /**
@@ -3274,6 +3278,7 @@ st_collections_group_parts_part_source4(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    current_part->source4 = parse_str(0);
+   data_queue_group_lookup(current_part->source4, current_part);
 }
 
 /**
@@ -3295,6 +3300,7 @@ st_collections_group_parts_part_source5(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    current_part->source5 = parse_str(0);
+   data_queue_group_lookup(current_part->source5, current_part);
 }
 
 /**
@@ -3316,6 +3322,7 @@ st_collections_group_parts_part_source6(void)
 
    //FIXME: validate this somehow (need to decide on the format also)
    current_part->source6 = parse_str(0);
+   data_queue_group_lookup(current_part->source6, current_part);
 }
 
 /**
@@ -3426,10 +3433,9 @@ st_collections_group_parts_part_entry_mode(void)
         [MODE]
     @effect
         Sets the selection mode for a textblock part to one of:
-        @li DEFAULT
-        @li EXPLICIT
-        DEFAULT selection mode is what you would expect on any desktop. Press
-        mouse, drag and release to end. EXPLICIT mode requires the application
+        @li DEFAULT selection mode is what you would expect on any desktop. Press
+        mouse, drag and release to end.
+        @li EXPLICITmode requires the application
         controlling the edje object has to explicitly begin and end selection
         modes, and the selection itself is dragable at both ends.
     @endproperty
@@ -3454,11 +3460,9 @@ st_collections_group_parts_part_select_mode(void)
         [MODE]
     @effect
         Sets the cursor mode for a textblock part to one of:
-        @li UNDER
-        @li BEFORE
-        UNDER cursor mode means the cursor will draw below the character pointed
+        @li UNDER cursor mode means the cursor will draw below the character pointed
         at. That's the default.
-        BEFORE cursor mode means the cursor is drawn as a vertical line before
+        @li BEFORE cursor mode means the cursor is drawn as a vertical line before
         the current character, just like many other GUI toolkits handle it.
     @endproperty
 */
@@ -3804,6 +3808,7 @@ static void st_collections_group_parts_part_box_items_item_source(void)
    check_arg_count(1);
 
    current_item->source = parse_str(0);
+   data_queue_group_lookup(current_item->source, current_part);
 }
 
 /**
@@ -4614,7 +4619,7 @@ st_collections_group_parts_part_description_aspect(void)
         [DIMENSION]
     @effect
         Sets the scope of the "aspect" property to a given dimension. Available
-        options are BOTH, VERTICAL, HORIZONTAL and NONE
+        options are BOTH, VERTICAL, HORIZONTAL, SOURCE and NONE
     @endproperty
 */
 static void
@@ -4627,6 +4632,7 @@ st_collections_group_parts_part_description_aspect_preference(void)
 				   "VERTICAL", EDJE_ASPECT_PREFER_VERTICAL,
 				   "HORIZONTAL", EDJE_ASPECT_PREFER_HORIZONTAL,
 				   "BOTH", EDJE_ASPECT_PREFER_BOTH,
+				   "SOURCE", EDJE_ASPECT_PREFER_SOURCE,
 				   NULL);
 }
 

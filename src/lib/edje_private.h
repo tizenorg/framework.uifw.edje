@@ -192,7 +192,8 @@ typedef enum
    EDJE_ASPECT_PREFER_NONE,
    EDJE_ASPECT_PREFER_VERTICAL,
    EDJE_ASPECT_PREFER_HORIZONTAL,
-   EDJE_ASPECT_PREFER_BOTH
+   EDJE_ASPECT_PREFER_BOTH,
+   EDJE_ASPECT_PREFER_SOURCE
 } Edje_Internal_Aspect;
 
 struct _Edje_Perspective
@@ -1926,7 +1927,7 @@ void _edje_entry_cursor_line_end(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_coord_set(Edje_Real_Part *rp, Edje_Cursor cur, int x, int y);
 Eina_Bool _edje_entry_cursor_is_format_get(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_is_visible_format_get(Edje_Real_Part *rp, Edje_Cursor cur);
-const char *_edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur);
+char *_edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur);
 void _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos);
 int _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur);
 void _edje_entry_input_panel_layout_set(Edje_Real_Part *rp, Edje_Input_Panel_Layout layout);

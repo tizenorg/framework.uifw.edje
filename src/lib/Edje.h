@@ -377,6 +377,13 @@ part of Edje's API:
 @author Sebastian Dransfeld <sd@@tango.flipp.net>
 @author Tom Hacohen <tom@@stosb.com>
 @author Aharon Hillel <a.hillel@@partner.samsung.com>
+@author Shilpa Singh <shilpa.singh@samsung.com> <shilpasingh.o@gmail.com>
+@author Mike Blumenkrantz <michael.blumenkrantz@gmail.com
+@author Jaehwan Kim <jae.hwan.kim@samsung.com>
+@author billiob (Boris Faure) <billiob@gmail.com>
+@author Govindaraju SM <govi.sm@samsung.com> <govism@gmail.com>
+@author Prince Kumar Dubey <prince.dubey@samsung.com> <prince.dubey@gmail.com>
+@author David Seikel <onefang at gmail.com>
 
 Please contact <enlightenment-devel@lists.sourceforge.net> to get in
 contact with the developers and maintainers.
@@ -798,7 +805,7 @@ typedef enum _Edje_External_Param_Flags
                                             EDJE_EXTERNAL_PARAM_FLAGS_STATE) /**< Convenience flag that sets property as GET, SET and STATE. */
 } Edje_External_Param_Flags;
 
-typedef enum
+typedef enum _Edje_Input_Panel_Layout
 {
    EDJE_INPUT_PANEL_LAYOUT_NORMAL,          /**< Default layout */
    EDJE_INPUT_PANEL_LAYOUT_NUMBER,          /**< Number layout */
@@ -808,7 +815,10 @@ typedef enum
    EDJE_INPUT_PANEL_LAYOUT_IP,              /**< IP layout */
    EDJE_INPUT_PANEL_LAYOUT_MONTH,           /**< Month layout */
    EDJE_INPUT_PANEL_LAYOUT_NUMBERONLY,      /**< Number Only layout */
-   EDJE_INPUT_PANEL_LAYOUT_INVALID
+   EDJE_INPUT_PANEL_LAYOUT_INVALID,         /**< Never use this */
+   EDJE_INPUT_PANEL_LAYOUT_HEX,             /**< Hexadecimal layout @since 1.2 */
+   EDJE_INPUT_PANEL_LAYOUT_TERMINAL,        /**< Command-line terminal layout @since 1.2 */
+   EDJE_INPUT_PANEL_LAYOUT_PASSWORD         /**< Like normal, but no auto-correct, no auto-capitalization etc. @since 1.2 */
 } Edje_Input_Panel_Layout;
 
 /**
@@ -1654,8 +1664,21 @@ EAPI void         edje_box_layout_register        (const char *name, Evas_Object
  *   }
  *
  * @endcode
+ * 
+ * @note You can get a callback every time edje re-calculates the object
+ * (either due to animation or some kind of signal or input). This is called
+ * in-line just after the recalculation has occured. It is a good idea not
+ * to go and delete or alter the object inside this callbacks, simply make
+ * a note that the recalculation has taken place and then do somethnig about
+ * it outside the callback. to register a callback use code like:
+ * 
+ * @code
+ *    evas_object_smart_callback_add(edje_obj, "recalc", my_cb, my_cb_data);
+ * @endcode
+ * 
+ * @see evas_object_smart_callback_add()
  *
- * @note before creating the first Edje object in your code, remember
+ * @note Before creating the first Edje object in your code, remember
  * to initialize the library, with edje_init(), or unexpected behavior
  * might occur.
  */
@@ -2761,12 +2784,15 @@ EAPI Eina_Bool        edje_object_part_text_cursor_is_visible_format_get(const E
 /**
  * @brief Returns the content (char) at the cursor position.
  * @see evas_textblock_cursor_content_get
+ * 
+ * You must free the return (if not NULL) after you are done with it.
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
  * @param cur The cursor to use
+ * @return The character string pointed to (may be a multi-byte utf8 sequence) terminated by a nul byte.
  */
-EAPI const char      *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);
+EAPI char            *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);
 
 /**
  * @brief Sets the cursor position to the given value

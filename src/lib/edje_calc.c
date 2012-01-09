@@ -8,7 +8,8 @@ static void _edje_part_recalc_single(Edje *ed, Edje_Real_Part *ep,
                                      Edje_Real_Part *center, Edje_Real_Part *light, Edje_Real_Part *persp,
 				     Edje_Real_Part *rel1_to_x, Edje_Real_Part *rel1_to_y,
 				     Edje_Real_Part *rel2_to_x, Edje_Real_Part *rel2_to_y,
-				     Edje_Real_Part *confine_to, Edje_Calc_Params *params);
+				     Edje_Real_Part *confine_to, Edje_Calc_Params *params,
+                                     FLOAT_T pos);
 
 void
 _edje_part_pos_set(Edje *ed, Edje_Real_Part *ep, int mode, FLOAT_T pos, FLOAT_T v1, FLOAT_T v2)
@@ -304,6 +305,179 @@ _edje_part_description_find(Edje *ed, Edje_Real_Part *rp, const char *name,
    return ret;
 }
 
+static int
+_edje_image_find(Evas_Object *obj, Edje *ed, Edje_Real_Part_Set **eps, Edje_Part_Description_Image *st, Edje_Part_Image_Id *imid)
+{
+  Edje_Image_Directory_Set_Entry *entry;
+  Edje_Image_Directory_Set *set = NULL;
+  Eina_List *l;
+  int w = 0;
+  int h = 0;
+  int id;
+
+  if (!st && !imid)
+    return -1;
+
+  if (st && !st->image.set)
+    return st->image.id;
+
+  if (imid && !imid->set)
+    return imid->id;
+
+  if (imid)
+    id = imid->id;
+  else
+    id = st->image.id;
+
+  evas_object_geometry_get(obj, NULL, NULL, &w, &h);
+
+  if (eps && *eps)
+    {
+      if ((*eps)->id == id)
+	set = (*eps)->set;
+
+      if (set)
+	if ((*eps)->entry->size.min.w <= w && w <= (*eps)->entry->size.max.w)
+	  if ((*eps)->entry->size.min.h <= h && h <= (*eps)->entry->size.max.h)
+	    return (*eps)->entry->id;
+    }
+
+  if (!set)
+    set = ed->file->image_dir->sets + id;
+
+  EINA_LIST_FOREACH(set->entries, l, entry)
+    {
+      if (entry->size.min.w <= w && w <= entry->size.max.w)
+	if (entry->size.min.h <= h && h <= entry->size.max.h)
+	  {
+	    if (eps)
+	      {
+		if (!*eps)
+		  *eps = calloc(1, sizeof (Edje_Real_Part_Set));
+
+		if (*eps)
+		  {
+		    (*eps)->entry = entry;
+		    (*eps)->set = set;
+		    (*eps)->id = id;
+		  }
+	      }
+	    return entry->id;
+	  }
+    }
+
+  return -1;
+}
+
+static void
+_edje_real_part_image_set(Edje *ed, Edje_Real_Part *ep, FLOAT_T pos)
+{
+   int image_id;
+   int image_count, image_num;
+
+   image_id = _edje_image_find(ep->object, ed,
+			       &ep->param1.set,
+			       (Edje_Part_Description_Image*) ep->param1.description,
+			       NULL);
+   if (image_id < 0)
+     {
+	Edje_Image_Directory_Entry *ie;
+
+	if (!ed->file->image_dir) ie = NULL;
+	else ie = ed->file->image_dir->entries + (-image_id) - 1;
+	if ((ie) &&
+	    (ie->source_type == EDJE_IMAGE_SOURCE_TYPE_EXTERNAL) &&
+	    (ie->entry))
+	  {
+	     evas_object_image_file_set(ep->object, ie->entry, NULL);
+	  }
+     }
+   else
+     {
+	image_count = 2;
+	if (ep->param2)
+	  image_count += ((Edje_Part_Description_Image*) ep->param2->description)->image.tweens_count;
+	image_num = TO_INT(MUL(pos, SUB(FROM_INT(image_count),
+					FROM_DOUBLE(0.5))));
+	if (image_num > (image_count - 1))
+	  image_num = image_count - 1;
+	if (image_num == 0)
+	  {
+	    image_id = _edje_image_find(ep->object, ed,
+					&ep->param1.set,
+					(Edje_Part_Description_Image*) ep->param1.description,
+					NULL);
+	  }
+	else
+	  if (ep->param2)
+	    {
+	       if (image_num == (image_count - 1))
+		 {
+		   image_id = _edje_image_find(ep->object, ed,
+					       &ep->param2->set,
+					       (Edje_Part_Description_Image*) ep->param2->description,
+					       NULL);
+		 }
+	       else
+		 {
+		    Edje_Part_Image_Id *imid;
+
+		    imid = ((Edje_Part_Description_Image*) ep->param2->description)->image.tweens[image_num - 1];
+		    image_id = _edje_image_find(ep->object, ed, NULL, NULL, imid);
+		 }
+	    }
+	if (image_id < 0)
+	  {
+	     ERR("¨Part \"%s\" has description, "
+		 "\"%s\" %3.3f with a missing image id!!!",
+		 ep->part->name,
+		 ep->param1.description->state.name,
+		 ep->param1.description->state.value);
+	  }
+	else
+	  {
+	     char buf[1024];
+
+	     /* Replace snprint("edje/images/%i") == memcpy + itoa */
+#define IMAGES "edje/images/"
+	     memcpy(buf, IMAGES, strlen(IMAGES));
+	     eina_convert_itoa(image_id, buf + strlen(IMAGES)); /* No need to check length as 2³² need only 10 characteres. */
+
+	     evas_object_image_file_set(ep->object, ed->file->path, buf);
+	     if (evas_object_image_load_error_get(ep->object) != EVAS_LOAD_ERROR_NONE)
+	       {
+		  ERR("Error loading image collection \"%s\" from "
+		      "file \"%s\". Missing EET Evas loader module?",
+		      buf, ed->file->path);
+		  switch (evas_object_image_load_error_get(ep->object))
+		    {
+		     case EVAS_LOAD_ERROR_GENERIC:
+			ERR("Error type: EVAS_LOAD_ERROR_GENERIC");
+			break;
+		     case EVAS_LOAD_ERROR_DOES_NOT_EXIST:
+			ERR("Error type: EVAS_LOAD_ERROR_DOES_NOT_EXIST");
+			break;
+		     case EVAS_LOAD_ERROR_PERMISSION_DENIED:
+			ERR("Error type: EVAS_LOAD_ERROR_PERMISSION_DENIED");
+			break;
+		     case EVAS_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED:
+			ERR("Error type: EVAS_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED");
+			break;
+		     case EVAS_LOAD_ERROR_CORRUPT_FILE:
+			ERR("Error type: EVAS_LOAD_ERROR_CORRUPT_FILE");
+			break;
+		     case EVAS_LOAD_ERROR_UNKNOWN_FORMAT:
+			ERR("Error type: EVAS_LOAD_ERROR_UNKNOWN_FORMAT");
+			break;
+                    default:
+			ERR("Error type: ???");
+                       break;
+		    }
+	       }
+	  }
+     }
+}
+
 static void
 _edje_real_part_rel_to_apply(Edje *ed, Edje_Real_Part *ep, Edje_Real_Part_State *state)
 {
@@ -423,21 +597,23 @@ _edje_recalc(Edje *ed)
 	     return;
 	  }
      }
-   if (ed->postponed) return;
-   //TODO: need to find out "when", "how" ed->obj can be deleted.
-   //if ed->obj can be deleted then this expception handling is granted.
-   //otherwise, we should fix app-usage and remove this handling.
-   if (ed->obj)
+// XXX: dont need this with current smart calc infra. remove me later
+//   if (ed->postponed) return;
+//   if (!ed->calc_only)
      evas_object_smart_changed(ed->obj);
-   ed->postponed = 1;
+// XXX: dont need this with current smart calc infra. remove me later
+//   ed->postponed = 1;
 }
 
 void
 _edje_recalc_do(Edje *ed)
 {
    unsigned int i;
+   Eina_Bool need_calc;
 
-   ed->postponed = 0;
+// XXX: dont need this with current smart calc infra. remove me later
+//   ed->postponed = 0;
+   need_calc = evas_object_smart_need_recalculate_get(ed->obj);
    evas_object_smart_need_recalculate_set(ed->obj, 0);
    if (!ed->dirty) return;
    ed->have_mapped_part = 0;
@@ -464,6 +640,10 @@ _edje_recalc_do(Edje *ed)
    ed->all_part_change = 0;
    ed->text_part_change = 0;
 #endif
+   if (!ed->calc_only)
+     evas_object_smart_callback_call(ed->obj, "recalc", NULL);
+   else
+     evas_object_smart_need_recalculate_set(ed->obj, need_calc);
 }
 
 void
@@ -602,11 +782,13 @@ _edje_part_recalc_single_rel(Edje *ed,
 }
 
 static Edje_Internal_Aspect
-_edje_part_recalc_single_aspect(Edje_Real_Part *ep,
+_edje_part_recalc_single_aspect(Edje *ed,
+                                Edje_Real_Part *ep,
 				Edje_Part_Description_Common *desc,
 				Edje_Calc_Params *params,
 				int *minw, int *minh,
-				int *maxw, int *maxh)
+				int *maxw, int *maxh,
+                                FLOAT_T pos)
 {
    Edje_Internal_Aspect apref = EDJE_ASPECT_PREFER_NONE;
    FLOAT_T aspect, amax, amin;
@@ -616,6 +798,17 @@ _edje_part_recalc_single_aspect(Edje_Real_Part *ep,
    else aspect = DIV(FROM_INT(params->w), FROM_INT(params->h));
    amax = desc->aspect.max;
    amin = desc->aspect.min;
+   if (desc->aspect.prefer == EDJE_ASPECT_PREFER_SOURCE &&
+       ep->part->type == EDJE_PART_TYPE_IMAGE)
+     {
+        Evas_Coord w, h;
+
+        /* We only need pose to find the right image that would be displayed,
+           and the right aspect ratio in that case */
+        _edje_real_part_image_set(ed, ep, pos);
+        evas_object_image_size_get(ep->object, &w, &h);
+        amin = amax = DIV(FROM_INT(w), FROM_INT(h));
+     }
    if ((ep->swallow_params.aspect.w > 0) &&
        (ep->swallow_params.aspect.h > 0))
      amin = amax =
@@ -697,6 +890,7 @@ _edje_part_recalc_single_aspect(Edje_Real_Part *ep,
 	      if ((amin > ZERO) && (aspect < amin))
 		new_h = DIV(FROM_INT(params->w), amin);
 	      break;
+           case EDJE_ASPECT_PREFER_SOURCE:
 	   case EDJE_ASPECT_PREFER_BOTH:
 	      /* keep both dimensions in check */
 	      /* adjust for max aspect (width / height) */
@@ -1259,6 +1453,7 @@ _edje_part_recalc_single_min(Edje_Part_Description_Common *desc,
 	      minh = tmp;
 	      break;
 	   }
+      case EDJE_ASPECT_PREFER_SOURCE:
       case EDJE_ASPECT_PREFER_BOTH:
 	 tmp = minh * params->w / h;
 	 if (tmp >= minw)
@@ -1325,6 +1520,7 @@ _edje_part_recalc_single_max(Edje_Part_Description_Common *desc,
 	      maxh = tmp;
 	      break;
 	   }
+      case EDJE_ASPECT_PREFER_SOURCE:
       case EDJE_ASPECT_PREFER_BOTH:
 	 tmp = maxh * params->w / h;
 	 if (tmp <= maxw)
@@ -1669,7 +1865,8 @@ _edje_part_recalc_single(Edje *ed,
 			 Edje_Real_Part *rel2_to_x,
 			 Edje_Real_Part *rel2_to_y,
 			 Edje_Real_Part *confine_to,
-			 Edje_Calc_Params *params)
+			 Edje_Calc_Params *params,
+                         FLOAT_T pos)
 {
    Edje_Color_Class *cc = NULL;
    Edje_Internal_Aspect apref;
@@ -1684,7 +1881,7 @@ _edje_part_recalc_single(Edje *ed,
    _edje_part_recalc_single_rel(ed, ep, desc, rel1_to_x, rel1_to_y, rel2_to_x, rel2_to_y, params);
 
    /* aspect */
-   apref = _edje_part_recalc_single_aspect(ep, desc, params, &minw, &minh, &maxw, &maxh);
+   apref = _edje_part_recalc_single_aspect(ed, ep, desc, params, &minw, &minh, &maxw, &maxh, pos);
 
    /* size step */
    _edje_part_recalc_single_step(desc, params);
@@ -1859,70 +2056,6 @@ _edje_table_recalc_apply(Edje *ed __UNUSED__,
      }
 }
 
-static int
-_edje_image_find(Evas_Object *obj, Edje *ed, Edje_Real_Part_Set **eps, Edje_Part_Description_Image *st, Edje_Part_Image_Id *imid)
-{
-  Edje_Image_Directory_Set_Entry *entry;
-  Edje_Image_Directory_Set *set = NULL;
-  Eina_List *l;
-  int w = 0;
-  int h = 0;
-  int id;
-
-  if (!st && !imid)
-    return -1;
-
-  if (st && !st->image.set)
-    return st->image.id;
-
-  if (imid && !imid->set)
-    return imid->id;
-
-  if (imid)
-    id = imid->id;
-  else
-    id = st->image.id;
-
-  evas_object_geometry_get(obj, NULL, NULL, &w, &h);
-
-  if (eps && *eps)
-    {
-      if ((*eps)->id == id)
-	set = (*eps)->set;
-      
-      if (set)
-	if ((*eps)->entry->size.min.w <= w && w <= (*eps)->entry->size.max.w)
-	  if ((*eps)->entry->size.min.h <= h && h <= (*eps)->entry->size.max.h)
-	    return (*eps)->entry->id;
-    }
-
-  if (!set)
-    set = ed->file->image_dir->sets + id;
-
-  EINA_LIST_FOREACH(set->entries, l, entry)
-    {
-      if (entry->size.min.w <= w && w <= entry->size.max.w)
-	if (entry->size.min.h <= h && h <= entry->size.max.h)
-	  {
-	    if (eps)
-	      {
-		if (!*eps)
-		  *eps = calloc(1, sizeof (Edje_Real_Part_Set));
-
-		if (*eps)
-		  {
-		    (*eps)->entry = entry;
-		    (*eps)->set = set;
-		    (*eps)->id = id;
-		  }
-	      }
-	    return entry->id;
-	  }
-    }
-
-  return -1;
-}
-
 static void
 _edje_proxy_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edje_Part_Description_Proxy *chosen_desc, FLOAT_T pos)
 {
@@ -1971,8 +2104,6 @@ _edje_proxy_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edj
 static void
 _edje_image_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edje_Part_Description_Image *chosen_desc, FLOAT_T pos)
 {
-   int image_id;
-   int image_count, image_num;
    FLOAT_T sc;
 
    sc = ed->scale;
@@ -2007,107 +2138,7 @@ _edje_image_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edj
    else if (chosen_desc->image.border.no_fill == 2)
      evas_object_image_border_center_fill_set(ep->object, EVAS_BORDER_FILL_SOLID);
 
-   image_id = _edje_image_find(ep->object, ed,
-			       &ep->param1.set,
-			       (Edje_Part_Description_Image*) ep->param1.description,
-			       NULL);
-   if (image_id < 0)
-     {
-	Edje_Image_Directory_Entry *ie;
-
-	if (!ed->file->image_dir) ie = NULL;
-	else ie = ed->file->image_dir->entries + (-image_id) - 1;
-	if ((ie) &&
-	    (ie->source_type == EDJE_IMAGE_SOURCE_TYPE_EXTERNAL) &&
-	    (ie->entry))
-	  {
-	     evas_object_image_file_set(ep->object, ie->entry, NULL);
-	  }
-     }
-   else
-     {
-	image_count = 2;
-	if (ep->param2)
-	  image_count += ((Edje_Part_Description_Image*) ep->param2->description)->image.tweens_count;
-	image_num = TO_INT(MUL(pos, SUB(FROM_INT(image_count),
-					FROM_DOUBLE(0.5))));
-	if (image_num > (image_count - 1))
-	  image_num = image_count - 1;
-	if (image_num == 0)
-	  {
-	    image_id = _edje_image_find(ep->object, ed,
-					&ep->param1.set,
-					(Edje_Part_Description_Image*) ep->param1.description,
-					NULL);
-	  }
-	else
-	  if (ep->param2)
-	    {
-	       if (image_num == (image_count - 1))
-		 {
-		   image_id = _edje_image_find(ep->object, ed,
-					       &ep->param2->set,
-					       (Edje_Part_Description_Image*) ep->param2->description,
-					       NULL);
-		 }
-	       else
-		 {
-		    Edje_Part_Image_Id *imid;
-
-		    imid = ((Edje_Part_Description_Image*) ep->param2->description)->image.tweens[image_num - 1];
-		    image_id = _edje_image_find(ep->object, ed, NULL, NULL, imid);
-		 }
-	    }
-	if (image_id < 0)
-	  {
-	     ERR("¨Part \"%s\" has description, "
-		 "\"%s\" %3.3f with a missing image id!!!",
-		 ep->part->name,
-		 ep->param1.description->state.name,
-		 ep->param1.description->state.value);
-	  }
-	else
-	  {
-	     char buf[1024];
-
-	     /* Replace snprint("edje/images/%i") == memcpy + itoa */
-#define IMAGES "edje/images/"
-	     memcpy(buf, IMAGES, strlen(IMAGES));
-	     eina_convert_itoa(image_id, buf + strlen(IMAGES)); /* No need to check length as 2³² need only 10 characteres. */
-
-	     evas_object_image_file_set(ep->object, ed->file->path, buf);
-	     if (evas_object_image_load_error_get(ep->object) != EVAS_LOAD_ERROR_NONE)
-	       {
-		  ERR("Error loading image collection \"%s\" from "
-		      "file \"%s\". Missing EET Evas loader module?",
-		      buf, ed->file->path);
-		  switch (evas_object_image_load_error_get(ep->object))
-		    {
-		     case EVAS_LOAD_ERROR_GENERIC:
-			ERR("Error type: EVAS_LOAD_ERROR_GENERIC");
-			break;
-		     case EVAS_LOAD_ERROR_DOES_NOT_EXIST:
-			ERR("Error type: EVAS_LOAD_ERROR_DOES_NOT_EXIST");
-			break;
-		     case EVAS_LOAD_ERROR_PERMISSION_DENIED:
-			ERR("Error type: EVAS_LOAD_ERROR_PERMISSION_DENIED");
-			break;
-		     case EVAS_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED:
-			ERR("Error type: EVAS_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED");
-			break;
-		     case EVAS_LOAD_ERROR_CORRUPT_FILE:
-			ERR("Error type: EVAS_LOAD_ERROR_CORRUPT_FILE");
-			break;
-		     case EVAS_LOAD_ERROR_UNKNOWN_FORMAT:
-			ERR("Error type: EVAS_LOAD_ERROR_UNKNOWN_FORMAT");
-			break;
-                    default:
-			ERR("Error type: ???");
-                       break;
-		    }
-	       }
-	  }
-     }
+   _edje_real_part_image_set(ed, ep, pos);
 }
 
 static Edje_Real_Part *
@@ -2361,7 +2392,7 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
  	     _edje_part_recalc_single(ed, ep, ep->param1.description, chosen_desc, center[0], light[0], persp[0],
   				      ep->param1.rel1_to_x, ep->param1.rel1_to_y, ep->param1.rel2_to_x, ep->param1.rel2_to_y,
  				      confine_to,
- 				      p1);
+ 				      p1, pos);
 
 #ifdef EDJE_CALC_CACHE
  	     ep->param1.state = ed->state;
@@ -2409,7 +2440,7 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
  	     _edje_part_recalc_single(ed, ep, ep->param2->description, chosen_desc, center[1], light[1], persp[1],
  				      ep->param2->rel1_to_x, ep->param2->rel1_to_y, ep->param2->rel2_to_x, ep->param2->rel2_to_y,
  				      confine_to,
-				      p2);
+				      p2, pos);
 #ifdef EDJE_CALC_CACHE
  	     ep->param2->state = ed->state;
 #endif
@@ -2549,11 +2580,11 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
                }
              else if (p1->persp_on)
                {
-                  memcpy(&p3->map.persp, &p1->map.persp, sizeof (p1->map.light));
+                  memcpy(&p3->map.persp, &p1->map.persp, sizeof (p1->map.persp));
                }
              else if (p2->persp_on)
                {
-                  memcpy(&p3->map.persp, &p2->map.persp, sizeof (p2->map.light));
+                  memcpy(&p3->map.persp, &p2->map.persp, sizeof (p2->map.persp));
                }
           }
 

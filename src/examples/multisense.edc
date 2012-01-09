@@ -1,3 +1,4 @@
+#if 0
 collections {
    sounds {
       sample {
@@ -135,4 +136,4 @@ collections {
       }
    }
 }
-
+#endif

@@ -614,6 +614,7 @@ static int _elua_echo(lua_State *L);
 static int _elua_date(lua_State *L);
 static int _elua_looptime(lua_State *L);
 static int _elua_seconds(lua_State *L);
+static int _elua_version(lua_State *L);
 
 static int _elua_objgeom(lua_State *L);
 static int _elua_objpos(lua_State *L);
@@ -649,6 +650,7 @@ static const struct luaL_reg _elua_edje_funcs [] =
      {"date",         _elua_date}, // get date in a table
      {"looptime",     _elua_looptime}, // get loop time
      {"seconds",      _elua_seconds}, // get seconds
+     {"version",      _elua_version}, // edje version
 
    // query edje - size, pos
      {"geom",         _elua_objgeom}, // get while edje object geometry in canvas
@@ -799,6 +801,25 @@ _elua_seconds(lua_State *L)  // Stack usage [-0, +1, -]
    double t = ecore_time_get();
    lua_pushnumber(L, t);     // Stack usage [-0, +1, -]
    return 1;
+}
+
+/**
+@page luaref
+@subsubsection edje_version edje:version()
+
+Retrieves the current edje version number.
+
+@returns A table with these fields:
+    - integer major: The edje version major number.
+    - integer minor: The edje version minor number.
+
+@since 1.2.0
+*/
+static int
+_elua_version(lua_State *L)                                                // Stack usage [-4, +5, em]
+{
+   _elua_ret(L, "%major %minor", EDJE_VERSION_MAJOR, EDJE_VERSION_MINOR);  // Stack usage [-4, +5, em]
+    return 1;
 }
 
 //-------------
@@ -3685,7 +3706,7 @@ _elua_text_font(lua_State *L)                                   // Stack usage [
 @page luaref
 @subsubsection text_text text_object:text(text)
 
-Get (and optionally set) the actual tetx for this text object.
+Get (and optionally set) the actual text for this text object.
 
 Wraps evas_object_text_text_set().
 
@@ -3724,25 +3745,80 @@ _elua_text_text(lua_State *L)                                   // Stack usage [
 
 
 //--------------------------------------------------------------------------//
+
+// A metatable and functions so that calling non existant API does not crash Lua scripts.
+
+static int _elua_bogan_nilfunc(lua_State *L);
+static int _elua_bogan_index(lua_State *L);
+
+static const struct luaL_reg _elua_bogan_funcs [] =
+{
+     {"nilfunc",         _elua_bogan_nilfunc}, // Just return a nil.
+     {"__index",         _elua_bogan_index},   // Return the above func.
+
+     {NULL, NULL} // end
+};
+
+static int
+_elua_bogan_nilfunc(lua_State *L)
+{
+   lua_getglobal(L, "nil");
+   return 1;
+}
+
+static int
+_elua_bogan_index(lua_State *L)
+{
+   const char *key;
+
+   key = lua_tostring(L, 2);
+   LE("%s does not exist!", key);
+   lua_pushcfunction(L, _elua_bogan_nilfunc);
+   return 1;
+}
+
+static void
+_elua_bogan_protect(lua_State *L)                    // Stack usage [-3, +3, m]
+{
+   lua_pushnil(L);                                   // Stack usage [-0, +1, -]
+   luaL_newmetatable(L, "bogan");                    // Stack usage [-0, +1, m]
+   luaL_register(L, 0, _elua_bogan_funcs);           // Stack usage [-1, +1, m]
+   lua_setmetatable(L, -2);                          // Stack usage [-1, +0, -]
+   lua_pop(L, 1);                                    // Stack usage [-1, +0, -]
+}
+
+//--------------------------------------------------------------------------//
+
 // Brain dead inheritance thingy, built for speed.  Kinda.  Part 1.
 static void
 _elua_add_functions(lua_State *L, const char *api, const luaL_Reg *funcs, const char *meta, const char *parent, const char *base)  // Stack usage [-3, +5, m]  if inheriting [-6, +11, em]
 {
+   // Create an api table, fill it full of the methods.
    luaL_register(L, api, funcs);              // Stack usage [-0, +1, m]
+   // Set the api metatable to the bogan metatable.
+   luaL_getmetatable(L, "bogan");             // Stack usage [-0, +1, -]
+   lua_setmetatable(L, -2);                   // Stack usage [-1, +0, -]
+   // Creat a meta metatable.
    luaL_newmetatable(L, meta);                // Stack usage [-0, +1, m]
+   // Put the gc functions in the metatable.
    luaL_register(L, 0, _elua_edje_gc_funcs);  // Stack usage [-1, +1, m]
+   // Create an __index entry in the metatable, make it point to the api table.
    lua_pushliteral(L, "__index");             // Stack usage [-0, +1, m]
    lua_pushvalue(L, -3);                      // Stack usage [-0, +1, -]
    lua_rawset(L, -3);                         // Stack usage [-2, +0, m]
+   // Later this metatable is used as the metatable for newly created objects of this class.
 
    if (base && parent)
      {
         // Inherit from base
         lua_getglobal(L, base);               // Stack usage [-0, +1, e]
+        // Create a new parent metatable.
         luaL_newmetatable(L, parent);         // Stack usage [-0, +1, m]
+        // Create an __index entry in the metatable, make it point to the base table.
         lua_pushliteral(L, "__index");        // Stack usage [-0, +1, m]
         lua_pushvalue(L, -3);                 // Stack usage [-0, +1, -]
         lua_rawset(L, -3);                    // Stack usage [-2, +0, m]
+        // Set the metatable for the api table to the parent metatable.
         lua_getglobal(L, api);                // Stack usage [-0, +1, e]
         luaL_getmetatable(L, parent);         // Stack usage [-0, +1, -]
         lua_setmetatable(L, -2);              // Stack usage [-1, +0, -]
@@ -3850,7 +3926,11 @@ _edje_lua2_script_init(Edje *ed)                                  // Stack usage
         lua_call(L, 1, 0);                                        // Stack usage [-2, +0, m]
      }
 
+   _elua_bogan_protect(L);                                        // Stack usage [+3, -3, m]
+
    luaL_register(L, _elua_edje_api, _elua_edje_funcs);            // Stack usage [-0, +1, m]
+   luaL_getmetatable(L, "bogan");                                 // Stack usage [-0, +1, -]
+   lua_setmetatable(L, -2);                                       // Stack usage [-1, +0, -]
    luaL_newmetatable(L, _elua_edje_meta);                         // Stack usage [-0, +1, m]
    luaL_register(L, 0, _elua_edje_gc_funcs);                      // Stack usage [-1, +1, m]
 
@@ -3892,6 +3972,8 @@ _edje_lua2_script_init(Edje *ed)                                  // Stack usage
      {
         int err;
 
+        /* This ends up pushing a function onto the stack for the lua_pcall() below to use.
+         * The function is the compiled code. */
         err = luaL_loadbuffer(L, data, size, "edje_lua_script");  // Stack usage [-0, +1, m]
         if (err)
           {
