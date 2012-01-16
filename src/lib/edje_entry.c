@@ -2310,7 +2310,10 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
                     _sel_update(en->cursor, rp->object, en);
                }
              if (evas_textblock_cursor_compare(tc, en->cursor))
-               _edje_emit(rp->edje, "cursor,changed", rp->part->name);
+               {
+                  _edje_emit(rp->edje, "cursor,changed", rp->part->name);
+                  _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
+               }
              evas_textblock_cursor_free(tc);
 
              _edje_entry_imf_context_reset(en);
@@ -2404,12 +2407,6 @@ _edje_entry_top_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
              if (en->select_mod_start)
                _sel_preextend(en->cursor, rp->object, en);
           }
-        if (evas_textblock_cursor_compare(tc, en->cursor))
-          {
-             _edje_emit(rp->edje, "cursor,changed", rp->part->name);
-             _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
-          }
-        evas_textblock_cursor_free(tc);
      }
    _edje_entry_real_part_configure(rp);
    _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
