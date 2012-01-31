@@ -1,3 +1,11 @@
+edje (1.1.0+svn.66979slp2+build03) unstable; urgency=low
+
+  * Use synchronous ecore_imf callback API
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 31 Jan 2012 13:29:47 +0900
+
 edje (1.1.0+svn.66979slp2+build02) unstable; urgency=low
 
   * remove evas obj hide at edje_object_part_unswallow
