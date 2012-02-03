@@ -3571,13 +3571,13 @@ Edje_Input_Panel_Layout
 _edje_entry_input_panel_layout_get(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
-   if (!en) return EDJE_INPUT_PANEL_LAYOUT_NORMAL;
+   if (!en) return EDJE_INPUT_PANEL_LAYOUT_INVALID;
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      return ecore_imf_context_input_panel_layout_get(en->imf_context);
 #endif
 
-   return EDJE_INPUT_PANEL_LAYOUT_NORMAL;
+   return EDJE_INPUT_PANEL_LAYOUT_INVALID;
 }
 
 static void
