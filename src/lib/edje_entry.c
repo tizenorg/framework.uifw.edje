@@ -70,7 +70,6 @@ struct _Entry
    Eina_Bool had_sel : 1;
    Eina_Bool copy_paste_disabled : 1;
    int select_dragging_state;
-   double space_key_time;
 
 #ifdef HAVE_ECORE_IMF
    Eina_Bool have_preedit : 1;
@@ -3714,7 +3713,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx, voi
    Edje *ed = data;
    Edje_Real_Part *rp = ed->focused_part;
    Entry *en;
-   char *str = event_info;
+   char *str;
    int cursor_pos;
    int preedit_start_pos, preedit_end_pos;
    char *preedit_string;
