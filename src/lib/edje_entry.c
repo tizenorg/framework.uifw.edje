@@ -37,7 +37,6 @@ typedef enum _Entry_Long_Press_State
 } Entry_Long_Press_State;
 
 static void _edje_entry_imf_cursor_info_set(Entry *en);
-static void _edje_entry_imf_context_reset(Entry *en);
 
 struct _Entry
 {
@@ -561,7 +560,7 @@ static void
 _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 {
    if (!en->sel_end) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(en->rp);
    _sel_enable(c, o, en);
    if (!evas_textblock_cursor_compare(c, en->sel_end)) return;
 
@@ -585,7 +584,7 @@ static void
 _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 {
    if (!en->sel_end) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(en->rp);
    _sel_enable(c, o, en);
    if (!evas_textblock_cursor_compare(c, en->sel_start)) return;
 
@@ -1380,7 +1379,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
    if ((!strcmp(ev->key, "Escape")) ||
        (!strcmp(ev->key, "Return")) || (!strcmp(ev->key, "KP_Enter")))
-     _edje_entry_imf_context_reset(en);
+     _edje_entry_imf_context_reset(rp);
 
    old_cur_pos = evas_textblock_cursor_pos_get(en->cursor);
 
@@ -1991,7 +1990,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
      }
 #endif
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    en->select_mod_start = EINA_FALSE;
    en->select_mod_end = EINA_FALSE;
@@ -2178,7 +2177,7 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
      }
 #endif
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    tc = evas_object_textblock_cursor_new(rp->object);
    evas_textblock_cursor_copy(en->cursor, tc);
@@ -2388,7 +2387,7 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
                }
              evas_textblock_cursor_free(tc);
 
-             _edje_entry_imf_context_reset(en);
+             _edje_entry_imf_context_reset(rp);
              _edje_entry_imf_cursor_info_set(en);
 
              _edje_entry_real_part_configure(rp);
@@ -2877,7 +2876,7 @@ _edje_entry_text_markup_set(Edje_Real_Part *rp, const char *text)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
    // set text as markup
    _sel_clear(en->cursor, rp->object, en);
    evas_object_textblock_text_markup_set(rp->object, text);
@@ -2916,7 +2915,7 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    // prepend markup @ cursor pos
    if (en->have_selection)
@@ -2967,7 +2966,7 @@ _edje_entry_select_all(Edje_Real_Part *rp)
    Entry *en = rp->entry_data;
    if (!en) return;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    _sel_clear(en->cursor, rp->object, en);
    _curs_start(en->cursor, rp->object, en);
@@ -2991,7 +2990,7 @@ _edje_entry_select_begin(Edje_Real_Part *rp)
    Entry *en = rp->entry_data;
    if (!en) return;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    _sel_clear(en->cursor, rp->object, en);
    _sel_enable(en->cursor, rp->object, en);
@@ -3008,7 +3007,7 @@ _edje_entry_select_extend(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
    if (!en) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
    _sel_extend(en->cursor, rp->object, en);
 
    _edje_entry_imf_cursor_info_set(en);
@@ -3192,7 +3191,7 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
      {
         en->selecting = EINA_FALSE;
 
-        _edje_entry_imf_context_reset(en);
+        _edje_entry_imf_context_reset(rp);
         _edje_entry_imf_cursor_info_set(en);
         _edje_entry_real_part_configure(rp);
      }
@@ -3339,7 +3338,7 @@ _edje_entry_cursor_next(Edje_Real_Part *rp, Edje_Cursor cur)
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return EINA_FALSE;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    if (!evas_textblock_cursor_char_next(c))
      {
@@ -3360,7 +3359,7 @@ _edje_entry_cursor_prev(Edje_Real_Part *rp, Edje_Cursor cur)
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return EINA_FALSE;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    if (!evas_textblock_cursor_char_prev(c))
      {
@@ -3386,7 +3385,7 @@ _edje_entry_cursor_up(Edje_Real_Part *rp, Edje_Cursor cur)
    int ln;
    if (!c) return EINA_FALSE;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    ln = evas_textblock_cursor_line_geometry_get(c, NULL, NULL, NULL, NULL);
    ln--;
@@ -3420,7 +3419,7 @@ _edje_entry_cursor_down(Edje_Real_Part *rp, Edje_Cursor cur)
    int ln;
    if (!c) return EINA_FALSE;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    ln = evas_textblock_cursor_line_geometry_get(c, NULL, NULL, NULL, NULL);
    ln++;
@@ -3450,7 +3449,7 @@ _edje_entry_cursor_begin(Edje_Real_Part *rp, Edje_Cursor cur)
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    evas_textblock_cursor_paragraph_first(c);
    _sel_update(c, rp->object, rp->entry_data);
@@ -3467,7 +3466,7 @@ _edje_entry_cursor_end(Edje_Real_Part *rp, Edje_Cursor cur)
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    _curs_end(c, rp->object, rp->entry_data);
    _sel_update(c, rp->object, rp->entry_data);
@@ -3492,7 +3491,7 @@ _edje_entry_cursor_copy(Edje_Real_Part *rp, Edje_Cursor cur, Edje_Cursor dst)
    evas_textblock_cursor_copy(c, d);
    _sel_update(c, rp->object, rp->entry_data);
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
    _edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
    _edje_entry_real_part_configure(rp);
@@ -3504,7 +3503,7 @@ _edje_entry_cursor_line_begin(Edje_Real_Part *rp, Edje_Cursor cur)
    Entry *en = rp->entry_data;
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
 
    evas_textblock_cursor_line_char_first(c);
    _sel_update(c, rp->object, rp->entry_data);
@@ -3521,7 +3520,7 @@ _edje_entry_cursor_line_end(Edje_Real_Part *rp, Edje_Cursor cur)
    Entry *en = rp->entry_data;
    Evas_Textblock_Cursor *c = _cursor_get(rp, cur);
    if (!c) return;
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
    evas_textblock_cursor_line_char_last(c);
    _sel_update(c, rp->object, rp->entry_data);
 
@@ -3583,7 +3582,7 @@ _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos)
    if (evas_textblock_cursor_pos_get(c) == pos)
       return;
 
-   _edje_entry_imf_context_reset(en);
+   _edje_entry_imf_context_reset(rp);
    evas_textblock_cursor_pos_set(c, pos);
    _sel_update(c, rp->object, rp->entry_data);
 
@@ -3677,14 +3676,14 @@ _edje_entry_input_panel_layout_get(Edje_Real_Part *rp)
    return EDJE_INPUT_PANEL_LAYOUT_INVALID;
 }
 
-static void
-_edje_entry_imf_context_reset(Entry *en)
+void
+_edje_entry_imf_context_reset(Edje_Real_Part *rp)
 {
+   Entry *en = rp->entry_data;
+   if (!en) return;
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      ecore_imf_context_reset(en->imf_context);
-#else
-   (void) en;
 #endif
 }
 
