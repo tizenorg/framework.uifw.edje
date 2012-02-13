@@ -401,8 +401,6 @@ typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callbac
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
 #define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2
 
-#define EDJE_ENTRY_DOUBLE_SPACE_TIME 0.6
-
 #define EDJE_ENTRY_CURSOR_MODE_UNDER 0
 #define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
 
@@ -1553,10 +1551,6 @@ extern FLOAT_T          _edje_scale;
 extern int              _edje_freeze_val;
 extern int              _edje_freeze_calc_count;
 extern Eina_List       *_edje_freeze_calc_list;
-extern Eina_Bool        _edje_input_panel_enable;
-
-extern Eina_Bool        _edje_password_show_last;
-extern FLOAT_T          _edje_password_show_last_timeout;
 
 extern Eina_Bool        _edje_password_show_last;
 extern FLOAT_T          _edje_password_show_last_timeout;

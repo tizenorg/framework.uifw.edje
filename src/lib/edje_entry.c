@@ -3713,7 +3713,6 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx, voi
    Edje *ed = data;
    Edje_Real_Part *rp = ed->focused_part;
    Entry *en;
-   char *str;
    int cursor_pos;
    int preedit_start_pos, preedit_end_pos;
    char *preedit_string;
