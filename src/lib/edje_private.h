@@ -1948,6 +1948,8 @@ void _edje_entry_autocapital_type_set(Edje_Real_Part *rp, Edje_Text_Autocapital_
 Edje_Text_Autocapital_Type _edje_entry_autocapital_type_get(Edje_Real_Part *rp);
 void _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled);
 Eina_Bool _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp);
+void _edje_entry_input_panel_show(Edje_Real_Part *rp);
+void _edje_entry_input_panel_hide(Edje_Real_Part *rp);
 Eina_Bool _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
 
 void _edje_external_init();
