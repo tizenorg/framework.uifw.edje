@@ -5,9 +5,11 @@ Changes since Edje 1.1.0:
 
 Additions:
 
-    * "recalc" smart callback for object size changes
+    * "recalc" smart callback for object size changes.
     * EDJE_ASPECT_PREFER_SOURCE.
     * edje.version() Lua function.
+    * minmul edc property.
+    * add min: SOURCE and max: SOURCE.
 
 Improvements:
     * speedup load time of Edje file.
@@ -15,6 +17,7 @@ Improvements:
     * reduce number of call to stat during edje_object_file_set.
     * unswallow object about to be swallowed if necessary.
     * Lua scripts now more resilient against API changes.
+    * edje_cc only store the image activelly used in an edje file.
 
 Changes since Edje 1.0.0:
 -------------------------

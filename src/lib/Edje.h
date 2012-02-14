@@ -5,7 +5,7 @@ These routines are used for Edje.
 
 @mainpage Edje Library Documentation
 @version 1.1
-@date 2003-2011
+@date 2003-2012
 
 Please see the @ref authors page for contact details.
 
@@ -483,7 +483,7 @@ extern "C" {
 #endif
 
 #define EDJE_VERSION_MAJOR 1
-#define EDJE_VERSION_MINOR 0
+#define EDJE_VERSION_MINOR 2
 
    typedef struct _Edje_Version
      {
@@ -2452,6 +2452,33 @@ EAPI Eina_Bool    edje_object_part_text_set           (Evas_Object *obj, const c
 EAPI const char  *edje_object_part_text_get           (const Evas_Object *obj, const char *part);
 
 /**
+ * @brief Set the style of the
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param style The style to set (textblock conventions).
+ *
+ * This function sets the style associated with the textblock part.
+ *
+ * @since 1.2.0
+ */
+EAPI void edje_object_part_text_style_user_set(Evas_Object *obj, const char *part, const char *style);
+
+/**
+ * @brief Return the text of the object part.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @return The text string
+ *
+ * This function returns the style associated with the textblock part.
+ *
+ * @since 1.2.0
+ */
+EAPI const char *edje_object_part_text_style_user_get(Evas_Object *obj, const char *part);
+
+/**
  * @brief Sets the raw (non escaped) text for an object part.
  *
  * @param obj A valid Evas Object handle
@@ -3046,7 +3073,9 @@ EAPI Eina_Bool        edje_object_part_swallow        (Evas_Object *obj, const c
  *
  * Causes the edje to regurgitate a previously swallowed object. :)
  *
- * @note @p obj_swallow will @b not be deleted.
+ * @note @p obj_swallow will @b not be deleted or hidden.
+ * @note @p obj_swallow may appear shown on the evas depending on its state when
+ * it got unswallowed. Make sure you delete it or hide it if you do not want it to.
  */
 EAPI void             edje_object_part_unswallow      (Evas_Object *obj, Evas_Object *obj_swallow);
 

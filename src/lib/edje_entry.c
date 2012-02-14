@@ -68,6 +68,7 @@ struct _Entry
    Eina_Bool select_mod_end : 1;
    Eina_Bool double_clicked : 1;
    Eina_Bool had_sel : 1;
+   Eina_Bool input_panel_enable : 1;
    Eina_Bool copy_paste_disabled : 1;
    int select_dragging_state;
    double space_key_time;
@@ -1646,7 +1647,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
              info->change.insert.pos =
                 evas_textblock_cursor_pos_get(en->cursor);
-             if (shift)
+             if (shift ||
+                 evas_object_textblock_legacy_newline_get(rp->object))
                {
                   //yy
 //                  evas_textblock_cursor_format_prepend(en->cursor, "br");
@@ -2609,11 +2611,14 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    evas_object_pass_events_set(en->cursor_fg, EINA_TRUE);
    _edje_subobj_register(en->rp->edje, en->cursor_fg);
 
+   evas_object_textblock_legacy_newline_set(rp->object, EINA_TRUE);
 
    if (rp->part->entry_mode >= EDJE_ENTRY_EDIT_MODE_EDITABLE)
      {
         evas_object_show(en->cursor_bg);
         evas_object_show(en->cursor_fg);
+        en->input_panel_enable = EINA_TRUE;
+
 #ifdef HAVE_ECORE_IMF
         ecore_imf_init();
 
@@ -3178,11 +3183,10 @@ _edje_entry_input_panel_enabled_set(Edje_Real_Part *rp, Eina_Bool enabled)
    Entry *en = rp->entry_data;
 
    if (!en) return;
+   en->input_panel_enable = enabled;
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      ecore_imf_context_input_panel_enabled_set(en->imf_context, enabled);
-#else
-   (void) enabled;
 #endif
 }
 
@@ -3191,12 +3195,8 @@ _edje_entry_input_panel_enabled_get(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
    if (!en) return EINA_FALSE;
-#ifdef HAVE_ECORE_IMF
-   if (en->imf_context)
-     return ecore_imf_context_input_panel_enabled_get(en->imf_context);
-#endif
 
-   return EINA_FALSE;
+   return en->input_panel_enable;
 }
 
 static Evas_Textblock_Cursor *
@@ -3636,7 +3636,7 @@ _edje_entry_imf_retrieve_surrounding_cb(void *data, Ecore_IMF_Context *ctx __UNU
 }
 
 static void
-_edje_entry_imf_event_commit_cb(void *data, Ecore_IMF_Context *ctx, void *event_info)
+_edje_entry_imf_event_commit_cb(void *data, Ecore_IMF_Context *ctx __UNUSED__, void *event_info)
 {
    Edje *ed = data;
    Edje_Real_Part *rp = ed->focused_part;
@@ -3709,7 +3709,7 @@ _edje_entry_imf_event_commit_cb(void *data, Ecore_IMF_Context *ctx, void *event_
 }
 
 static void
-_edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx, void *event_info)
+_edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx __UNUSED__, void *event_info __UNUSED__)
 {
    Edje *ed = data;
    Edje_Real_Part *rp = ed->focused_part;
@@ -3870,7 +3870,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx, voi
 }
 
 static void
-_edje_entry_imf_event_delete_surrounding_cb(void *data, Ecore_IMF_Context *ctx, void *event_info)
+_edje_entry_imf_event_delete_surrounding_cb(void *data, Ecore_IMF_Context *ctx __UNUSED__, void *event_info)
 {
    Edje *ed = data;
    Edje_Real_Part *rp = ed->focused_part;

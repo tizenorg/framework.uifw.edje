@@ -132,7 +132,7 @@ edje_file_group_exists(const char *file, const char *glob)
    edf = _edje_cache_file_coll_open(file, NULL, &error_ret, NULL);
    if (!edf)
       return EINA_FALSE;
-   
+
    for (p = glob; *p; p++)
      {
        if ((*p == '*') || (*p == '?') || (*p == '['))
@@ -141,7 +141,7 @@ edje_file_group_exists(const char *file, const char *glob)
            break;
          }
      }
-  
+
    if (is_glob)
      {
        if (!edf->collection_patterns)
@@ -149,18 +149,18 @@ edje_file_group_exists(const char *file, const char *glob)
            Edje_Part_Collection_Directory_Entry *ce;
            Eina_Iterator *i;
            Eina_List *l = NULL;
-           
+
            i = eina_hash_iterator_data_new(edf->collection);
-           
+
            EINA_ITERATOR_FOREACH(i, ce)
              l = eina_list_append(l, ce);
-           
+
            eina_iterator_free(i);
-           
+
            edf->collection_patterns = edje_match_collection_dir_init(l);
            eina_list_free(l);
          }
-       
+
        succeed = edje_match_collection_dir_exec(edf->collection_patterns, glob);
        if (edf->collection_patterns)
          {
@@ -294,6 +294,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 
    ed->load_error = EDJE_LOAD_ERROR_NONE;
    _edje_file_add(ed);
+   ed->block_break = 0;
 
    if (ed->file && ed->file->external_dir)
      {
@@ -525,7 +526,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 			 }
 
 		       rp->swallow_params.min.w = 0;
-		       rp->swallow_params.min.w = 0;
+		       rp->swallow_params.min.h = 0;
 		       rp->swallow_params.max.w = -1;
 		       rp->swallow_params.max.h = -1;
 
@@ -603,6 +604,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 		       _edje_dragable_pos_set(ed, rp, rp->drag->val.x, rp->drag->val.y);
 		    }
 	       }
+             ed->recalc_call = 1;
 	     ed->dirty = 1;
 #ifdef EDJE_CALC_CACHE
 	     ed->all_part_change = 1;

@@ -20,14 +20,18 @@ EAPI Eina_Error EDJE_EDIT_ERROR_GROUP_CURRENTLY_USED = 0 ;
 EAPI Eina_Error EDJE_EDIT_ERROR_GROUP_REFERENCED = 0;
 EAPI Eina_Error EDJE_EDIT_ERROR_GROUP_DOES_NOT_EXIST = 0;
 
-/* Get ed(Edje*) from obj(Evas_Object*) */
-#define GET_ED_OR_RETURN(RET) \
-   Edje *ed; \
+/* Get eed(Edje_Edit*) from obj(Evas_Object*) */
+#define GET_EED_OR_RETURN(RET) \
    Edje_Edit *eed; \
    if (!evas_object_smart_type_check_ptr(obj, _edje_edit_type)) \
      return RET; \
    eed = evas_object_smart_data_get(obj); \
-   if (!eed) return RET; \
+   if (!eed) return RET;
+
+/* Get ed(Edje*) from obj(Evas_Object*) */
+#define GET_ED_OR_RETURN(RET) \
+   Edje *ed; \
+   GET_EED_OR_RETURN(RET); \
    ed = (Edje *)eed;
 
 /* Get rp(Edje_Real_Part*) from obj(Evas_Object*) and part(char*) */
@@ -388,72 +392,59 @@ _edje_real_part_free(Edje_Real_Part *rp)
 static Eina_Bool
 _edje_import_font_file(Edje *ed, const char *path, const char *entry)
 {
+   Eina_File *f;
+   Eet_File *eetf = NULL;
    void *fdata = NULL;
    long fsize = 0;
 
    /* Read font data from file */
-   {
-      FILE *f = fopen(path, "rb");
-      if (!f)
-	{
-	   ERR("Unable to open font file \"%s\"", path);
-	   return EINA_FALSE;
-	}
+   f = eina_file_open(path, 0);
+   if (!f)
+     {
+        ERR("Unable to open font file \"%s\"", path);
+        return EINA_FALSE;
+     }
 
-      fseek(f, 0, SEEK_END);
-      fsize = ftell(f);
-      rewind(f);
-      fdata = malloc(fsize);
-      if (!fdata)
-         {
-	    ERR("Unable to alloc font file \"%s\"", path);
-	    fclose(f);
-	    return EINA_FALSE;
-         }
-      if (fread(fdata, fsize, 1, f) != 1)
-	 {
-            free(fdata);
-            fclose(f);
-	    ERR("Unable to read all of font file \"%s\"", path);
-	    return EINA_FALSE;
-	 }
-      fclose(f);
-   }
+   fsize = eina_file_size_get(f);
+   fdata = eina_file_map_all(f, EINA_FILE_SEQUENTIAL);
+   if (!fdata)
+     {
+        ERR("Unable to map font file \"%s\"", path);
+        goto on_error;
+     }
 
    /* Write font to edje file */
-   {
-      /* open the eet file */
-      Eet_File *eetf = eet_open(ed->path, EET_FILE_MODE_READ_WRITE);
-      if (!eetf)
-	{
-	   ERR("Unable to open \"%s\" for writing output", ed->path);
-	   free(fdata);
-	   return EINA_FALSE;
-	}
+   eetf = eet_open(ed->path, EET_FILE_MODE_READ_WRITE);
+   if (!eetf)
+     {
+        ERR("Unable to open \"%s\" for writing output", ed->path);
+        goto on_error;
+     }
 
-      if (eet_write(eetf, entry, fdata, fsize, 1) <= 0)
-        {
-           ERR("Unable to write font part \"%s\" as \"%s\" part entry",
-	       path, entry);
-           eet_close(eetf);
-           free(fdata);
-           return EINA_FALSE;
-        }
+   if (eet_write(eetf, entry, fdata, fsize, 1) <= 0)
+     {
+        ERR("Unable to write font part \"%s\" as \"%s\" part entry",
+            path, entry);
+        goto on_error;
+     }
 
-      free(fdata);
+   /* write the edje_file */
+   if (!_edje_edit_edje_file_save(eetf, ed->file))
+     goto on_error;
 
-      /* write the edje_file */
-      if (!_edje_edit_edje_file_save(eetf, ed->file))
-	{
-	   eet_delete(eetf, entry);
-	   eet_close(eetf);
-	   return EINA_FALSE;
-	}
+   eet_close(eetf);
 
-      eet_close(eetf);
-   }
+   eina_file_map_free(f, fdata);
+   eina_file_close(f);
 
    return EINA_TRUE;
+
+ on_error:
+   if (eetf) eet_close(eetf);
+   eina_file_map_free(f, fdata);
+   eina_file_close(f);
+
+   return EINA_FALSE;
 }
 
 
@@ -4791,7 +4782,7 @@ edje_edit_image_id_get(Evas_Object *obj, const char *image_name)
 {
    eina_error_set(0);
 
-   GET_ED_OR_RETURN(-1);
+   GET_EED_OR_RETURN(-1);
 
    return _edje_image_id_find(eed, image_name);
 }
@@ -5174,7 +5165,6 @@ EAPI Eina_Bool
 edje_edit_program_add(Evas_Object *obj, const char *name)
 {
    Edje_Program *epr;
-   Edje_Part_Collection *pc;
 
    eina_error_set(0);
 
@@ -5191,7 +5181,7 @@ edje_edit_program_add(Evas_Object *obj, const char *name)
    if (!epr) return EINA_FALSE;
 
    //Add program to group
-   pc = ed->collection;
+   // pc = ed->collection;
 
    /* By default, source and signal are empty, so they fill in nocmp category */
    ed->collection->programs.nocmp = realloc(ed->collection->programs.nocmp,
@@ -5237,7 +5227,6 @@ edje_edit_program_del(Evas_Object *obj, const char *prog)
    Eina_List *l, *l_next;
    Edje_Program_Target *prt;
    Edje_Program_After *pa;
-   Edje_Part_Collection *pc;
    Edje_Program *p;
    Program_Script *ps, *old_ps;
    int id, i;
@@ -5248,7 +5237,7 @@ edje_edit_program_del(Evas_Object *obj, const char *prog)
    GET_ED_OR_RETURN(EINA_FALSE);
    GET_EPR_OR_RETURN(EINA_FALSE);
 
-   pc = ed->collection;
+   //pc = ed->collection;
 
    //Remove program from programs list
    id = epr->id;
@@ -5737,7 +5726,7 @@ edje_edit_program_action_set(Evas_Object *obj, const char *prog, Edje_Action_Typ
 
    eina_error_set(0);
 
-   GET_ED_OR_RETURN(EINA_FALSE);
+   GET_EED_OR_RETURN(EINA_FALSE);
    GET_EPR_OR_RETURN(EINA_FALSE);
 
    //printf("SET ACTION for program: %s [%d]\n", prog, action);
@@ -6081,7 +6070,7 @@ edje_edit_script_set(Evas_Object *obj, const char *code)
 {
    eina_error_set(0);
 
-   GET_ED_OR_RETURN();
+   GET_EED_OR_RETURN();
 
    free(eed->embryo_source);
    free(eed->embryo_processed);
@@ -6104,7 +6093,7 @@ edje_edit_script_program_get(Evas_Object *obj, const char *prog)
 
    eina_error_set(0);
 
-   GET_ED_OR_RETURN(NULL);
+   GET_EED_OR_RETURN(NULL);
    GET_EPR_OR_RETURN(NULL);
 
    if (epr->action != EDJE_ACTION_TYPE_SCRIPT)
@@ -6124,7 +6113,7 @@ edje_edit_script_program_set(Evas_Object *obj, const char *prog, const char *cod
 
    eina_error_set(0);
 
-   GET_ED_OR_RETURN();
+   GET_EED_OR_RETURN();
    GET_EPR_OR_RETURN();
 
    if (epr->action != EDJE_ACTION_TYPE_SCRIPT)
@@ -6550,7 +6539,7 @@ almost_out:
 EAPI Eina_Bool
 edje_edit_script_compile(Evas_Object *obj)
 {
-   GET_ED_OR_RETURN(EINA_FALSE);
+   GET_EED_OR_RETURN(EINA_FALSE);
 
    if (!eed->script_need_recompile)
      return EINA_TRUE;
@@ -6561,7 +6550,7 @@ edje_edit_script_compile(Evas_Object *obj)
 EAPI const Eina_List *
 edje_edit_script_error_list_get(Evas_Object *obj)
 {
-   GET_ED_OR_RETURN(NULL);
+   GET_EED_OR_RETURN(NULL);
    return eed->errors;
 }
 
@@ -6643,7 +6632,7 @@ _edje_generate_source_of_program(Evas_Object *obj, const char *program, Eina_Str
    const char *api_name, *api_description;
    Edje_Program *epr;
 
-   GET_ED_OR_RETURN(EINA_FALSE);
+   GET_EED_OR_RETURN(EINA_FALSE);
 
    epr = _edje_program_get_byname(obj, program);
 
@@ -6816,7 +6805,7 @@ _edje_generate_source_of_state(Evas_Object *obj, const char *part, const char *s
    if (pd->aspect.min || pd->aspect.max)
       BUF_APPENDF(I5"aspect: %g %g;\n", TO_DOUBLE(pd->aspect.min), TO_DOUBLE(pd->aspect.max));
    if (pd->aspect.prefer)
-      BUF_APPENDF(I5"aspect_preference: %s;\n", prefers[pd->aspect.prefer]);
+      BUF_APPENDF(I5"aspect_preference: %s;\n", prefers[(int) pd->aspect.prefer]);
 
    if (pd->color_class)
      BUF_APPENDF(I5"color_class: \"%s\";\n", pd->color_class);
@@ -7786,7 +7775,7 @@ edje_edit_print_internal_status(Evas_Object *obj)
 */
    eina_error_set(0);
 
-   GET_ED_OR_RETURN();
+   GET_EED_OR_RETURN();
 
    _edje_generate_source(obj);
 /*

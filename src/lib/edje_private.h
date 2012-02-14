@@ -233,7 +233,7 @@ struct _Edje_Color
 struct _Edje_Aspect_Prefer
 {
    FLOAT_T min, max;
-   Edje_Internal_Aspect prefer;
+   char prefer;
 };
 
 struct _Edje_Aspect
@@ -838,6 +838,11 @@ struct _Edje_Part_Description_Common
       unsigned char  w, h; /* width or height is fixed in side (cannot expand with Edje object size) */
    } fixed;
 
+   struct { // only during recalc
+      unsigned char have;
+      FLOAT_T w, h;
+   } minmul;
+
    Edje_Size min, max;
    Edje_Position step; /* size stepping by n pixels, 0 = none */
    Edje_Aspect_Prefer aspect;
@@ -911,6 +916,9 @@ struct _Edje_Part_Description_Spec_Image
    int            id; /* the image id to use */
    int            scale_hint; /* evas scale hint */
    Eina_Bool      set; /* if image condition it's content */
+   struct {
+      Eina_Bool   limit; /* should we limit ourself to the size of the image */
+   } min, max;
 
    Edje_Part_Description_Spec_Border border;
 };
@@ -1142,6 +1150,7 @@ struct _Edje
    unsigned int          all_part_change : 1;
 #endif
    unsigned int          have_mapped_part : 1;
+   unsigned int          recalc_call : 1;
 };
 
 struct _Edje_Calc_Params
