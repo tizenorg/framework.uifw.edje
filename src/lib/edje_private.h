@@ -322,6 +322,7 @@ typedef struct _Edje_Var_Timer Edje_Var_Timer;
 typedef struct _Edje_Var_Pool Edje_Var_Pool;
 typedef struct _Edje_Signal_Source_Char Edje_Signal_Source_Char;
 typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callback;
+typedef struct _Edje_Markup_Filter_Callback Edje_Markup_Filter_Callback;
 
 #define EDJE_INF_MAX_W 100000
 #define EDJE_INF_MAX_H 100000
@@ -400,8 +401,6 @@ typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callbac
 #define EDJE_ENTRY_SELECTION_MODE_DEFAULT 0
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
 #define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2
-
-#define EDJE_ENTRY_DOUBLE_SPACE_TIME 0.6
 
 #define EDJE_ENTRY_CURSOR_MODE_UNDER 0
 #define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
@@ -1080,6 +1079,7 @@ struct _Edje
    Edje_Real_Part       *focused_part;
    Eina_List            *subobjs;
    Eina_List            *text_insert_filter_callbacks;
+   Eina_List            *markup_filter_callbacks;
    void                 *script_only_data;
 
    int                   table_programs_size;
@@ -1340,6 +1340,13 @@ struct _Edje_Text_Insert_Filter_Callback
    void        *data;
 };
 
+struct _Edje_Markup_Filter_Callback
+{
+   const char  *part;
+   Edje_Markup_Filter_Cb func;
+   void        *data;
+};
+
 struct _Edje_Pending_Program
 {
    Edje         *edje;
@@ -1562,10 +1569,6 @@ extern FLOAT_T          _edje_scale;
 extern int              _edje_freeze_val;
 extern int              _edje_freeze_calc_count;
 extern Eina_List       *_edje_freeze_calc_list;
-extern Eina_Bool        _edje_input_panel_enable;
-
-extern Eina_Bool        _edje_password_show_last;
-extern FLOAT_T          _edje_password_show_last_timeout;
 
 extern Eina_Bool        _edje_password_show_last;
 extern FLOAT_T          _edje_password_show_last_timeout;
