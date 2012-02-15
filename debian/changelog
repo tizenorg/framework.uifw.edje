@@ -1,3 +1,13 @@
+edje (1.1.0+svn.67705slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] Add edje_object_markup_filter_callback_add. merge with 67724
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 15 Feb 2012 19:02:01 +0900
+
 edje (1.1.0+svn.66979slp2+build03) unstable; urgency=low
 
   * Use synchronous ecore_imf callback API
