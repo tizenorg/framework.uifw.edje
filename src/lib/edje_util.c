@@ -1908,7 +1908,7 @@ edje_object_part_text_imf_context_reset(const Evas_Object *obj, const char *part
 }
 
 EAPI void
-edje_object_part_text_input_panel_layout_set(const Evas_Object *obj, const char *part, Edje_Input_Panel_Layout layout)
+edje_object_part_text_input_panel_layout_set(Evas_Object *obj, const char *part, Edje_Input_Panel_Layout layout)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1941,7 +1941,7 @@ edje_object_part_text_input_panel_layout_get(const Evas_Object *obj, const char 
 }
 
 EAPI void
-edje_object_part_text_autocapital_type_set(const Evas_Object *obj, const char *part, Edje_Text_Autocapital_Type autocapital_type)
+edje_object_part_text_autocapital_type_set(Evas_Object *obj, const char *part, Edje_Text_Autocapital_Type autocapital_type)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1974,7 +1974,7 @@ edje_object_part_text_autocapital_type_get(const Evas_Object *obj, const char *p
 }
 
 EAPI void
-edje_object_part_text_prediction_allow_set(const Evas_Object *obj, const char *part, Eina_Bool prediction)
+edje_object_part_text_prediction_allow_set(Evas_Object *obj, const char *part, Eina_Bool prediction)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -2007,7 +2007,7 @@ edje_object_part_text_prediction_allow_get(const Evas_Object *obj, const char *p
 }
 
 EAPI void
-edje_object_part_text_input_panel_enabled_set(const Evas_Object *obj, const char *part, Eina_Bool enabled)
+edje_object_part_text_input_panel_enabled_set(Evas_Object *obj, const char *part, Eina_Bool enabled)
 {
    Edje *ed;
    Edje_Real_Part *rp;
