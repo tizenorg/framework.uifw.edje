@@ -451,6 +451,9 @@ _edje_edd_init(void)
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "align.y", align.y, EDJE_T_FLOAT); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "fixed.w", fixed.w, EET_T_UCHAR); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "fixed.h", fixed.h, EET_T_UCHAR); \
+      EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "minmul.have", minmul.have, EET_T_UCHAR); \
+      EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "minmul.w", minmul.w, EDJE_T_FLOAT); \
+      EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "minmul.h", minmul.h, EDJE_T_FLOAT); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "min.w", min.w, EET_T_INT); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "min.h", min.h, EET_T_INT); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "max.w", max.w, EET_T_INT); \
@@ -583,6 +586,8 @@ _edje_edd_init(void)
 
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.id", image.id, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.set", image.set, EET_T_UCHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.min.limit", image.min.limit, EET_T_UCHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.max.limit", image.max.limit, EET_T_UCHAR);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.border.l", image.border.l, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.border.r", image.border.r, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_description_image, Edje_Part_Description_Image, "image.border.t", image.border.t, EET_T_INT);

@@ -1,6 +1,6 @@
 #include "edje_private.h"
 
-static void _edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data);
+static void _edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data, Eina_Bool prop);
 static void _edje_param_copy(Edje_Real_Part *src_part, const char *src_param, Edje_Real_Part *dst_part, const char *dst_param);
 static void _edje_param_set(Edje_Real_Part *part, const char *param, const char *value);
 
@@ -23,6 +23,31 @@ EAPI double
 edje_frametime_get(void)
 {
    return ecore_animator_frametime_get();
+}
+
+void
+edje_object_propagate_callback_add(Evas_Object *obj, void (*func) (void *data, Evas_Object *o, const char *emission, const char *source), void *data)
+{
+   Edje *ed;
+   Edje_Signal_Callback *escb;
+
+   ed = _edje_fetch(obj);
+   if (!ed) return;
+   if (ed->delete_me) return;
+   escb = calloc(1, sizeof(Edje_Signal_Callback));
+   escb->propagate = EINA_TRUE;
+   escb->signal = eina_stringshare_add("*");
+   escb->source = eina_stringshare_add("*");
+   escb->func = func;
+   escb->data = data;
+   ed->callbacks = eina_list_append(ed->callbacks, escb);
+   if (ed->walking_callbacks)
+     {
+	escb->just_added = 1;
+	ed->just_added_callbacks = 1;
+     }
+   else
+     _edje_callbacks_patterns_clean(ed);
 }
 
 EAPI void
@@ -480,35 +505,33 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
 			 {
                             if ((rp->object) && (pr->tween.mode & EDJE_TWEEN_MODE_OPT_FROM_CURRENT))
                               {
-                                 rp->current = calloc(1, sizeof(Edje_Calc_Params));
-                                 evas_object_geometry_get(rp->object, &(rp->current->x),
-                                                          &(rp->current->y),
-                                                          &(rp->current->w),
-                                                          &(rp->current->h));
-                                 evas_object_color_get(rp->object, (int *)&(rp->current->color.r),
-                                                       (int *)&(rp->current->color.g),
-                                                       (int *)&(rp->current->color.b),
-                                                       (int *)&(rp->current->color.a));
-                                 evas_object_text_font_get(rp->object, NULL, &(rp->current->type.text.size));
-                                 evas_object_text_outline_color_get(rp->object,
-                                                       (int *)&(rp->current->type.text.color2.r),
-                                                       (int *)&(rp->current->type.text.color2.g),
-                                                       (int *)&(rp->current->type.text.color2.b),
-                                                       (int *)&(rp->current->type.text.color2.a));
-                                 evas_object_text_shadow_color_get(rp->object,
-                                                       (int *)&(rp->current->type.text.color3.r),
-                                                       (int *)&(rp->current->type.text.color3.g),
-                                                       (int *)&(rp->current->type.text.color3.b),
-                                                       (int *)&(rp->current->type.text.color3.a));
+                                 Edje_Calc_Params *tmp;
+
+                                 tmp = calloc(1, sizeof(Edje_Calc_Params));
+                                 if (!tmp) goto low_mem_current;
+				 _edje_part_recalc(ed, rp, FLAG_XY, tmp);
+
+                                 if (rp->current) free(rp->current);
+                                 rp->current = tmp;
+
+				 rp->current->x -= ed->x;
+				 rp->current->y -= ed->y;
+				 rp->current->map.center.x -= ed->x;
+				 rp->current->map.center.y -= ed->y;
+				 rp->current->map.light.x -= ed->x;
+				 rp->current->map.light.y -= ed->y;
+				 rp->current->map.persp.x -= ed->x;
+				 rp->current->map.persp.y -= ed->y;
                               }
                             else
                               {
+                              low_mem_current:
                                  if (rp->current) free(rp->current);
                                  rp->current = NULL;
                               }
 
 			    if (rp->program)
-			      _edje_program_end(ed, rp->program);
+                              _edje_program_end(ed, rp->program);
 			    _edje_part_description_apply(ed, rp,
 							 rp->param1.description->state.name,
 							 rp->param1.description->state.value,
@@ -547,7 +570,7 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
 		       if (rp)
 			 {
 			    if (rp->program)
-			      _edje_program_end(ed, rp->program);
+                              _edje_program_end(ed, rp->program);
 			    _edje_part_description_apply(ed, rp,
 							 pr->state,
 							 pr->value,
@@ -846,12 +869,9 @@ _edje_emit(Edje *ed, const char *sig, const char *src)
 
 /* data should either be NULL or a malloc allocated data */
 void
-_edje_emit_full(Edje *ed, const char *sig, const char *src, void *data,
-      void (*free_func)(void *))
+_edje_emit_full(Edje *ed, const char *sig, const char *src, void *data, void (*free_func)(void *))
 {
    Edje_Message_Signal emsg;
-   Eina_List *l;
-   Evas_Object *obj;
    const char *sep;
 
    if (ed->delete_me) return;
@@ -972,7 +992,7 @@ _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data,
               break ;
 
            default:
-              fprintf(stderr, "SPANK SPANK SPANK !!!\nYou should never be here !\n");
+              ERR("SPANK SPANK SPANK !!!\nYou should never be here !");
               break;
           }
      }
@@ -991,6 +1011,9 @@ _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data,
      {
         emsg.data = NULL;
      }
+/* new sends code */
+   edje_object_message_send(ed->obj, EDJE_MESSAGE_SIGNAL, 0, &emsg);
+/* old send code - use api now
    _edje_message_send(ed, EDJE_QUEUE_SCRIPT, EDJE_MESSAGE_SIGNAL, 0, &emsg);
    EINA_LIST_FOREACH(ed->subobjs, l, obj)
      {
@@ -1001,7 +1024,7 @@ _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data,
         if (ed2->delete_me) continue;
         _edje_message_send(ed2, EDJE_QUEUE_SCRIPT, EDJE_MESSAGE_SIGNAL, 0, &emsg);
      }
-
+ */
    if (emsg.data && (--(emsg.data->ref) == 0))
      {
         if (emsg.data->free_func)
@@ -1029,16 +1052,16 @@ static Eina_Bool _edje_glob_callback(Edje_Program *pr, void *dt)
    Edje_Real_Part *rp = NULL;
    Eina_Bool exec = EINA_TRUE;
 
-#ifdef EDJE_PROGRAM_CACHE
-   data->matched++;
-#endif
-
    if (pr->filter.state)
      {
 	rp = _edje_real_part_get(data->ed, pr->filter.part ? pr->filter.part : data->source);
 	if (rp)
 	  exec = (rp->chosen_description->state.name == pr->filter.state);
      }
+
+#ifdef EDJE_PROGRAM_CACHE
+   data->matched++;
+#endif
 
    if (exec)
      _edje_program_run(data->ed, pr, 0, data->signal, data->source);
@@ -1092,7 +1115,7 @@ _edje_callbacks_patterns_init(Edje *ed)
 /* FIXME: what if we delete the evas object??? */
 void
 _edje_emit_handle(Edje *ed, const char *sig, const char *src,
-      Edje_Message_Signal_Data *sdata)
+                  Edje_Message_Signal_Data *sdata, Eina_Bool prop)
 {
    if (ed->delete_me) return;
    if (!sig) sig = "";
@@ -1139,11 +1162,30 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
 	       {
 		 EINA_LIST_FOREACH(matches, l, pr)
 		    {
-		       _edje_program_run(ed, pr, 0, sig, src);
-		       if (_edje_block_break(ed))
-			 {
-			    goto break_prog;
-			 }
+                       Eina_Bool exec = EINA_TRUE;
+
+                       if (pr->filter.state)
+                         {
+                            Edje_Real_Part *rp;
+
+                            rp = _edje_real_part_get(ed, pr->filter.part ? pr->filter.part : src);
+                            if (rp)
+                              {
+                                 if (rp->program)
+                                   exec = EINA_FALSE;
+                                 else
+                                   exec = (rp->chosen_description->state.name == pr->filter.state);
+                              }
+                         }
+
+                       if (exec)
+                         {
+                            _edje_program_run(ed, pr, 0, sig, src);
+                            if (_edje_block_break(ed))
+                              {
+                                 goto break_prog;
+                              }
+                         }
 		    }
 		  done = 1;
 	       }
@@ -1173,7 +1215,8 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
 						 src,
 						 ed->patterns.programs.u.programs.globing,
 						 _edje_glob_callback,
-						 &data) == 0)
+						 &data,
+                                                 prop) == 0)
 		      goto break_prog;
 
 		  match = edje_match_signal_source_hash_get(sig, src,
@@ -1200,7 +1243,7 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
 	       }
 #endif
 	  }
-	_edje_emit_cb(ed, sig, src, sdata);
+	_edje_emit_cb(ed, sig, src, sdata, prop);
 	if (_edje_block_break(ed))
 	  {
 	     goto break_prog;
@@ -1223,7 +1266,7 @@ edje_object_signal_callback_extra_data_get(void)
 
 /* FIXME: what if we delete the evas object??? */
 static void
-_edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data)
+_edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data, Eina_Bool prop)
 {
    Eina_List            *l;
 
@@ -1252,7 +1295,8 @@ _edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Da
 				       sig,
 				       src,
 				       ed->patterns.callbacks.u.callbacks.globing,
-				       ed);
+				       ed,
+                                       prop);
 
         if (!r)
           goto break_prog;
@@ -1260,12 +1304,15 @@ _edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Da
 	match = edje_match_signal_source_hash_get(sig, src,
 						  ed->patterns.callbacks.exact_match);
 	EINA_LIST_FOREACH(match, l2, escb)
-	  if ((!escb->just_added) && (!escb->delete_me))
-	    {
-	       escb->func(escb->data, ed->obj, sig, src);
-	       if (_edje_block_break(ed))
-		 goto break_prog;
-	    }
+          {
+             if ((prop) && (escb->propagate)) continue;
+             if ((!escb->just_added) && (!escb->delete_me))
+               {
+                  escb->func(escb->data, ed->obj, sig, src);
+                  if (_edje_block_break(ed))
+                    goto break_prog;
+               }
+          }
      }
    break_prog:
 
@@ -1579,6 +1626,7 @@ _edje_param_native_set(Edje_Real_Part *rp, const char *name, const Edje_External
 		  if (param->type != EDJE_EXTERNAL_PARAM_TYPE_DOUBLE)
 		    return EINA_FALSE;
 		  rp->drag->size.x = FROM_DOUBLE(CLAMP(param->d, 0.0, 1.0));
+                  rp->edje->recalc_call = 1;
 		  rp->edje->dirty = 1;
 #ifdef EDJE_CALC_CACHE
 		  rp->invalidate = 1;
@@ -1591,6 +1639,7 @@ _edje_param_native_set(Edje_Real_Part *rp, const char *name, const Edje_External
 		  if (param->type != EDJE_EXTERNAL_PARAM_TYPE_DOUBLE)
 		    return EINA_FALSE;
 		  rp->drag->size.y = FROM_DOUBLE(CLAMP(param->d, 0.0, 1.0));
+                  rp->edje->recalc_call = 1;
 		  rp->edje->dirty = 1;
 #ifdef EDJE_CALC_CACHE
 		  rp->invalidate = 1;

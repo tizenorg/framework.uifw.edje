@@ -1,3 +1,69 @@
+edje (1.1.0+svn.67705slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] Add edje_object_markup_filter_callback_add. merge with 67724
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 15 Feb 2012 19:02:01 +0900
+
+edje (1.1.0+svn.66979slp2+build03) unstable; urgency=low
+
+  * Use synchronous ecore_imf callback API
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 31 Jan 2012 13:29:47 +0900
+
+edje (1.1.0+svn.66979slp2+build02) unstable; urgency=low
+
+  * remove evas obj hide at edje_object_part_unswallow
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build02
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Tue, 17 Jan 2012 18:24:11 +0900
+
+edje (1.1.0+svn.66979slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Mon, 16 Jan 2012 18:37:01 +0900
+
+edje (1.1.0+svn.65864slp2+build02) unstable; urgency=low
+
+  * delete some autoperiod, autocaptial setting APIs
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65864slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 08 Dec 2011 15:04:02 +0900
+
+edje (1.1.0+svn.65864slp2+build01) unstable; urgency=low
+
+  * Package Upload for migration
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65864slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Thu, 08 Dec 2011 13:53:42 +0900
+
+edje (1.1.0+svn.65305slp2+build07) unstable; urgency=low
+
+  * Package Upload
+  * Git: git-server:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build07
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 07 Dec 2011 12:39:40 +0900
+
+edje (1.1.0+svn.65305slp2+build06) unstable; urgency=low
+
+  * Deprecate some unused APIs
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 06 Dec 2011 19:40:52 +0900
+
 edje (1.1.0+svn.65305slp2+build05) unstable; urgency=low
 
   * Package Upload

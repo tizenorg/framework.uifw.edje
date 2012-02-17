@@ -192,7 +192,8 @@ typedef enum
    EDJE_ASPECT_PREFER_NONE,
    EDJE_ASPECT_PREFER_VERTICAL,
    EDJE_ASPECT_PREFER_HORIZONTAL,
-   EDJE_ASPECT_PREFER_BOTH
+   EDJE_ASPECT_PREFER_BOTH,
+   EDJE_ASPECT_PREFER_SOURCE
 } Edje_Internal_Aspect;
 
 struct _Edje_Perspective
@@ -232,7 +233,7 @@ struct _Edje_Color
 struct _Edje_Aspect_Prefer
 {
    FLOAT_T min, max;
-   Edje_Internal_Aspect prefer;
+   char prefer;
 };
 
 struct _Edje_Aspect
@@ -321,6 +322,7 @@ typedef struct _Edje_Var_Timer Edje_Var_Timer;
 typedef struct _Edje_Var_Pool Edje_Var_Pool;
 typedef struct _Edje_Signal_Source_Char Edje_Signal_Source_Char;
 typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callback;
+typedef struct _Edje_Markup_Filter_Callback Edje_Markup_Filter_Callback;
 
 #define EDJE_INF_MAX_W 100000
 #define EDJE_INF_MAX_H 100000
@@ -400,8 +402,6 @@ typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callbac
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
 #define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2
 
-#define EDJE_ENTRY_DOUBLE_SPACE_TIME 0.6
-
 #define EDJE_ENTRY_CURSOR_MODE_UNDER 0
 #define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
 
@@ -413,6 +413,12 @@ typedef struct _Edje_Text_Insert_Filter_Callback Edje_Text_Insert_Filter_Callbac
 #define EDJE_PART_PATH_SEPARATOR_STRING ":"
 #define EDJE_PART_PATH_SEPARATOR_INDEXL '['
 #define EDJE_PART_PATH_SEPARATOR_INDEXR ']'
+
+#define FLAG_NONE 0
+#define FLAG_X    0x01
+#define FLAG_Y    0x02
+#define FLAG_XY   (FLAG_X | FLAG_Y)
+
 /*----------*/
 
 struct _Edje_File
@@ -831,6 +837,11 @@ struct _Edje_Part_Description_Common
       unsigned char  w, h; /* width or height is fixed in side (cannot expand with Edje object size) */
    } fixed;
 
+   struct { // only during recalc
+      unsigned char have;
+      FLOAT_T w, h;
+   } minmul;
+
    Edje_Size min, max;
    Edje_Position step; /* size stepping by n pixels, 0 = none */
    Edje_Aspect_Prefer aspect;
@@ -904,6 +915,9 @@ struct _Edje_Part_Description_Spec_Image
    int            id; /* the image id to use */
    int            scale_hint; /* evas scale hint */
    Eina_Bool      set; /* if image condition it's content */
+   struct {
+      Eina_Bool   limit; /* should we limit ourself to the size of the image */
+   } min, max;
 
    Edje_Part_Description_Spec_Border border;
 };
@@ -1065,6 +1079,7 @@ struct _Edje
    Edje_Real_Part       *focused_part;
    Eina_List            *subobjs;
    Eina_List            *text_insert_filter_callbacks;
+   Eina_List            *markup_filter_callbacks;
    void                 *script_only_data;
 
    int                   table_programs_size;
@@ -1135,6 +1150,7 @@ struct _Edje
    unsigned int          all_part_change : 1;
 #endif
    unsigned int          have_mapped_part : 1;
+   unsigned int          recalc_call : 1;
 };
 
 struct _Edje_Calc_Params
@@ -1164,6 +1180,26 @@ struct _Edje_Calc_Params
 	 Edje_Color     color2, color3; // 8
       } text; // 36
    } type; // 40
+   struct {
+      struct {
+         int x, y, z;
+      } center; // 12
+      struct {
+         double x, y, z;
+      } rotation; // 24
+      struct {
+         int x, y, z;
+         int r, g, b;
+         int ar, ag, ab;
+      } light; // 36
+      struct {
+         int x, y, z;
+         int focal;
+      } persp;
+   } map;
+   unsigned char    persp_on : 1;
+   unsigned char    lighted : 1;
+   unsigned char    mapped : 1;
    unsigned char    visible : 1;
    unsigned char    smooth : 1; // 1
 }; // 96
@@ -1294,12 +1330,20 @@ struct _Edje_Signal_Callback
    void           *data;
    unsigned char   just_added : 1;
    unsigned char   delete_me : 1;
+   unsigned char   propagate : 1;
 };
 
 struct _Edje_Text_Insert_Filter_Callback
 {
    const char  *part;
    Edje_Text_Filter_Cb func;
+   void        *data;
+};
+
+struct _Edje_Markup_Filter_Callback
+{
+   const char  *part;
+   Edje_Markup_Filter_Cb func;
    void        *data;
 };
 
@@ -1438,6 +1482,7 @@ struct _Edje_Message
    Edje_Message_Type  type;
    int                id;
    unsigned char     *msg;
+   Eina_Bool          propagated : 1;
 };
 
 typedef enum _Edje_Fill
@@ -1485,13 +1530,15 @@ Eina_Bool        edje_match_programs_exec(const Edje_Patterns    *ppat_signal,
 					  const char             *source,
 					  Edje_Program          **programs,
 					  Eina_Bool (*func)(Edje_Program *pr, void *data),
-					  void                   *data);
+					  void                   *data,
+                                          Eina_Bool               prop);
 int              edje_match_callback_exec(Edje_Patterns          *ppat_signal,
 					  Edje_Patterns          *ppat_source,
 					  const char             *signal,
 					  const char             *source,
 					  Eina_List              *callbacks,
-					  Edje                   *ed);
+					  Edje                   *ed,
+                                          Eina_Bool               prop);
 
 void             edje_match_patterns_free(Edje_Patterns *ppat);
 
@@ -1522,10 +1569,6 @@ extern FLOAT_T          _edje_scale;
 extern int              _edje_freeze_val;
 extern int              _edje_freeze_calc_count;
 extern Eina_List       *_edje_freeze_calc_list;
-extern Eina_Bool        _edje_input_panel_enable;
-
-extern Eina_Bool        _edje_password_show_last;
-extern FLOAT_T          _edje_password_show_last_timeout;
 
 extern Eina_Bool        _edje_password_show_last;
 extern FLOAT_T          _edje_password_show_last_timeout;
@@ -1600,7 +1643,7 @@ void _edje_programs_patterns_clean(Edje *ed);
 void _edje_programs_patterns_init(Edje *ed);
 void  _edje_emit(Edje *ed, const char *sig, const char *src);
 void _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data, void (*free_func)(void *));
-void _edje_emit_handle(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data);
+void _edje_emit_handle(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Data *data, Eina_Bool prop);
 void  _edje_signals_sources_patterns_clean(Edje_Signals_Sources_Patterns *ssp);
 void  _edje_callbacks_patterns_clean(Edje *ed);
 
@@ -1730,6 +1773,7 @@ void          _edje_message_shutdown        (void);
 void          _edje_message_cb_set          (Edje *ed, void (*func) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg), void *data);
 Edje_Message *_edje_message_new             (Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id);
 void          _edje_message_free            (Edje_Message *em);
+void          _edje_message_propornot_send  (Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, void *emsg, Eina_Bool prop);
 void          _edje_message_send            (Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, void *emsg);
 void          _edje_message_parameters_push (Edje_Message *em);
 void          _edje_message_process         (Edje_Message *em);
@@ -1880,7 +1924,6 @@ void _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow);
 Eina_Bool _edje_entry_select_allow_get(const Edje_Real_Part *rp);
 void _edje_entry_select_abort(Edje_Real_Part *rp);
 void _edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj);
-void _edje_entry_autocapitalization_set(Edje_Real_Part *rp, Eina_Bool autocap);
 void _edje_entry_autoperiod_set(Edje_Real_Part *rp, Eina_Bool autoperiod);
 #ifdef HAVE_ECORE_IMF
 Ecore_IMF_Context *_edje_entry_imf_context_get(Edje_Real_Part *rp);
@@ -1896,7 +1939,7 @@ void _edje_entry_cursor_line_end(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_coord_set(Edje_Real_Part *rp, Edje_Cursor cur, int x, int y);
 Eina_Bool _edje_entry_cursor_is_format_get(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_is_visible_format_get(Edje_Real_Part *rp, Edje_Cursor cur);
-const char *_edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur);
+char *_edje_entry_cursor_content_get(Edje_Real_Part *rp, Edje_Cursor cur);
 void _edje_entry_cursor_pos_set(Edje_Real_Part *rp, Edje_Cursor cur, int pos);
 int _edje_entry_cursor_pos_get(Edje_Real_Part *rp, Edje_Cursor cur);
 void _edje_entry_input_panel_layout_set(Edje_Real_Part *rp, Edje_Input_Panel_Layout layout);
@@ -1911,8 +1954,8 @@ void _edje_external_init();
 void _edje_external_shutdown();
 Evas_Object *_edje_external_type_add(const char *type_name, Evas *evas, Evas_Object *parent, const Eina_List *params, const char *part_name);
 void _edje_external_signal_emit(Evas_Object *obj, const char *emission, const char *source);
-Eina_Bool _edje_external_param_set(Evas_Object *obj, Edje_Real_Part *rp, const Edje_External_Param *param) EINA_ARG_NONNULL(1, 2);
-Eina_Bool _edje_external_param_get(const Evas_Object *obj, Edje_Real_Part *rp, Edje_External_Param *param) EINA_ARG_NONNULL(1, 2);
+Eina_Bool _edje_external_param_set(Evas_Object *obj, Edje_Real_Part *rp, const Edje_External_Param *param) EINA_ARG_NONNULL(2);
+Eina_Bool _edje_external_param_get(const Evas_Object *obj, Edje_Real_Part *rp, Edje_External_Param *param) EINA_ARG_NONNULL(2);
 Evas_Object *_edje_external_content_get(const Evas_Object *obj, const char *content) EINA_ARG_NONNULL(1, 2);
 void _edje_external_params_free(Eina_List *params, Eina_Bool free_strings);
 void _edje_external_recalc_apply(Edje *ed, Edje_Real_Part *ep,
@@ -1949,6 +1992,8 @@ edje_program_is_strrncmp(const char *str)
      return EINA_FALSE;
    return EINA_TRUE;
 }
+void edje_object_propagate_callback_add(Evas_Object *obj, void (*func) (void *data, Evas_Object *o, const char *emission, const char *source), void *data);
+
 
 /* used by edje_cc - private still */
 EAPI void _edje_program_insert(Edje_Part_Collection *ed, Edje_Program *p);
@@ -1977,10 +2022,14 @@ void _edje_object_orientation_inform(Evas_Object *obj);
 void _edje_lib_ref(void);
 void _edje_lib_unref(void);
 
+void _edje_subobj_register(Edje *ed, Evas_Object *ob);
+
 void _edje_multisense_init(void);
 void _edje_multisense_shutdown(void);
 Eina_Bool _edje_multisense_internal_sound_sample_play(Edje *ed, const char *sample_name, const double speed);
 Eina_Bool _edje_multisense_internal_sound_tone_play(Edje *ed, const char *tone_name, const double duration);
+
+void _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *state);
 
 #ifdef HAVE_LIBREMIX
 #include <remix/remix.h>

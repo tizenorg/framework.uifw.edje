@@ -27,10 +27,6 @@ FLOAT_T _edje_password_show_last_timeout = ZERO;
 int _edje_freeze_val = 0;
 int _edje_freeze_calc_count = 0;
 Eina_List *_edje_freeze_calc_list = NULL;
-Eina_Bool _edje_input_panel_enable = EINA_FALSE;
-Eina_Bool _edje_input_panel_allow = EINA_FALSE;
-Eina_Bool _edje_autocapital_allow = EINA_FALSE;
-Eina_Bool _edje_autoperiod_allow = EINA_FALSE;
 
 typedef struct _Edje_List_Foreach_Data Edje_List_Foreach_Data;
 struct _Edje_List_Foreach_Data
@@ -333,62 +329,6 @@ edje_object_mirrored_set(Evas_Object *obj, Eina_Bool rtl)
    return;
 }
 
-EAPI void
-edje_input_panel_enabled_set(Eina_Bool enabled)
-{
-   if (_edje_input_panel_enable == enabled) return;
-   _edje_input_panel_enable = enabled;
-}
-
-EAPI void
-edje_input_panel_allow_set(Eina_Bool enabled)
-{
-   if (_edje_input_panel_allow == enabled) return;
-   _edje_input_panel_allow = enabled;
-}
-
-EAPI Eina_Bool
-edje_input_panel_allow_get(void)
-{
-   return _edje_input_panel_allow;
-}
-
-/**
- * @brief Turn on/off the edje's global autocapitalization function
- *
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void
-edje_autocapitalization_allow_set(Eina_Bool autocap)
-{
-   if (_edje_autocapital_allow == autocap) return;
-   _edje_autocapital_allow = autocap;
-}
-
-EAPI Eina_Bool
-edje_autocapitalization_allow_get(void)
-{
-   return _edje_autocapital_allow;
-}
-
-/**
- * @brief Turn on/off the edje's global autoperiod function
- *
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void
-edje_autoperiod_allow_set(Eina_Bool autoperiod)
-{
-   if (_edje_autoperiod_allow == autoperiod) return;
-   _edje_autoperiod_allow = autoperiod;
-}
-
-EAPI Eina_Bool
-edje_autoperiod_allow_get(void)
-{
-   return _edje_autoperiod_allow;
-}
-
 EAPI const char *
 edje_object_data_get(const Evas_Object *obj, const char *key)
 {
@@ -498,6 +438,7 @@ edje_color_class_set(const char *color_class, int r, int g, int b, int a, int r2
 
 	ed = eina_list_data_get(members);
 	ed->dirty = 1;
+        ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
 	ed->all_part_change = 1;
 #endif
@@ -564,6 +505,7 @@ edje_color_class_del(const char *color_class)
 
 	ed = eina_list_data_get(members);
 	ed->dirty = 1;
+        ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
 	ed->all_part_change = 1;
 #endif
@@ -643,6 +585,7 @@ edje_object_color_class_set(Evas_Object *obj, const char *color_class, int r, in
 	     cc->b3 = b3;
 	     cc->a3 = a3;
 	     ed->dirty = 1;
+             ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
 	     ed->all_part_change = 1;
 #endif
@@ -671,6 +614,7 @@ edje_object_color_class_set(Evas_Object *obj, const char *color_class, int r, in
    cc->a3 = a3;
    ed->color_classes = eina_list_append(ed->color_classes, cc);
    ed->dirty = 1;
+   ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    ed->all_part_change = 1;
 #endif
@@ -753,6 +697,7 @@ edje_object_color_class_del(Evas_Object *obj, const char *color_class)
      }
 
    ed->dirty = 1;
+   ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    ed->all_part_change = 1;
 #endif
@@ -812,6 +757,7 @@ edje_text_class_set(const char *text_class, const char *font, Evas_Font_Size siz
 
 	ed = eina_list_data_get(members);
 	ed->dirty = 1;
+        ed->recalc_call = 1;
 	_edje_textblock_style_all_update(ed);
 #ifdef EDJE_CALC_CACHE
 	ed->text_part_change = 1;
@@ -907,6 +853,7 @@ edje_object_text_class_set(Evas_Object *obj, const char *text_class, const char 
 
 	     /* Update edje */
 	     ed->dirty = 1;
+             ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
 	     ed->text_part_change = 1;
 #endif
@@ -941,6 +888,7 @@ edje_object_text_class_set(Evas_Object *obj, const char *text_class, const char 
    /* Add to edje's text class list */
    ed->text_classes = eina_list_append(ed->text_classes, tc);
    ed->dirty = 1;
+   ed->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    ed->text_part_change = 1;
 #endif
@@ -957,7 +905,7 @@ edje_object_part_exists(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    return EINA_TRUE;
 }
@@ -974,7 +922,7 @@ edje_object_part_object_get(const Evas_Object *obj, const char *part)
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    return rp->object;
 }
@@ -998,7 +946,7 @@ edje_object_part_geometry_get(const Evas_Object *obj, const char *part, Evas_Coo
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp)
      {
 	if (x) *x = 0;
@@ -1065,6 +1013,7 @@ _edje_object_part_text_raw_set(Evas_Object *obj, Edje_Real_Part *rp, const char 
    else
      if (text) rp->text.text = eina_stringshare_add(text);
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -1099,6 +1048,7 @@ _edje_object_part_text_raw_append(Evas_Object *obj, Edje_Real_Part *rp, const ch
           }
      }
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -1106,6 +1056,46 @@ _edje_object_part_text_raw_append(Evas_Object *obj, Edje_Real_Part *rp, const ch
    if (rp->edje->text_change.func)
      rp->edje->text_change.func(rp->edje->text_change.data, obj, part);
    return EINA_TRUE;
+}
+
+EAPI void
+edje_object_part_text_style_user_set(Evas_Object *obj, const char *part,
+                                const char *style)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+   Evas_Textblock_Style *ts;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part) || (!style)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) return;
+
+   ts = evas_textblock_style_new();
+   evas_textblock_style_set(ts, style);
+   evas_object_textblock_style_user_set(rp->object, ts);
+   evas_textblock_style_free(ts);
+}
+
+EAPI const char *
+edje_object_part_text_style_user_get(Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+   const Evas_Textblock_Style *ts;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return NULL;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return NULL;
+   if (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) return NULL;
+
+   ts = evas_object_textblock_style_user_get(rp->object);
+   if (ts)
+      return evas_textblock_style_get(ts);
+   else
+      return NULL;
 }
 
 EAPI Eina_Bool
@@ -1116,7 +1106,7 @@ edje_object_part_text_set(Evas_Object *obj, const char *part, const char *text)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if ((rp->part->type != EDJE_PART_TYPE_TEXT) &&
        (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK)) return EINA_FALSE;
@@ -1146,7 +1136,7 @@ edje_object_part_text_get(const Evas_Object *obj, const char *part)
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      return _edje_entry_text_get(rp);
@@ -1302,7 +1292,7 @@ edje_object_part_text_unescaped_get(const Evas_Object *obj, const char *part)
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1329,7 +1319,7 @@ edje_object_part_text_selection_get(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      return _edje_entry_selection_get(rp);
@@ -1344,7 +1334,7 @@ edje_object_part_text_select_none(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_none(rp);
@@ -1358,7 +1348,7 @@ edje_object_part_text_select_all(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_all(rp);
@@ -1372,12 +1362,13 @@ edje_object_part_text_insert(Evas_Object *obj, const char *part, const char *tex
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if ((rp->part->type != EDJE_PART_TYPE_TEXTBLOCK)) return;
    if (rp->part->entry_mode <= EDJE_ENTRY_EDIT_MODE_NONE) return;
    _edje_entry_text_markup_insert(rp, text);
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -1394,11 +1385,12 @@ edje_object_part_text_append(Evas_Object *obj, const char *part, const char *tex
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if ((rp->part->type != EDJE_PART_TYPE_TEXTBLOCK)) return;
    _edje_object_part_text_raw_append(obj, rp, part, text);
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -1415,7 +1407,7 @@ edje_object_part_text_anchor_list_get(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      return _edje_entry_anchors_list(rp);
@@ -1430,7 +1422,7 @@ edje_object_part_text_anchor_geometry_get(const Evas_Object *obj, const char *pa
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      return _edje_entry_anchor_geometry_get(rp, anchor);
@@ -1445,7 +1437,7 @@ edje_object_part_text_item_list_get(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return NULL;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      return _edje_entry_items_list(rp);
@@ -1460,7 +1452,7 @@ edje_object_part_text_item_geometry_get(const Evas_Object *obj, const char *part
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      return _edje_entry_item_geometry_get(rp, item, cx, cy, cw, ch);
@@ -1524,7 +1516,7 @@ edje_object_part_text_cursor_geometry_get(const Evas_Object *obj, const char *pa
    if (w) *w = 0;
    if (h) *h = 0;
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1543,7 +1535,7 @@ edje_object_part_text_select_allow_set(const Evas_Object *obj, const char *part,
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_allow_set(rp, allow);
@@ -1557,7 +1549,7 @@ edje_object_part_text_select_abort(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_abort(rp);
@@ -1571,7 +1563,7 @@ edje_object_part_text_select_begin(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_begin(rp);
@@ -1585,26 +1577,10 @@ edje_object_part_text_select_extend(const Evas_Object *obj, const char *part)
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_select_extend(rp);
-}
-
-EAPI void
-edje_object_part_text_autocapitalization_set(const Evas_Object *obj, const char *part, Eina_Bool autocap)
-{
-   Edje *ed;
-   Edje_Real_Part *rp;
-
-   ed = _edje_fetch(obj);
-   if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
-   if (!rp) return;
-   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     {
-        _edje_entry_autocapitalization_set(rp, autocap);
-     }
 }
 
 EAPI void
@@ -1659,7 +1635,7 @@ edje_object_part_text_cursor_next(Evas_Object *obj, const char *part, Edje_Curso
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1676,7 +1652,7 @@ edje_object_part_text_cursor_prev(Evas_Object *obj, const char *part, Edje_Curso
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1693,7 +1669,7 @@ edje_object_part_text_cursor_up(Evas_Object *obj, const char *part, Edje_Cursor 
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1710,7 +1686,7 @@ edje_object_part_text_cursor_down(Evas_Object *obj, const char *part, Edje_Curso
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1727,7 +1703,7 @@ edje_object_part_text_cursor_begin_set(Evas_Object *obj, const char *part, Edje_
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1743,7 +1719,7 @@ edje_object_part_text_cursor_end_set(Evas_Object *obj, const char *part, Edje_Cu
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1759,7 +1735,7 @@ edje_object_part_text_cursor_copy(Evas_Object *obj, const char *part, Edje_Curso
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1775,7 +1751,7 @@ edje_object_part_text_cursor_line_begin_set(Evas_Object *obj, const char *part, 
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1791,7 +1767,7 @@ edje_object_part_text_cursor_line_end_set(Evas_Object *obj, const char *part, Ed
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1808,7 +1784,7 @@ edje_object_part_text_cursor_coord_set(Evas_Object *obj, const char *part,
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1825,7 +1801,7 @@ edje_object_part_text_cursor_is_format_get(const Evas_Object *obj, const char *p
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1842,7 +1818,7 @@ edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return 0;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return 0;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1851,7 +1827,7 @@ edje_object_part_text_cursor_is_visible_format_get(const Evas_Object *obj, const
    return 0;
 }
 
-EAPI const char *
+EAPI char *
 edje_object_part_text_cursor_content_get(const Evas_Object *obj, const char *part, Edje_Cursor cur)
 {
    Edje *ed;
@@ -1938,14 +1914,14 @@ edje_object_part_text_input_panel_layout_get(const Evas_Object *obj, const char 
    Edje_Real_Part *rp;
 
    ed = _edje_fetch(obj);
-   if ((!ed) || (!part)) return EDJE_INPUT_PANEL_LAYOUT_INVALID;
+   if ((!ed) || (!part)) return EDJE_INPUT_PANEL_LAYOUT_NORMAL;
    rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
         return _edje_entry_input_panel_layout_get(rp);
      }
-   return EDJE_INPUT_PANEL_LAYOUT_INVALID;
+   return EDJE_INPUT_PANEL_LAYOUT_NORMAL;
 }
 
 EAPI void
@@ -1956,7 +1932,7 @@ edje_object_part_text_autocapital_type_set(const Evas_Object *obj, const char *p
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -1972,7 +1948,7 @@ edje_object_part_text_autocapital_type_get(const Evas_Object *obj, const char *p
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EDJE_TEXT_AUTOCAPITAL_TYPE_NONE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EDJE_TEXT_AUTOCAPITAL_TYPE_NONE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      {
@@ -2079,6 +2055,71 @@ edje_object_text_insert_filter_callback_del_full(Evas_Object *obj, const char *p
    return NULL;
 }
 
+EAPI void
+edje_object_markup_filter_callback_add(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data)
+{
+   Edje *ed;
+   Edje_Markup_Filter_Callback *cb;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   cb = calloc(1, sizeof(Edje_Markup_Filter_Callback));
+   cb->part = eina_stringshare_add(part);
+   cb->func = func;
+   cb->data = (void *)data;
+   ed->markup_filter_callbacks =
+     eina_list_append(ed->markup_filter_callbacks, cb);
+}
+
+EAPI void *
+edje_object_markup_filter_callback_del(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func)
+{
+   Edje *ed;
+   Edje_Markup_Filter_Callback *cb;
+   Eina_List *l;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return NULL;
+   EINA_LIST_FOREACH(ed->markup_filter_callbacks, l, cb)
+     {
+        if ((!strcmp(cb->part, part)) && (cb->func == func))
+          {
+             void *data = cb->data;
+             ed->markup_filter_callbacks =
+                eina_list_remove_list(ed->markup_filter_callbacks, l);
+             eina_stringshare_del(cb->part);
+             free(cb);
+             return data;
+          }
+     }
+   return NULL;
+}
+
+EAPI void *
+edje_object_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data)
+{
+   Edje *ed;
+   Edje_Markup_Filter_Callback *cb;
+   Eina_List *l;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return NULL;
+   EINA_LIST_FOREACH(ed->markup_filter_callbacks, l, cb)
+     {
+        if ((!strcmp(cb->part, part)) && (cb->func == func) &&
+            (cb->data == data))
+          {
+             void *tmp = cb->data;
+             ed->markup_filter_callbacks =
+                eina_list_remove_list(ed->markup_filter_callbacks, l);
+             eina_stringshare_del(cb->part);
+             free(cb);
+             return tmp;
+          }
+     }
+   return NULL;
+}
+
 EAPI Eina_Bool
 edje_object_part_swallow(Evas_Object *obj, const char *part, Evas_Object *obj_swallow)
 {
@@ -2098,7 +2139,14 @@ edje_object_part_swallow(Evas_Object *obj, const char *part, Evas_Object *obj_sw
    // XXX: by Sachiel, January 21th 2009, 19:30 UTC
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = evas_object_data_get(obj_swallow, "\377 edje.swallowing_part");
+   if (rp)
+     {
+        /* The object is already swallowed somewhere, unswallow it first */
+        edje_object_part_unswallow(rp->edje->obj, obj_swallow);
+     }
+
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (rp->part->type != EDJE_PART_TYPE_SWALLOW)
      {
@@ -2119,6 +2167,7 @@ _recalc_extern_parent(Evas_Object *obj)
    ed = _edje_fetch(parent);
 
    ed->dirty = 1;
+   ed->recalc_call = 1; // ZZZ: ???
    _edje_recalc(ed);
 }
 
@@ -2300,11 +2349,7 @@ _edje_box_layout_external_new(const char *name, Evas_Object_Box_Layout func, voi
 
    name_len = strlen(name) + 1;
    l = malloc(sizeof(Edje_Box_Layout) + name_len);
-   if (!l)
-     {
-	perror("malloc");
-	return NULL;
-     }
+   if (!l) return NULL;
 
    l->func = func;
    l->layout_data_get = layout_data_get;
@@ -2414,6 +2459,7 @@ edje_object_part_unswallow(Evas_Object *obj __UNUSED__, Evas_Object *obj_swallow
 	rp->swallow_params.max.w = 0;
 	rp->swallow_params.max.h = 0;
 	rp->edje->dirty = 1;
+        rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
 	rp->invalidate = 1;
 #endif
@@ -2434,7 +2480,7 @@ edje_object_part_swallow_get(const Evas_Object *obj, const char *part)
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return NULL;
    return rp->swallowed_object;
 }
@@ -2742,7 +2788,7 @@ edje_object_part_state_get(const Evas_Object *obj, const char *part, double *val
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp)
      {
 	if (val_ret) *val_ret = 0;
@@ -2782,7 +2828,7 @@ edje_object_part_drag_dir_get(const Evas_Object *obj, const char *part)
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EDJE_DRAG_DIR_NONE;
    if ((rp->part->dragable.x) && (rp->part->dragable.y)) return EDJE_DRAG_DIR_XY;
    else if (rp->part->dragable.x) return EDJE_DRAG_DIR_X;
@@ -2798,7 +2844,7 @@ edje_object_part_drag_value_set(Evas_Object *obj, const char *part, double dx, d
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (!rp->drag) return EINA_FALSE;
    if (rp->drag->down.count > 0) return EINA_FALSE;
@@ -2839,7 +2885,7 @@ edje_object_part_drag_value_get(const Evas_Object *obj, const char *part, double
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp || !rp->drag)
      {
 	if (dx) *dx = 0;
@@ -2863,7 +2909,7 @@ edje_object_part_drag_size_set(Evas_Object *obj, const char *part, double dw, do
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (!rp->drag) return EINA_FALSE;
    if (dw < 0.0) dw = 0.0;
@@ -2874,6 +2920,7 @@ edje_object_part_drag_size_set(Evas_Object *obj, const char *part, double dw, do
    rp->drag->size.x = FROM_DOUBLE(dw);
    rp->drag->size.y = FROM_DOUBLE(dh);
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -2898,7 +2945,7 @@ edje_object_part_drag_size_get(const Evas_Object *obj, const char *part, double 
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp || !rp->drag)
      {
 	if (dw) *dw = 0;
@@ -2918,7 +2965,7 @@ edje_object_part_drag_step_set(Evas_Object *obj, const char *part, double dx, do
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (!rp->drag) return EINA_FALSE;
    if (dx < 0.0) dx = 0.0;
@@ -2950,7 +2997,7 @@ edje_object_part_drag_step_get(const Evas_Object *obj, const char *part, double 
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp || !rp->drag)
      {
 	if (dx) *dx = 0;
@@ -2970,7 +3017,7 @@ edje_object_part_drag_page_set(Evas_Object *obj, const char *part, double dx, do
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (!rp->drag) return EINA_FALSE;
    if (dx < 0.0) dx = 0.0;
@@ -3002,7 +3049,7 @@ edje_object_part_drag_page_get(const Evas_Object *obj, const char *part, double 
    /* Need to recalc before providing the object. */
    _edje_recalc_do(ed);
 
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp || !rp->drag)
      {
 	if (dx) *dx = 0;
@@ -3023,7 +3070,7 @@ edje_object_part_drag_step(Evas_Object *obj, const char *part, double dx, double
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (!rp->drag) return EINA_FALSE;
    if (rp->drag->down.count > 0) return EINA_FALSE;
@@ -3053,7 +3100,7 @@ edje_object_part_drag_page(Evas_Object *obj, const char *part, double dx, double
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   rp = _edje_real_part_recursive_get(ed, part);
    if (!rp) return EINA_FALSE;
    if (!rp->drag) return EINA_FALSE;
    if (rp->drag->down.count > 0) return EINA_FALSE;
@@ -3208,6 +3255,7 @@ _edje_box_child_del_cb(void *data, Evas *e __UNUSED__, Evas_Object *child __UNUS
    Edje_Real_Part *rp = data;
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -3221,6 +3269,7 @@ _edje_box_child_add(Edje_Real_Part *rp, Evas_Object *child)
      (child, EVAS_CALLBACK_DEL, _edje_box_child_del_cb, rp);
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -3234,6 +3283,7 @@ _edje_box_child_remove(Edje_Real_Part *rp, Evas_Object *child)
      (child, EVAS_CALLBACK_DEL, _edje_box_child_del_cb, rp);
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -3376,6 +3426,7 @@ _edje_table_child_del_cb(void *data, Evas *e __UNUSED__, Evas_Object *child __UN
    Edje_Real_Part *rp = data;
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -3389,6 +3440,7 @@ _edje_table_child_add(Edje_Real_Part *rp, Evas_Object *child)
      (child, EVAS_CALLBACK_DEL, _edje_table_child_del_cb, rp);
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -3402,6 +3454,7 @@ _edje_table_child_remove(Edje_Real_Part *rp, Evas_Object *child)
      (child, EVAS_CALLBACK_DEL, _edje_table_child_del_cb, rp);
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
    rp->invalidate = 1;
 #endif
@@ -3504,6 +3557,7 @@ _edje_perspective_obj_del(void *data, __UNUSED__ Evas *e, __UNUSED__ Evas_Object
         if (!ed) continue;
         ed->persp = NULL;
         ed->dirty = 1;
+        ed->recalc_call = 1;
         _edje_recalc_do(ed);
      }
    free(ps);
@@ -3557,6 +3611,7 @@ edje_perspective_set(Edje_Perspective *ps, Evas_Coord px, Evas_Coord py, Evas_Co
         if (!ed->persp)
           {
              ed->dirty = 1;
+             ed->recalc_call = 1;
              _edje_recalc_do(ed);
           }
      }
@@ -3571,6 +3626,7 @@ edje_perspective_set(Edje_Perspective *ps, Evas_Coord px, Evas_Coord py, Evas_Co
              if (!ed->persp)
                {
                   ed->dirty = 1;
+                  ed->recalc_call = 1;
                   _edje_recalc_do(ed);
                }
           }
@@ -3604,6 +3660,7 @@ edje_perspective_global_set(Edje_Perspective *ps, Eina_Bool global)
         if (!ed->persp)
           {
              ed->dirty = 1;
+             ed->recalc_call = 1;
              _edje_recalc_do(ed);
           }
      }
@@ -3643,6 +3700,7 @@ edje_object_perspective_set(Evas_Object *obj, Edje_Perspective *ps)
    ed->persp = ps;
    if (ps) ps->users = eina_list_append(ps->users, obj);
    ed->dirty = 1;
+   ed->recalc_call = 1;
    _edje_recalc_do(ed);
 }
 
@@ -4265,6 +4323,7 @@ _edje_object_part_swallow_changed_hints_cb(void *data, __UNUSED__ Evas *e, __UNU
    rp = data;
    _edje_real_part_swallow_hints_update(rp);
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
    _edje_recalc(rp->edje);
    return;
 }
@@ -4286,6 +4345,7 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
              if (hints_update)
                _edje_real_part_swallow_hints_update(rp);
              rp->edje->dirty = 1;
+             rp->edje->recalc_call = 1;
              _edje_recalc(rp->edje);
              return;
           }
@@ -4301,7 +4361,7 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
    else evas_object_clip_set(rp->swallowed_object, rp->edje->base.clipper);
    evas_object_stack_above(rp->swallowed_object, rp->object);
    evas_object_event_callback_add(rp->swallowed_object,
-                                  EVAS_CALLBACK_FREE,
+                                  EVAS_CALLBACK_DEL,
 				  _edje_object_part_swallow_free_cb,
 				  rp->edje->obj);
    evas_object_event_callback_add(rp->swallowed_object,
@@ -4329,6 +4389,7 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
      evas_object_precise_is_inside_set(obj_swallow, 1);
 
    rp->edje->dirty = 1;
+   rp->edje->recalc_call = 1;
    _edje_recalc(rp->edje);
 }
 
@@ -4487,5 +4548,21 @@ edje_string_id_get(const Edje_String *es)
    return es->str;
 }
 
+static void
+_cb_subobj_del(void *data, __UNUSED__ Evas *e, Evas_Object *obj, __UNUSED__ void *event_info)
+{
+   Edje *ed = data;
+   ed->subobjs = eina_list_remove(ed->subobjs, obj);
+   evas_object_event_callback_del_full(obj, EVAS_CALLBACK_DEL,
+                                       _cb_subobj_del, ed);
+}
+
+void
+_edje_subobj_register(Edje *ed, Evas_Object *ob)
+{
+   ed->subobjs = eina_list_append(ed->subobjs, ob);
+   evas_object_event_callback_add(ob, EVAS_CALLBACK_DEL,
+                                  _cb_subobj_del, ed);
+}
 
 /* vim:set ts=8 sw=3 sts=3 expandtab cino=>5n-2f0^-2{2(0W1st0 :*/

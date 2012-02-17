@@ -5,7 +5,7 @@ These routines are used for Edje.
 
 @mainpage Edje Library Documentation
 @version 1.1
-@date 2003-2011
+@date 2003-2012
 
 Please see the @ref authors page for contact details.
 
@@ -377,6 +377,13 @@ part of Edje's API:
 @author Sebastian Dransfeld <sd@@tango.flipp.net>
 @author Tom Hacohen <tom@@stosb.com>
 @author Aharon Hillel <a.hillel@@partner.samsung.com>
+@author Shilpa Singh <shilpa.singh@samsung.com> <shilpasingh.o@gmail.com>
+@author Mike Blumenkrantz <michael.blumenkrantz@gmail.com
+@author Jaehwan Kim <jae.hwan.kim@samsung.com>
+@author billiob (Boris Faure) <billiob@gmail.com>
+@author Govindaraju SM <govi.sm@samsung.com> <govism@gmail.com>
+@author Prince Kumar Dubey <prince.dubey@samsung.com> <prince.dubey@gmail.com>
+@author David Seikel <onefang at gmail.com>
 
 Please contact <enlightenment-devel@lists.sourceforge.net> to get in
 contact with the developers and maintainers.
@@ -476,7 +483,7 @@ extern "C" {
 #endif
 
 #define EDJE_VERSION_MAJOR 1
-#define EDJE_VERSION_MINOR 0
+#define EDJE_VERSION_MINOR 2
 
    typedef struct _Edje_Version
      {
@@ -675,7 +682,7 @@ typedef struct _Edje_Message_String_Float_Set Edje_Message_String_Float_Set;
 struct _Edje_Message_String
 {
    char *str; /**< The message's string pointer */
-}; /**< Structure passed as value on #EDJE_MESSAGE_STRING messages. The string in it is automatically freed be Edje */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING messages. The string in it is automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_Int
 {
@@ -691,45 +698,45 @@ struct _Edje_Message_String_Set
 {
    int count; /**< The size of the message's array (may be greater than 1) */
    char *str[1]; /**< The message's @b array of string pointers */
-}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_SET messages. The array in it is automatically freed be Edje */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_SET messages. The array in it is automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_Int_Set
 {
    int count; /**< The size of the message's array (may be greater than 1) */
    int val[1]; /**< The message's @b array of integers */
-}; /**< Structure passed as value on #EDJE_MESSAGE_INT_SET messages. The array in it is automatically freed be Edje */
+}; /**< Structure passed as value on #EDJE_MESSAGE_INT_SET messages. The array in it is automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_Float_Set
 {
    int count; /**< The size of the message's array (may be greater than 1) */
    double val[1]; /**< The message's @b array of floats */
-}; /**< Structure passed as value on #EDJE_MESSAGE_FLOAT_SET messages. The array in it is automatically freed be Edje */
+}; /**< Structure passed as value on #EDJE_MESSAGE_FLOAT_SET messages. The array in it is automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_String_Int
 {
    char *str; /**< The message's string value */
    int val; /**< The message's integer value */
-}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_INT messages */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_INT messages. The string in it is automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_String_Float
 {
    char *str; /**< The message's string value */
    double val; /**< The message's float value */
-}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_FLOAT messages */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_FLOAT messages. The string in it is automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_String_Int_Set
 {
    char *str; /**< The message's string value */
    int count; /**< The size of the message's array (may be greater than 1) */
    int val[1]; /**< The message's @b array of integers */
-}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_INT_SET messages */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_INT_SET messages. The array and string in it are automatically freed be Edje if passed to you by Edje */
 
 struct _Edje_Message_String_Float_Set
 {
    char *str; /**< The message's string value */
    int count; /**< The size of the message's array (may be greater than 1) */
    double val[1]; /**< The message's @b array of floats */
-}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_FLOAT_SET messages */
+}; /**< Structure passed as value on #EDJE_MESSAGE_STRING_FLOAT_SET messages. The array and string in it are automatically freed be Edje if passed to you by Edje */
 
 typedef enum _Edje_Drag_Dir
 {
@@ -798,7 +805,7 @@ typedef enum _Edje_External_Param_Flags
                                             EDJE_EXTERNAL_PARAM_FLAGS_STATE) /**< Convenience flag that sets property as GET, SET and STATE. */
 } Edje_External_Param_Flags;
 
-typedef enum
+typedef enum _Edje_Input_Panel_Layout
 {
    EDJE_INPUT_PANEL_LAYOUT_NORMAL,          /**< Default layout */
    EDJE_INPUT_PANEL_LAYOUT_NUMBER,          /**< Number layout */
@@ -808,7 +815,10 @@ typedef enum
    EDJE_INPUT_PANEL_LAYOUT_IP,              /**< IP layout */
    EDJE_INPUT_PANEL_LAYOUT_MONTH,           /**< Month layout */
    EDJE_INPUT_PANEL_LAYOUT_NUMBERONLY,      /**< Number Only layout */
-   EDJE_INPUT_PANEL_LAYOUT_INVALID
+   EDJE_INPUT_PANEL_LAYOUT_INVALID,         /**< Never use this */
+   EDJE_INPUT_PANEL_LAYOUT_HEX,             /**< Hexadecimal layout @since 1.2 */
+   EDJE_INPUT_PANEL_LAYOUT_TERMINAL,        /**< Command-line terminal layout @since 1.2 */
+   EDJE_INPUT_PANEL_LAYOUT_PASSWORD         /**< Like normal, but no auto-correct, no auto-capitalization etc. @since 1.2 */
 } Edje_Input_Panel_Layout;
 
 /**
@@ -1048,6 +1058,7 @@ typedef void         (*Edje_Signal_Cb)          (void *data, Evas_Object *obj, c
 typedef void         (*Edje_Text_Change_Cb)     (void *data, Evas_Object *obj, const char *part);
 typedef void         (*Edje_Message_Handler_Cb) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg); /**< Edje message handler callback functions's prototype definition. @c data will have the auxiliary data pointer set at the time the callback registration. @c obj will be a pointer the Edje object where the message comes from. @c type will identify the type of the given message and @c msg will be a pointer the message's contents, de facto, which depend on @c type. */
 typedef void         (*Edje_Text_Filter_Cb)     (void *data, Evas_Object *obj, const char *part, Edje_Text_Filter_Type type, char **text);
+typedef void         (*Edje_Markup_Filter_Cb)   (void *data, Evas_Object *obj, const char *part, char **text);
 typedef Evas_Object *(*Edje_Item_Provider_Cb)   (void *data, Evas_Object *obj, const char *part, const char *item);
 
 /**
@@ -1232,59 +1243,6 @@ EAPI void edje_password_show_last_set(Eina_Bool password_show_last);
  *
  */
 EAPI void edje_password_show_last_timeout_set(double password_show_last_timeout);
-
-/**
- * @brief Set the edje object's global input panel usage.
- *
- * @param enabled TRUE if you want to use the input panel.
- *
- */
-EAPI void         edje_input_panel_enabled_set (Eina_Bool enabled);
-
-/**
- * @brief Set whether the input panel is used or not.
- *
- * @param enabled TRUE if you want to use the input panel.
- *
- */
-EAPI void         edje_input_panel_allow_set (Eina_Bool enabled);
-
-/**
- * @brief Get whether the input panel is used or not.
- *
- * @return The allowance of the edje's global input panel.
- *
- * @see edje_input_panel_allow_set().
- */
-EAPI Eina_Bool    edje_input_panel_allow_get (void);
-
-/**
- * @brief Turn on/off the edje's global autocapitalization function.
- *
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void         edje_autocapitalization_allow_set (Eina_Bool autocap);
-
-/**
- * @brief Get the edje's global autocapitalization allowance.
- *
- * @return The allowance of the edje's global autocapitalization.
- */
-EAPI Eina_Bool    edje_autocapitalization_allow_get (void);
-
-/**
- * @brief Turn on/off the edje's global autoperiod function.
- *
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void         edje_autoperiod_allow_set (Eina_Bool autoperiod);
-
-/**
- * @brief Get the edje's global autoperiod allowance.
- *
- * @return The allowance of the edje's global autoperiod.
- */
-EAPI Eina_Bool    edje_autoperiod_allow_get (void);
 
 /**
  * @brief Set the scaling factor for a given Edje object.
@@ -1707,8 +1665,21 @@ EAPI void         edje_box_layout_register        (const char *name, Evas_Object
  *   }
  *
  * @endcode
+ * 
+ * @note You can get a callback every time edje re-calculates the object
+ * (either due to animation or some kind of signal or input). This is called
+ * in-line just after the recalculation has occured. It is a good idea not
+ * to go and delete or alter the object inside this callbacks, simply make
+ * a note that the recalculation has taken place and then do somethnig about
+ * it outside the callback. to register a callback use code like:
+ * 
+ * @code
+ *    evas_object_smart_callback_add(edje_obj, "recalc", my_cb, my_cb_data);
+ * @endcode
+ * 
+ * @see evas_object_smart_callback_add()
  *
- * @note before creating the first Edje object in your code, remember
+ * @note Before creating the first Edje object in your code, remember
  * to initialize the library, with edje_init(), or unexpected behavior
  * might occur.
  */
@@ -2482,6 +2453,33 @@ EAPI Eina_Bool    edje_object_part_text_set           (Evas_Object *obj, const c
 EAPI const char  *edje_object_part_text_get           (const Evas_Object *obj, const char *part);
 
 /**
+ * @brief Set the style of the
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param style The style to set (textblock conventions).
+ *
+ * This function sets the style associated with the textblock part.
+ *
+ * @since 1.2.0
+ */
+EAPI void edje_object_part_text_style_user_set(Evas_Object *obj, const char *part, const char *style);
+
+/**
+ * @brief Return the text of the object part.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @return The text string
+ *
+ * This function returns the style associated with the textblock part.
+ *
+ * @since 1.2.0
+ */
+EAPI const char *edje_object_part_text_style_user_get(Evas_Object *obj, const char *part);
+
+/**
  * @brief Sets the raw (non escaped) text for an object part.
  *
  * @param obj A valid Evas Object handle
@@ -2814,12 +2812,15 @@ EAPI Eina_Bool        edje_object_part_text_cursor_is_visible_format_get(const E
 /**
  * @brief Returns the content (char) at the cursor position.
  * @see evas_textblock_cursor_content_get
+ * 
+ * You must free the return (if not NULL) after you are done with it.
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
  * @param cur The cursor to use
+ * @return The character string pointed to (may be a multi-byte utf8 sequence) terminated by a nul byte.
  */
-EAPI const char      *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);
+EAPI char            *edje_object_part_text_cursor_content_get          (const Evas_Object *obj, const char *part, Edje_Cursor cur);
 
 /**
  * @brief Sets the cursor position to the given value
@@ -2857,14 +2858,6 @@ EAPI int              edje_object_part_text_cursor_pos_get              (const E
  * @return EINA_TRUE if part has selection or EINA_FALSE otherwise
  */
 EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
-/**
- * @brief Enables autocapitalization.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- * @param autocap EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void             edje_object_part_text_autocapitalization_set (const Evas_Object *obj, const char *part, Eina_Bool autocap);
 
 /**
  * @brief Enables autoperiod.
@@ -3011,8 +3004,20 @@ EAPI void             edje_object_part_text_copy_paste_disabled_set     (const E
  * will make Edje break out of the filter cycle and reject the inserted
  * text.
  *
+ * @warning This function will be deprecated because of difficulty in use.
+ *          The type(format, text, or makrup) of text should be always
+ *          checked in the filter function for correct filtering.
+ *          Please use edje_object_markup_filter_callback_add() instead. There
+ *          is no need to check the type of text in the filter function
+ *          because the text is always markup.
+ * @warning If you use this function with
+ *          edje_object_markup_filter_callback_add() togehter, all
+ *          Edje_Text_Filter_Cb functions and Edje_Markup_Filter_Cb functions
+ *          will be executed, and then filtered text will be inserted.
+ *
  * @see edje_object_text_insert_filter_callback_del
  * @see edje_object_text_insert_filter_callback_del_full
+ * @see edje_object_markup_filter_callback_add
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
@@ -3058,6 +3063,77 @@ EAPI void            *edje_object_text_insert_filter_callback_del       (Evas_Ob
 EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func, void *data);
 
 /**
+ * Add a markup filter function for newly inserted text.
+ *
+ * Whenever text is inserted (not the same as set) into the given @p part,
+ * the list of markup filter functions will be called to decide if and how 
+ * the new text will be accepted.
+ * The text parameter in the @p func filter is always markup. It can be 
+ * modified by the user and it's up to him to free the one passed if he's to
+ * change the pointer. If doing so, the newly set text should be malloc'ed,
+ * as once all the filters are called Edje will free it.
+ * If the text is to be rejected, freeing it and setting the pointer to NULL
+ * will make Edje break out of the filter cycle and reject the inserted
+ * text.
+ * This function is different from edje_object_text_insert_filter_callback_add()
+ * in that the text parameter in the @p fucn filter is always markup.
+ *
+ * @warning If you use this function with
+ *          edje_object_text_insert_filter_callback_add() togehter, all
+ *          Edje_Text_Filter_Cb functions and Edje_Markup_Filter_Cb functions
+ *          will be executed, and then filtered text will be inserted.
+ *
+ * @see edje_object_markup_filter_callback_del
+ * @see edje_object_markup_filter_callback_del_full
+ * @see edje_object_text_insert_filter_callback_add
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param func The callback function that will act as markup filter
+ * @param data User provided data to pass to the filter function
+ * @since 1.2.0
+ */
+EAPI void edje_object_markup_filter_callback_add(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
+
+/**
+ * Delete a function from the markup filter list.
+ *
+ * Delete the given @p func filter from the list in @p part. Returns
+ * the user data pointer given when added.
+ *
+ * @see edje_object_markup_filter_callback_add
+ * @see edje_object_markup_filter_callback_del_full
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param func The function callback to remove
+ *
+ * @return The user data pointer if succesful, or NULL otherwise
+ * @since 1.2.0
+ */
+EAPI void *edje_object_markup_filter_callback_del(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func);
+
+/**
+ * Delete a function and matching user data from the markup filter list.
+ *
+ * Delete the given @p func filter and @p data user data from the list
+ * in @p part.
+ * Returns the user data pointer given when added.
+ *
+ * @see edje_object_markup_filter_callback_add
+ * @see edje_object_markup_filter_callback_del
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param func The function callback to remove
+ * @param data The data passed to the callback function
+ *
+ * @return The same data pointer if succesful, or NULL otherwise
+ * @since 1.2.0
+ */
+EAPI void *edje_object_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
+
+/**
  * @brief Swallows an object into the edje.
  *
  * @param obj A valid Evas_Object handle
@@ -3081,7 +3157,9 @@ EAPI Eina_Bool        edje_object_part_swallow        (Evas_Object *obj, const c
  *
  * Causes the edje to regurgitate a previously swallowed object. :)
  *
- * @note @p obj_swallow will @b not be deleted.
+ * @note @p obj_swallow will @b not be deleted or hidden.
+ * @note @p obj_swallow may appear shown on the evas depending on its state when
+ * it got unswallowed. Make sure you delete it or hide it if you do not want it to.
  */
 EAPI void             edje_object_part_unswallow      (Evas_Object *obj, Evas_Object *obj_swallow);
 

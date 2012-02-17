@@ -1,3 +1,4 @@
+#if 0
 collections {
    sounds {
       sample {
@@ -35,7 +36,6 @@ collections {
          name: "sound_name6" AS_IS;
 //         name: "sound_name6" LOSSY 45.0;
          source: "sample-flac44k-mono.wav";
-//         source: "sample-flac.wav";
 //         source: "sample-flac.wav";
 //         source: "sample.ogg";
       }
@@ -136,4 +136,4 @@ collections {
       }
    }
 }
-
+#endif

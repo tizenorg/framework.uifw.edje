@@ -1,12 +1,15 @@
 MAINTAINERCLEANFILES = Makefile.in
 
-pkglibdir = $(datadir)/$(PACKAGE)/examples
+examplesdir = $(datadir)/$(PACKAGE)/examples
+
 if ENABLE_MULTISENSE
 MULTISENSE_EDC_FILE = multisense.edc
 SND_DIR = -sd $(srcdir)
 endif
+
 #put here all EDCs one needs to the examples
-EDCS = basic.edc \
+EDCS = \
+        basic.edc \
 	swallow.edc \
 	text.edc \
 	table.edc \
@@ -16,28 +19,52 @@ EDCS = basic.edc \
 	color-class.edc \
 	perspective.edc \
 	animations.edc \
+	lua_script.edc \
+	sigtest.edc \
 	$(MULTISENSE_EDC_FILE)
 
+.edc.edj:
+	$(edje_cc) -v -fd $(srcdir) -id $(srcdir) $(SND_DIR) $< $(builddir)/$(@F)
+
+EDJS = $(EDCS:%.edc=%.edj)
+
 filesdir = $(datadir)/$(PACKAGE)/examples
-files_DATA =
+files_DATA = \
+        $(EDCS) \
+        bubble.png \
+	red.png \
+	test.png \
+	Vera.ttf \
+	edje-basic.c \
+	edje-swallow.c \
+	edje-text.c \
+	edje-table.c \
+	edje-box.c \
+	edje-box2.c \
+	edje-drag.c \
+	edje-signals-messages.c \
+	edje-color-class.c \
+	edje-perspective.c \
+	edje-animations.c \
+	sigtest.c
+
+EXTRA_DIST = $(files_DATA)
 
 if BUILD_EXAMPLES
 
 AM_CPPFLAGS = \
--I. \
--I$(top_srcdir)/src/lib \
--I$(top_srcdir)/src/lib/include \
--DPACKAGE_BIN_DIR=\"$(bindir)\" \
--DPACKAGE_LIB_DIR=\"$(libdir)\" \
--DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
--DPACKAGE_EXAMPLES_DIR=\"$(datadir)/$(PACKAGE)/examples\"
+        -I. \
+        -I$(top_srcdir)/src/lib \
+        -I$(top_srcdir)/src/lib/include \
+        -DPACKAGE_BIN_DIR=\"$(bindir)\" \
+        -DPACKAGE_LIB_DIR=\"$(libdir)\" \
+        -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
+        -DPACKAGE_EXAMPLES_DIR=\"$(datadir)/$(PACKAGE)/examples\" \
+        @EDJE_CFLAGS@
 
-pkglib_PROGRAMS =
+files_DATA += $(EDJS)
 
-#the ones using ecore_evas follow
-AM_CPPFLAGS += @EDJE_CFLAGS@
-
-pkglib_PROGRAMS += \
+examples_PROGRAMS = \
 	edje-basic \
 	edje-swallow \
 	edje-text \
@@ -48,49 +75,9 @@ pkglib_PROGRAMS += \
 	edje-signals-messages \
 	edje-color-class \
 	edje-perspective \
-	edje-animations
+	edje-animations \
+	sigtest
 
 LDADD = $(top_builddir)/src/lib/libedje.la @EDJE_LIBS@
 
-.edc.edj:
-	$(edje_cc) -v -id $(srcdir) $(SND_DIR) $< $(builddir)/$(@F)
-
-EDJS = $(EDCS:%.edc=%.edj)
-
-files_DATA += $(EDJS)
-
-endif # if BUILD_EXAMPLES
-
-if INSTALL_EXAMPLES
-
-#put here additional data when installing examples
-files_DATA += $(srcdir)/red.png
-
-files_DATA += \
-	$(EDCS) \
-	$(srcdir)/edje-basic.c \
-	$(srcdir)/edje-swallow.c \
-	$(srcdir)/edje-text.c \
-	$(srcdir)/edje-table.c \
-	$(srcdir)/edje-box.c \
-	$(srcdir)/edje-box2.c \
-	$(srcdir)/edje-drag.c \
-	$(srcdir)/edje-signals-messages.c \
-	$(srcdir)/edje-color-class.c \
-	$(srcdir)/edje-perspective.c \
-	$(srcdir)/edje-animations.c
 endif
-
-EXTRA_DIST = $(EDCS) \
-	$(srcdir)/red.png \
-	$(srcdir)/edje-basic.c \
-	$(srcdir)/edje-swallow.c \
-	$(srcdir)/edje-text.c \
-	$(srcdir)/edje-table.c \
-	$(srcdir)/edje-box.c \
-	$(srcdir)/edje-box2.c \
-	$(srcdir)/edje-drag.c \
-	$(srcdir)/edje-signals-messages.c \
-	$(srcdir)/edje-color-class.c \
-	$(srcdir)/edje-perspective.c \
-	$(srcdir)/edje-animations.c

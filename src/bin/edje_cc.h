@@ -138,6 +138,7 @@ struct _Edje_Part_Parser
 /* global fn calls */
 void    data_setup(void);
 void    data_write(void);
+void    data_queue_group_lookup(const char *name, Edje_Part *part);
 void    data_queue_part_lookup(Edje_Part_Collection *pc, const char *name, int *dest);
 void    data_queue_copied_part_lookup(Edje_Part_Collection *pc, int *src, int *dest);
 void    data_queue_program_lookup(Edje_Part_Collection *pc, const char *name, int *dest);
@@ -146,6 +147,7 @@ void    data_queue_anonymous_lookup(Edje_Part_Collection *pc, Edje_Program *ep, 
 void    data_queue_copied_anonymous_lookup(Edje_Part_Collection *pc, int *src, int *dest);
 void    data_queue_image_lookup(char *name, int *dest, Eina_Bool *set);
 void    data_queue_copied_image_lookup(int *src, int *dest, Eina_Bool *set);
+void    data_queue_image_remove(int *dest, Eina_Bool *set);
 void    data_queue_part_slave_lookup(int *master, int *slave);
 void    data_queue_image_slave_lookup(int *master, int *slave);
 void    data_queue_spectrum_lookup(char *name, int *dest);
@@ -154,6 +156,7 @@ void    data_process_lookups(void);
 void    data_process_scripts(void);
 void    data_process_script_lookups(void);
 
+void    part_description_image_cleanup(Edje_Part *ep);
 
 int     is_verbatim(void);
 void    track_verbatim(int on);

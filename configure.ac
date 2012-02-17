@@ -2,11 +2,11 @@
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [1])
 m4_define([v_min], [1])
-m4_define([v_mic], [0])
-m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v export || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
+m4_define([v_mic], [99])
+m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v '\(export\|Unversioned directory\)' || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
 ##--   When released, remove the dnl on the below line
-m4_undefine([v_rev])
+dnl m4_undefine([v_rev])
 ##--   When doing snapshots - change soname. remove dnl on below line
 dnl m4_define([relname], [ver-pre-svn-07])
 dnl m4_define([v_rel], [-release relname])
@@ -291,14 +291,14 @@ PKG_CHECK_MODULES([ECORE_IMF],
    [have_ecore_imf="no"])
 
 # Enable Multisense use
-want_multisense="no"
-dnl AC_ARG_ENABLE([multisense],
-dnl    [AC_HELP_STRING(
-dnl        [--enable-multisense],
-dnl        [multisense provides sound. tone and haptic effects support, [[default=disabled]]]
-dnl     )],
-dnl     [want_multisense=$enableval]
-dnl )
+want_multisense="yes"
+AC_ARG_ENABLE([multisense],
+   [AC_HELP_STRING(
+       [--enable-multisense],
+       [multisense provides sound. tone and haptic effects support, [[default=disabled]]]
+    )],
+    [want_multisense=$enableval]
+)
 AM_CONDITIONAL([ENABLE_MULTISENSE], [test "x${want_multisense}" = "xyes"])
 
 ##sndfile library
@@ -534,21 +534,6 @@ fi
 
 ## Examples
 
-install_examples="yes"
-AC_ARG_ENABLE([install-examples],
-   AC_HELP_STRING([--disable-install-examples],
-                  [disable installing examples (compiled or just source).
-                   @<:@default==enabled@:>@]),
-   [
-    if test "x${enableval}" = "xyes" ; then
-       install_examples="yes"
-    else
-       install_examples="no"
-    fi
-   ],
-   [install_examples="yes"])
-AM_CONDITIONAL([INSTALL_EXAMPLES], [test "x${install_examples}" = "xyes"])
-
 build_examples="no"
 AC_ARG_ENABLE([build-examples],
    AC_HELP_STRING([--enable-build-examples],
@@ -557,7 +542,7 @@ AC_ARG_ENABLE([build-examples],
     if test "x${enableval}" = "xyes" ; then
        build_examples="yes"
        edje_cc=$($PKG_CONFIG --variable=prefix edje)/bin/edje_cc
-       # put in here the dependencies for Edje' examples. They are
+      # put in here the dependencies for Edje' examples. They are
        # meant to be 'real world' usage examples, thus one will be
        # using higher level libraries on these programs
        AC_SUBST(edje_cc)
