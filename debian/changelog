@@ -1,3 +1,11 @@
+edje (1.1.0+svn.67705slp2+build02) unstable; urgency=low
+
+  * Add APIs for controlling input panel
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 20 Feb 2012 09:31:40 +0900
+
 edje (1.1.0+svn.67705slp2+build01) unstable; urgency=low
 
   * Package Upload
