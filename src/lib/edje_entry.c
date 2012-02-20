@@ -2738,9 +2738,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
                                          ECORE_IMF_INPUT_MODE_INVISIBLE : ECORE_IMF_INPUT_MODE_FULL);
 
         if (rp->part->entry_mode == EDJE_ENTRY_EDIT_MODE_PASSWORD)
-          {
-             ecore_imf_context_input_panel_language_set(en->imf_context, ECORE_IMF_INPUT_PANEL_LANG_ALPHABET);
-          }
+          ecore_imf_context_input_panel_language_set(en->imf_context, ECORE_IMF_INPUT_PANEL_LANG_ALPHABET);
 #endif
      }
 #ifdef HAVE_ECORE_IMF
@@ -3197,12 +3195,6 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
         _edje_entry_imf_cursor_info_set(en);
         _edje_entry_real_part_configure(rp);
      }
-}
-
-void
-_edje_entry_autoperiod_set(Edje_Real_Part *rp, Eina_Bool autoperiod)
-{
-   // this API will be deprecated.
 }
 
 #ifdef HAVE_ECORE_IMF

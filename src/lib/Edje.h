@@ -2889,16 +2889,6 @@ EAPI void             edje_object_part_text_imf_context_reset           (const E
 EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
 
 /**
- * @brief Enables autoperiod.
- * Autoperiod is the feature that period (.) will be automatically added when space bar is pressed twice in a short time.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void             edje_object_part_text_autoperiod_set (const Evas_Object *obj, const char *part, Eina_Bool autoperiod);
-
-/**
  * @brief Get the input method context in entry.
  *
  * @param obj A valid Evas_Object handle
