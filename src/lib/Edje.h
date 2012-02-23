@@ -2902,7 +2902,7 @@ EAPI Ecore_IMF_Context *edje_object_part_text_imf_context_get (const Evas_Object
 EAPI void              *edje_object_part_text_imf_context_get (const Evas_Object *obj, const char *part);
 #endif
 
-/*
+/**
  * @brief Set the layout of the input panel.
  * 
  * The layout of the input panel or virtual keyboard can make it easier or
