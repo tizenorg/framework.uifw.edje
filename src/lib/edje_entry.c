@@ -3197,22 +3197,18 @@ _edje_entry_select_abort(Edje_Real_Part *rp)
      }
 }
 
-#ifdef HAVE_ECORE_IMF
-Ecore_IMF_Context *
+void *
 _edje_entry_imf_context_get(Edje_Real_Part *rp)
 {
    Entry *en = rp->entry_data;
    if (!en) return NULL;
 
+#ifdef HAVE_ECORE_IMF
    return en->imf_context;
-}
 #else
-void *
-_edje_entry_imf_context_get(Edje_Real_Part *rp)
-{
    return NULL;
-}
 #endif
+}
 
 void
 _edje_entry_autocapital_type_set(Edje_Real_Part *rp, Edje_Text_Autocapital_Type autocapital_type)

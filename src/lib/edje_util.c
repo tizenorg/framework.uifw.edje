@@ -1583,8 +1583,7 @@ edje_object_part_text_select_extend(const Evas_Object *obj, const char *part)
      _edje_entry_select_extend(rp);
 }
 
-#ifdef HAVE_ECORE_IMF
-EAPI Ecore_IMF_Context *
+EAPI void *
 edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
 {
    Edje *ed;
@@ -1601,7 +1600,6 @@ edje_object_part_text_imf_context_get(const Evas_Object *obj, const char *part)
    else
      return NULL;
 }
-#endif
 
 /**
  * @brief Advances the cursor to the next cursor position.
