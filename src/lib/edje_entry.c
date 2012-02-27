@@ -141,6 +141,44 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
 
    if (evas_object_focus_get(rp->edje->obj))
      {
+        if ((!en->block_handler_top) && (!en->block_handler_btm) &&
+            (en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
+          {
+             const char *bh_position;
+             Evas_Object *ob;
+
+             ob = edje_object_add(en->rp->edje->base.evas);
+             edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+             edje_object_signal_emit(ob, "elm,action,focus", "elm");
+             bh_position = edje_object_data_get(ob, "position");
+             if ((!bh_position) || (bh_position[0] == 0)) bh_position = "BOTH";
+
+             if ((!strcmp(bh_position, "BOTTOM")) || (!strcmp(bh_position, "BOTH")))
+               {
+                  evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
+                  en->block_handler_btm = ob;
+                  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_btm);
+                  evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_bottom_handler_mouse_down_cb, en->rp);
+                  evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_UP, _edje_entry_bottom_handler_mouse_up_cb, en->rp);
+                  evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_bottom_handler_mouse_move_cb, en->rp);
+               }
+             else
+               if (ob) evas_object_del(ob);
+
+             if ((!strcmp(bh_position, "TOP")) || (!strcmp(bh_position, "BOTH")))
+               {
+                  ob = edje_object_add(en->rp->edje->base.evas);
+                  edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
+                  edje_object_signal_emit(ob, "elm,action,focus", "elm");
+                  evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
+                  en->block_handler_top = ob;
+                  en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_top);
+                  evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_top_handler_mouse_down_cb, en->rp);
+                  evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_UP, _edje_entry_top_handler_mouse_up_cb, en->rp);
+                  evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_top_handler_mouse_move_cb, en->rp);
+               }
+          }
+
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_focus_in(en->imf_context);
         _edje_entry_imf_cursor_info_set(en);
@@ -192,6 +230,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
         ob = edje_object_add(en->rp->edje->base.evas);
         edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
+        edje_object_signal_emit(ob, "elm,action,focus", "elm");
         bh_position = edje_object_data_get(ob, "position");
         if ((!bh_position) || (bh_position[0] == 0)) bh_position = "BOTH";
 
@@ -211,6 +250,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           {
              ob = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
+             edje_object_signal_emit(ob, "elm,action,focus", "elm");
              evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
              en->block_handler_top = ob;
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_top);
