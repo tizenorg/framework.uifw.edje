@@ -1,3 +1,13 @@
+edje (1.1.0+svn.67705slp2+build04) unstable; urgency=low
+
+  * Package upload
+  * Important Changes
+       [edje_entry] fix hiding handler problem in memo application
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build04
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 28 Feb 2012 15:02:12 +0900
+
 edje (1.1.0+svn.67705slp2+build03) unstable; urgency=low
 
   * Package Upload
