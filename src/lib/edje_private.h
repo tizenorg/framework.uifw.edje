@@ -9,18 +9,30 @@
 # define _GNU_SOURCE
 #endif
 
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+# include <stddef.h>
+#else
+# ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+#endif
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
+#elif !defined alloca
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _AIX
+#  define alloca __alloca
+# elif defined _MSC_VER
+#  include <malloc.h>
+#  define alloca _alloca
+# elif !defined HAVE_ALLOCA
+#  ifdef  __cplusplus
+extern "C"
+#  endif
 void *alloca (size_t);
+# endif
 #endif
 
 #include <string.h>
@@ -34,6 +46,8 @@ void *alloca (size_t);
 # include <libgen.h>
 # include <unistd.h>
 #endif
+
+#include <fcntl.h>
 
 #include <lua.h>
 #include <lualib.h>
@@ -173,7 +187,7 @@ struct _Edje_Smart_Api
 /* increment this when you add new feature to edje file format without
  * breaking backward compatibility.
  */
-#define EDJE_FILE_MINOR 2
+#define EDJE_FILE_MINOR 3
 
 /* FIXME:
  *
@@ -614,6 +628,8 @@ struct _Edje_Program /* a conditional program to be run */
       int src; /* part where parameter is being retrieved */
       int dst; /* part where parameter is being stored */
    } param;
+
+   Eina_Bool exec : 1;
 };
 
 struct _Edje_Program_Target /* the target of an action */
@@ -753,6 +769,8 @@ struct _Edje_Part_Collection
    unsigned char    script_only;
 
    unsigned char    lua_script_only;
+
+   unsigned char    broadcast_signal;
 
    unsigned char    checked : 1;
 };

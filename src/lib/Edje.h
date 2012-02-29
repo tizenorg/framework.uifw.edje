@@ -3165,17 +3165,17 @@ EAPI void             edje_object_part_text_copy_paste_disabled_set     (const E
  * @warning This function will be deprecated because of difficulty in use.
  *          The type(format, text, or makrup) of text should be always
  *          checked in the filter function for correct filtering.
- *          Please use edje_object_markup_filter_callback_add() instead. There
+ *          Please use edje_object_text_markup_filter_callback_add() instead. There
  *          is no need to check the type of text in the filter function
  *          because the text is always markup.
  * @warning If you use this function with
- *          edje_object_markup_filter_callback_add() togehter, all
+ *          edje_object_text_markup_filter_callback_add() togehter, all
  *          Edje_Text_Filter_Cb functions and Edje_Markup_Filter_Cb functions
  *          will be executed, and then filtered text will be inserted.
  *
  * @see edje_object_text_insert_filter_callback_del
  * @see edje_object_text_insert_filter_callback_del_full
- * @see edje_object_markup_filter_callback_add
+ * @see edje_object_text_markup_filter_callback_add
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
@@ -3241,8 +3241,8 @@ EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Ob
  *          Edje_Text_Filter_Cb functions and Edje_Markup_Filter_Cb functions
  *          will be executed, and then filtered text will be inserted.
  *
- * @see edje_object_markup_filter_callback_del
- * @see edje_object_markup_filter_callback_del_full
+ * @see edje_object_text_markup_filter_callback_del
+ * @see edje_object_text_markup_filter_callback_del_full
  * @see edje_object_text_insert_filter_callback_add
  *
  * @param obj A valid Evas_Object handle
@@ -3251,7 +3251,7 @@ EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Ob
  * @param data User provided data to pass to the filter function
  * @since 1.2.0
  */
-EAPI void edje_object_markup_filter_callback_add(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
+EAPI void edje_object_text_markup_filter_callback_add(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
 
 /**
  * Delete a function from the markup filter list.
@@ -3259,8 +3259,8 @@ EAPI void edje_object_markup_filter_callback_add(Evas_Object *obj, const char *p
  * Delete the given @p func filter from the list in @p part. Returns
  * the user data pointer given when added.
  *
- * @see edje_object_markup_filter_callback_add
- * @see edje_object_markup_filter_callback_del_full
+ * @see edje_object_text_markup_filter_callback_add
+ * @see edje_object_text_markup_filter_callback_del_full
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
@@ -3269,7 +3269,7 @@ EAPI void edje_object_markup_filter_callback_add(Evas_Object *obj, const char *p
  * @return The user data pointer if succesful, or NULL otherwise
  * @since 1.2.0
  */
-EAPI void *edje_object_markup_filter_callback_del(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func);
+EAPI void *edje_object_text_markup_filter_callback_del(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func);
 
 /**
  * Delete a function and matching user data from the markup filter list.
@@ -3278,8 +3278,8 @@ EAPI void *edje_object_markup_filter_callback_del(Evas_Object *obj, const char *
  * in @p part.
  * Returns the user data pointer given when added.
  *
- * @see edje_object_markup_filter_callback_add
- * @see edje_object_markup_filter_callback_del
+ * @see edje_object_text_markup_filter_callback_add
+ * @see edje_object_text_markup_filter_callback_del
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
@@ -3289,7 +3289,7 @@ EAPI void *edje_object_markup_filter_callback_del(Evas_Object *obj, const char *
  * @return The same data pointer if succesful, or NULL otherwise
  * @since 1.2.0
  */
-EAPI void *edje_object_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
+EAPI void *edje_object_text_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
 
 /**
  * @brief Swallows an object into the edje.
