@@ -1059,7 +1059,7 @@ _edje_object_part_text_raw_append(Evas_Object *obj, Edje_Real_Part *rp, const ch
 }
 
 EAPI void
-edje_object_part_text_style_user_set(Evas_Object *obj, const char *part,
+edje_object_part_text_style_user_push(Evas_Object *obj, const char *part,
                                 const char *style)
 {
    Edje *ed;
@@ -1074,12 +1074,27 @@ edje_object_part_text_style_user_set(Evas_Object *obj, const char *part,
 
    ts = evas_textblock_style_new();
    evas_textblock_style_set(ts, style);
-   evas_object_textblock_style_user_set(rp->object, ts);
+   evas_object_textblock_style_user_push(rp->object, ts);
    evas_textblock_style_free(ts);
 }
 
+EAPI void
+edje_object_part_text_style_user_pop(Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) return;
+
+   evas_object_textblock_style_user_pop(rp->object);
+}
+
 EAPI const char *
-edje_object_part_text_style_user_get(Evas_Object *obj, const char *part)
+edje_object_part_text_style_user_peek(const Evas_Object *obj, const char *part)
 {
    Edje *ed;
    Edje_Real_Part *rp;
@@ -1091,7 +1106,7 @@ edje_object_part_text_style_user_get(Evas_Object *obj, const char *part)
    if (!rp) return NULL;
    if (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) return NULL;
 
-   ts = evas_object_textblock_style_user_get(rp->object);
+   ts = evas_object_textblock_style_user_peek(rp->object);
    if (ts)
       return evas_textblock_style_get(ts);
    else
@@ -3972,9 +3987,21 @@ edje_object_preload(Evas_Object *obj, Eina_Bool cancel)
 	     else if (ep->type == EDJE_PART_TYPE_GROUP)
 	       {
 		  if (rp->swallowed_object) {
-		     edje_object_signal_callback_del(rp->swallowed_object, EDJE_PRELOAD_EMISSION, EDJE_PRELOAD_SOURCE, _edje_object_signal_preload_cb);
-		     edje_object_signal_callback_add(rp->swallowed_object, EDJE_PRELOAD_EMISSION, EDJE_PRELOAD_SOURCE, _edje_object_signal_preload_cb, ed);
-		     edje_object_preload(rp->swallowed_object, cancel);
+                     char *tmp;
+
+                     if (rp->part->name)
+                       {
+                          tmp = alloca(strlen(rp->part->name) + 2);
+                          sprintf(tmp, "%s:", rp->part->name);
+
+                          edje_object_signal_callback_del(obj, EDJE_PRELOAD_EMISSION, tmp, _edje_object_signal_preload_cb);
+                          edje_object_signal_callback_add(obj, EDJE_PRELOAD_EMISSION, tmp, _edje_object_signal_preload_cb, ed);
+                          edje_object_preload(rp->swallowed_object, cancel);
+                       }
+                     else
+                       {
+                          ed->preload_count--;
+                       }
 
 		     count--;
 		  }
