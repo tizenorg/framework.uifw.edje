@@ -1,3 +1,11 @@
+edje (1.1.0+svn.68847slp2+build02) unstable; urgency=low
+
+  * 69011
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.68847slp2+build02
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Sat, 10 Mar 2012 13:21:16 +0900
+
 edje (1.1.0+svn.68847slp2+build01) unstable; urgency=low
 
   * Package Upload
