@@ -1,7 +1,7 @@
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.0.999.svn60299
-Release:    1
+Version:    1.1.0+svn.67705slp2
+Release:    1.1
 Group:      System/Libraries
 License:    BSD
 URL:        http://www.enlightenment.org/
@@ -70,6 +70,11 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
 %{_datadir}/mime/packages/edje.xml
+%ifarch %{arm}
+%{_libdir}/edje/modules/multisense_factory/linux-gnueabi-armv7l-1.0.0/module.so
+%else
+%{_libdir}/edje/modules/multisense_factory/linux-gnu-i686-1.0.0/module.so
+%endif
 
 %files devel
 %defattr(-,root,root,-)
