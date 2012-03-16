@@ -1,6 +1,7 @@
+#sbs-git:slp/pkgs/e/edje edje 1.1.0+svn.69011slp2+build01 96cd9783918ce594c786d12a5107be27aec4d34b
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.0.999.svn60299
+Version: 1.1.0+svn.69011slp2+build01
 Release:    1
 Group:      System/Libraries
 License:    BSD
@@ -53,6 +54,8 @@ Edje is a graphical layout and animation library (tools)
 %setup -q
 
 %build
+export CFLAGS+=" -fvisibility=hidden -ffast-math -fPIC"
+export LDFLAGS+=" -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed"
 
 %autogen --disable-static
 %configure --disable-static
@@ -70,6 +73,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
 %{_datadir}/mime/packages/edje.xml
+%{_libdir}/edje/modules/multisense_factory/*/module.so
 
 %files devel
 %defattr(-,root,root,-)
@@ -80,6 +84,7 @@ rm -rf %{buildroot}
 
 %files tools
 %defattr(-,root,root,-)
+%{_bindir}/inkscape2edc
 %{_bindir}/edje_external_inspector
 %{_bindir}/edje_inspector
 %{_libdir}/%{name}/utils/epp
@@ -88,4 +93,3 @@ rm -rf %{buildroot}
 %{_bindir}/edje_decc
 %{_bindir}/edje_recc
 %{_datadir}/%{name}/include/edje.inc
-
