@@ -1,3 +1,11 @@
+edje (1.1.0+svn.69356slp2+build01) unstable; urgency=low
+
+  * EFL migration
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69356slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Fri, 16 Mar 2012 21:50:41 +0900
+
 edje (1.1.0+svn.69011slp2+build01) unstable; urgency=low
 
   * Package Upload
