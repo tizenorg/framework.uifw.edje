@@ -76,7 +76,7 @@ void *alloca (size_t);
 
 #include "Edje.h"
 
-EAPI extern int _edje_default_log_dom ; 
+EAPI extern int _edje_default_log_dom ;
 
 #ifdef EDJE_DEFAULT_LOG_COLOR
 # undef EDJE_DEFAULT_LOG_COLOR
@@ -98,6 +98,10 @@ EAPI extern int _edje_default_log_dom ;
 # undef CRIT
 #endif
 #define CRIT(...) EINA_LOG_DOM_CRIT(_edje_default_log_dom, __VA_ARGS__)
+#ifdef DBG
+# undef DBG
+#endif
+#define DBG(...) EINA_LOG_DOM_DBG(_edje_default_log_dom, __VA_ARGS__)
 #ifdef __GNUC__
 # if __GNUC__ >= 4
 // BROKEN in gcc 4 on amd64
@@ -232,6 +236,7 @@ struct _Edje_Position
 struct _Edje_Size
 {
    int w, h;
+   Eina_Bool limit; /* should we limit ourself to the size of the source */
 };
 
 struct _Edje_Rectangle
@@ -933,9 +938,6 @@ struct _Edje_Part_Description_Spec_Image
    int            id; /* the image id to use */
    int            scale_hint; /* evas scale hint */
    Eina_Bool      set; /* if image condition it's content */
-   struct {
-      Eina_Bool   limit; /* should we limit ourself to the size of the image */
-   } min, max;
 
    Edje_Part_Description_Spec_Border border;
 };
@@ -1169,6 +1171,8 @@ struct _Edje
 #endif
    unsigned int          have_mapped_part : 1;
    unsigned int          recalc_call : 1;
+   unsigned int          update_hints : 1;
+   unsigned int          recalc_hints : 1;
 };
 
 struct _Edje_Calc_Params

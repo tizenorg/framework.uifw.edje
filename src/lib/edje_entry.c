@@ -1451,10 +1451,10 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              if (en->select_allow)
                {
                   if (shift) _sel_extend(en->cursor, rp->object, en);
+                  else _sel_clear(en->cursor, rp->object, en);
                }
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
-        _sel_clear(en->cursor, rp->object, en);
         _edje_emit(ed, "entry,key,up", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
      }
@@ -1471,10 +1471,10 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              if (en->select_allow)
                {
                   if (shift) _sel_extend(en->cursor, rp->object, en);
+                  else _sel_clear(en->cursor, rp->object, en);
                }
              ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
-        _sel_clear(en->cursor, rp->object, en);
         _edje_emit(ed, "entry,key,down", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
      }
@@ -1491,8 +1491,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (en->select_allow)
           {
              if (shift) _sel_extend(en->cursor, rp->object, en);
+             else _sel_clear(en->cursor, rp->object, en);
           }
-        _sel_clear(en->cursor, rp->object, en);
         _edje_emit(ed, "entry,key,left", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -1510,8 +1510,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (en->select_allow)
           {
              if (shift) _sel_extend(en->cursor, rp->object, en);
+             else _sel_clear(en->cursor, rp->object, en);
           }
-        _sel_clear(en->cursor, rp->object, en);
         _edje_emit(ed, "entry,key,right", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
@@ -1728,8 +1728,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (en->select_allow)
           {
              if (shift) _sel_extend(en->cursor, rp->object, en);
+             else _sel_clear(en->cursor, rp->object, en);
           }
-        _sel_clear(en->cursor, rp->object, en);
         _edje_emit(ed, "entry,key,pgup", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
@@ -1744,8 +1744,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         if (en->select_allow)
           {
              if (shift) _sel_extend(en->cursor, rp->object, en);
+             else _sel_clear(en->cursor, rp->object, en);
           }
-        _sel_clear(en->cursor, rp->object, en);
         _edje_emit(ed, "entry,key,pgdn", rp->part->name);
         ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
