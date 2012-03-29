@@ -84,12 +84,6 @@ rm -rf %{buildroot}
 
 %files tools
 %defattr(-,root,root,-)
-%{_bindir}/inkscape2edc
-%{_bindir}/edje_external_inspector
-%{_bindir}/edje_inspector
+%{_bindir}/*
 %{_libdir}/%{name}/utils/epp
-%{_bindir}/edje_player
-%{_bindir}/edje_cc
-%{_bindir}/edje_decc
-%{_bindir}/edje_recc
 %{_datadir}/%{name}/include/edje.inc
