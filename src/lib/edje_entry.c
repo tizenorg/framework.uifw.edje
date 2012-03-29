@@ -2217,8 +2217,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
    if (ev->button != 1) return;
    if (!rp) return;
    if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD) return;
-   if (ev->flags & EVAS_BUTTON_TRIPLE_CLICK) return;
-   if (ev->flags & EVAS_BUTTON_DOUBLE_CLICK) return;
    en = rp->entry_data;
    if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
        (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_SELECTABLE))
@@ -2231,6 +2229,8 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
      }
 
    if (en->double_clicked) return;
+   if (ev->flags & EVAS_BUTTON_TRIPLE_CLICK) return;
+   if (ev->flags & EVAS_BUTTON_DOUBLE_CLICK) return;
 
    if (en->long_press_state == _ENTRY_LONG_PRESSED)
      {
