@@ -149,7 +149,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
 
              ob = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-             edje_object_signal_emit(ob, "elm,action,focus", "elm");
              bh_position = edje_object_data_get(ob, "position");
              if ((!bh_position) || (bh_position[0] == 0)) bh_position = "BOTH";
 
@@ -169,7 +168,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                {
                   ob = edje_object_add(en->rp->edje->base.evas);
                   edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-                  edje_object_signal_emit(ob, "elm,action,focus", "elm");
                   evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
                   en->block_handler_top = ob;
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_top);
@@ -178,6 +176,10 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                   evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_top_handler_mouse_move_cb, en->rp);
                }
           }
+        if (en->block_handler_top)
+          edje_object_signal_emit(en->block_handler_top, "edje,focus,in", "edje");
+        if (en->block_handler_btm)
+          edje_object_signal_emit(en->block_handler_btm, "edje,focus,in", "edje");
 
         ecore_imf_context_reset(en->imf_context);
         ecore_imf_context_focus_in(en->imf_context);
@@ -196,6 +198,11 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
 
    en = rp->entry_data;
    if (!en || !en->imf_context) return;
+
+   if (en->block_handler_top)
+     edje_object_signal_emit(en->block_handler_top, "edje,focus,out", "edje");
+   if (en->block_handler_btm)
+     edje_object_signal_emit(en->block_handler_btm, "edje,focus,out", "edje");
 
    ecore_imf_context_reset(en->imf_context);
    _edje_entry_imf_cursor_info_set(en);
@@ -230,7 +237,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
 
         ob = edje_object_add(en->rp->edje->base.evas);
         edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source2);
-        edje_object_signal_emit(ob, "elm,action,focus", "elm");
         bh_position = edje_object_data_get(ob, "position");
         if ((!bh_position) || (bh_position[0] == 0)) bh_position = "BOTH";
 
@@ -250,7 +256,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           {
              ob = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(ob, en->rp->edje->path, en->rp->part->source3);
-             edje_object_signal_emit(ob, "elm,action,focus", "elm");
              evas_object_layer_set(ob, EVAS_LAYER_MAX - 2);
              en->block_handler_top = ob;
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->block_handler_top);
@@ -259,6 +264,10 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              evas_object_event_callback_add(ob, EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_top_handler_mouse_move_cb, en->rp);
           }
      }
+   if (en->block_handler_top)
+     edje_object_signal_emit(en->block_handler_top, "edje,focus,in", "edje");
+   if (en->block_handler_btm)
+     edje_object_signal_emit(en->block_handler_btm, "edje,focus,in", "edje");
 
 #ifdef HAVE_ECORE_IMF
    if (!en->imf_context) return;
