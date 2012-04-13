@@ -172,7 +172,9 @@ part of Edje's API:
 - @ref tutorial_edje_box2
 - @ref tutorial_edje_color_class
 - @ref tutorial_edje_animations
+- @ref tutorial_edje_animations_2
 - @ref Example_Edje_Signals_Messages
+- @ref tutorial_edje_signals_2
 - @ref tutorial_edje_text
 - @ref tutorial_edje_drag
 - @ref tutorial_edje_perspective
@@ -2200,7 +2202,7 @@ EAPI void         edje_object_size_min_restricted_calc(Evas_Object *obj, Evas_Co
 
 /**
  * @brief Check if an Edje part exists in a given Edje object's group
- * definition..
+ * definition.
  *
  * @param obj A handle to an Edje object
  * @param part The part's name to check for existence in @p obj's
