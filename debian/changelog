@@ -1,3 +1,11 @@
+edje (1.2.0+svn.70223slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.2.0+svn.70223slp2+build01
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Wed, 18 Apr 2012 18:10:08 +0900
+
 edje (1.2.0+svn.69975slp2+build01) unstable; urgency=low
 
   * Package Upload
