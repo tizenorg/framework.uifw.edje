@@ -298,6 +298,11 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
 
    if (!en->imf_context) return;
 
+   if (en->block_handler_top)
+     edje_object_signal_emit(en->block_handler_top, "edje,focus,out", "edje");
+   if (en->block_handler_btm)
+     edje_object_signal_emit(en->block_handler_btm, "edje,focus,out", "edje");
+
    ecore_imf_context_reset(en->imf_context);
    _edje_entry_imf_cursor_info_set(en);
    ecore_imf_context_focus_out(en->imf_context);
