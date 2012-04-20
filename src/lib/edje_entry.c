@@ -44,6 +44,7 @@ struct _Entry
    Evas_Coord ox, oy;
    Evas_Coord sx, sy;
    Evas_Coord rx, ry;
+   Evas_Coord dx, dy;
    Evas_Coord_Rectangle layout_region;
    Evas_Coord_Rectangle viewport_region;
    Evas_Object *cursor_bg;
@@ -2045,6 +2046,9 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
      return;
    if ((ev->button != 1) && (ev->button != 2)) return;
 
+   en->dx = ev->canvas.x;
+   en->dy = ev->canvas.y;
+
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      {
@@ -2390,12 +2394,21 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 
         if (en->long_press_state == _ENTRY_LONG_PRESSING)
           {
-             en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
+             Evas_Coord dx, dy;
 
-             if (en->longpress_timer)
+             dx = en->dx - ev->cur.canvas.x;
+             dy = en->dy - ev->cur.canvas.y;
+
+             /* FIXME: Magic number 40 is used to ignore finger move while detecting long press.              */
+             /*        This should be replaced with the constant or variable relevant to the elm_finger_size. */
+             if (((dx*dx) + (dy*dy)) > (40*40))
                {
-                  ecore_timer_del(en->longpress_timer);
-                  en->longpress_timer = NULL;
+                  en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
+                  if (en->longpress_timer)
+                    {
+                       ecore_timer_del(en->longpress_timer);
+                       en->longpress_timer = NULL;
+                    }
                }
           }
         else if (en->long_press_state == _ENTRY_LONG_PRESSED)
