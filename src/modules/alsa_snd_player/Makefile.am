@@ -6,8 +6,6 @@ pkglibdir = $(REMIX_PLUGIN_DIR)
 
 AM_CPPFLAGS = \
 -I. \
--DPACKAGE_LIB_DIR=\"$(libdir)/remix\" \
--DPACKAGE_DATA_DIR=\"$(datadir)/remix\" \
 @EDJE_CFLAGS@ \
 @REMIX_CFLAGS@ \
 @ALSA_CFLAGS@

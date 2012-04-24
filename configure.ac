@@ -296,8 +296,8 @@ PKG_CHECK_MODULES([ECORE_IMF],
 want_multisense="yes"
 AC_ARG_ENABLE([multisense],
    [AC_HELP_STRING(
-       [--enable-multisense],
-       [multisense provides sound. tone and haptic effects support, [[default=disabled]]]
+       [--disable-multisense],
+       [multisense provides sound and tone play support, [[default=enabled]]]
     )],
     [want_multisense=$enableval]
 )
@@ -375,7 +375,7 @@ if test "x${want_multisense}" = "xyes" -a "x$want_vorbis" != "xno"; then
        have_vorbis="yes"
        requirement_edje="ogg >= 1.1.4 vorbis >= 1.2.3 vorbisenc >= 1.2.3 ${requirement_edje}"
       ],
-      [have_vorbis="no"; want_multisense="no"]
+      [have_vorbis="no"]
    )
 
 	if test "x$want_vorbis" = "xyes" -a "x$have_vorbis" = "xno"; then
@@ -386,7 +386,7 @@ fi
 ##alsa library
 have_alsa_lib="no"
 want_alsa_lib="auto"
-AC_ARG_ENABLE([flac],
+AC_ARG_ENABLE([alsa],
    [AC_HELP_STRING([--disable-alsa], [disable alsa support. @<:@default=detect@:>@])],
    [want_alsa_lib=$enableval], [])
 
@@ -400,7 +400,7 @@ if test "x${want_multisense}" = "xyes" -a "x$want_alsa_lib" != "xno"; then
        have_alsa_lib="yes"
        requirement_edje="alsa >= 1.0.21 ${requirement_edje}"
       ],
-      [have_alsa_lib="no"; want_multisense="no"]
+      [have_alsa_lib="no"]
    )
 
 	if test "x$want_alsa_lib" = "xyes" -a "x$have_alsa_lib" = "xno"; then
@@ -408,6 +408,33 @@ if test "x${want_multisense}" = "xyes" -a "x$want_alsa_lib" != "xno"; then
 	fi
 fi	
 AM_CONDITIONAL([HAVE_LIBALSA], [test "x${have_alsa_lib}" = "xyes"])
+
+##pulse audio library
+have_pa_lib="no"
+want_pa_lib="auto"
+AC_ARG_ENABLE([pulseaudio],
+   [AC_HELP_STRING([--disable-pa], [disable pulse audio support. @<:@default=detect@:>@])],
+   [want_pa_lib=$enableval], [])
+
+if test "x${want_multisense}" = "xyes" -a "x$want_pa_lib" != "xno"; then
+   PKG_CHECK_MODULES([PA],
+      [
+       libpulse >= 0.9.21
+       libpulse-simple >= 0.9.21
+      ],
+      [
+       AC_DEFINE(HAVE_LIBPA, 1, [Pulse Audio support for Edje])
+       have_pa_lib="yes"
+       requirement_edje="libpulse >= 0.9.21 ${requirement_edje}"
+      ],
+      [have_pa_lib="no"]
+   )
+
+	if test "x$want_pa_lib" = "xyes" -a "x$have_pa_lib" = "xno"; then
+	    AC_MSG_ERROR([pulse audio support requested, but not found by pkg-config.])
+	fi
+fi
+AM_CONDITIONAL([HAVE_LIBPA], [test "x${have_pa_lib}" = "xyes"])
 
 
 ##flac library
@@ -431,7 +458,7 @@ if test "x${want_multisense}" = "xyes" -a "x$want_flac_lib" != "xno"; then
        # mayhem
        #requirement_edje="flac >= 1.2.1 ${requirement_edje}"
       ],
-      [have_flac_lib="no"; want_multisense="no"]
+      [have_flac_lib="no"]
    )
 	if test "x$want_flac_lib" = "xyes" -a "x$have_flac_lib" = "xno"; then
 	    AC_MSG_ERROR([flac support requested, but not found by pkg-config.])
@@ -566,6 +593,7 @@ src/bin/Makefile
 src/bin/epp/Makefile
 src/modules/Makefile
 src/modules/alsa_snd_player/Makefile
+src/modules/pa_snd_player/Makefile
 src/modules/eet_snd_reader/Makefile
 src/modules/multisense_factory/Makefile
 src/tests/Makefile
@@ -596,6 +624,7 @@ echo "  Libsndfile...........: $have_sndfile"
 echo "  Ogg/Vorbis...........: $have_vorbis"
 echo "  LibFLAC..............: $have_flac_lib"
 echo "  LibALSA..............: $have_alsa_lib"
+echo "  LibPA................: $have_pa_lib"
 fi
 
 echo "  EDJE_PROGRAM_CACHE...: $want_edje_program_cache"

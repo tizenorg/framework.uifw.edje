@@ -8,15 +8,24 @@ EAPI RemixBase *
 multisense_sound_player_get(Edje_Multisense_Env *msenv)
 {
    RemixEnv *env = msenv->remixenv;
-   RemixPlugin *player_plugin;
+   RemixPlugin *player_plugin = NULL;
    RemixBase *player;
 
-   player_plugin = remix_find_plugin(env, "alsa_snd_player");
+#ifdef HAVE_LIBPA
+   player_plugin = remix_find_plugin(env, "pa_snd_player");
+   INF("PA player_plugin = %p \n", player_plugin);
+#endif
+
+#ifdef HAVE_LIBALSA
    if (!player_plugin)
      {
-        WRN("ALSA player_plugin init fail\n");
-        return remix_monitor_new(env);
+        player_plugin = remix_find_plugin(env, "alsa_snd_player");
+        INF("ALSA player_plugin = %p \n", player_plugin);
      }
+#endif
+   if (!player_plugin)
+     return remix_monitor_new(env);
+
    player = remix_new(env, player_plugin, NULL);
    return player;
 }

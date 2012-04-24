@@ -12,6 +12,17 @@ DEB_SOURCE_VERSION := $(shell )
 CFLAGS += -fvisibility=hidden -ffast-math -fPIC
 LDFLAGS += -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed
 
+
+REMIX_DIR='debian/tmp/usr/lib/remix/*'
+INSTALL_FILE="$(DEB_SRCDIR)/debian/libedje.install"
+build:
+	if [ $(shell grep $(REMIX_DIR) $(INSTALL_FILE) |wc -l) = 1 ];then	\
+		sed -i "/remix\/\*/d" $(INSTALL_FILE);	\
+	fi
+	if [ $(shell pkg-config --modversion remix 2>/dev/null|wc -l) = 1 ];then 	\
+		echo $(REMIX_DIR) >> $(INSTALL_FILE); \
+	fi
+
 #build/libedje-doc::
 #	cd $(DEB_SRCDIR)/doc && make doc
 

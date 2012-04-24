@@ -263,10 +263,10 @@ static void st_collections_group_programs_program_after(void);
 static void st_collections_group_programs_program_api(void);
 
 static void ob_collections_group_programs_program_script(void);
+
 static void st_collections_group_sound_sample_name(void);
 static void st_collections_group_sound_sample_source(void);
 static void st_collections_group_sound_tone(void);
-
 /*****/
 
 New_Statement_Handler statement_handlers[] =
@@ -304,7 +304,6 @@ New_Statement_Handler statement_handlers[] =
      {"collections.color_classes.color_class.color", st_color_class_color}, /* dup */
      {"collections.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.color_classes.color_class.color3", st_color_class_color3}, /* dup */
-
      {"collections.sounds.sample.name", st_collections_group_sound_sample_name},
      {"collections.sounds.sample.source", st_collections_group_sound_sample_source},
      {"collections.group.sounds.sample.name", st_collections_group_sound_sample_name}, /* dup */
@@ -1892,7 +1891,6 @@ ob_collections(void)
    if (!edje_file->collection)
      edje_file->collection = eina_hash_string_small_new(NULL);
 }
-
 /**
     @page edcref
     @block
@@ -1904,7 +1902,7 @@ ob_collections(void)
               source: "sound_file1.wav";
            }
            sample {
-              name: "sound_file2" LOSSY 0.4;
+              name: "sound_file2" LOSSY 99.0;
               source: "sound_file2.wav";
            }
            tone: "tone-1"  2300;
@@ -1921,7 +1919,7 @@ ob_collections(void)
           source: "sound_file1.wav";
        }
        sample {
-          name: "sound_file2" LOSSY 0.5;
+          name: "sound_file2" LOSSY 88.0;
           source: "sound_file2.wav";
        }
        sample {
@@ -1944,7 +1942,7 @@ ob_collections(void)
         the sounds can be defined later with edje_cc's "-sd" option.
         @li RAW: Uncompressed.
         @li COMP: Lossless compression.
-        @li LOSSY [-0.1  - 1.0]: Lossy comression with quality from 0 to 1.0.
+        @li LOSSY [45.0  - 1000.0]: Lossy comression with quality from 45.0 to 1000.0.
         @li AS_IS: Check for re-encoding, no compression/encoding, just write the file information as it is.
     @endproperty
     @since 1.1.0
@@ -2105,7 +2103,6 @@ st_collections_group_sound_tone(void)
    tone->value = value;
    tone->id = edje_file->sound_dir->tones_count - 1;
 }
-
 /**
    @edcsection{group,Group sub blocks}
  */
@@ -7449,8 +7446,7 @@ st_collections_group_programs_program_action(void)
 {
    Edje_Part_Collection *pc;
    Edje_Program *ep;
-   int i;
-   
+
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = current_program;
    ep->action = parse_enum(0,
@@ -7480,6 +7476,8 @@ st_collections_group_programs_program_action(void)
      }
    else if (ep->action == EDJE_ACTION_TYPE_SOUND_SAMPLE)
      {
+        int i;
+
         ep->sample_name = parse_str(1);
         for (i = 0; i < (int)edje_file->sound_dir->samples_count; i++)
           {
@@ -7496,6 +7494,8 @@ st_collections_group_programs_program_action(void)
      }
    else if (ep->action == EDJE_ACTION_TYPE_SOUND_TONE)
      {
+        int i;
+
         ep->tone_name = parse_str(1);
         for (i = 0; i < (int)edje_file->sound_dir->tones_count; i++)
           {

@@ -12,7 +12,7 @@
 # endif
 
 Edje_Sound_Encode *
-_edje_multisense_encode(const char *filename, Edje_Sound_Sample *sample, double quality __UNUSED__)
+_edje_multisense_encode(const char *filename, Edje_Sound_Sample *sample, double quality)
 {
    SF_INFO sfinfo;
    SNDFILE* sfile;

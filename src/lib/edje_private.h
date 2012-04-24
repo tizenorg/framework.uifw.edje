@@ -1580,6 +1580,7 @@ EAPI void _edje_edd_shutdown(void);
 
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_file;
 EAPI extern Eet_Data_Descriptor *_edje_edd_edje_part_collection;
+EAPI extern Eina_Bool _on_edjecc;
 
 extern int              _edje_anim_count;
 extern Ecore_Animator  *_edje_timer;

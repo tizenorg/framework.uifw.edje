@@ -261,7 +261,7 @@ remix_pcm_resample(SndInstanceData *si)
           {
              float fpos, fpos1;
              RemixPCM psam[2];
-             
+
              fpos = (float)(i * in_samples) / (float)reqsamp;
              pos = fpos;
              if (pos >= avail) break;

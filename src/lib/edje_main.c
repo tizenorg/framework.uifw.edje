@@ -7,6 +7,7 @@ static int _edje_init_count = 0;
 int _edje_default_log_dom = -1;
 Eina_Mempool *_edje_real_part_mp = NULL;
 Eina_Mempool *_edje_real_part_state_mp = NULL;
+EAPI Eina_Bool _on_edjecc = EINA_FALSE;
 
 /*============================================================================*
  *                                   API                                      *
@@ -58,7 +59,10 @@ edje_init(void)
    _edje_external_init();
    _edje_module_init();
    _edje_message_init();
-   _edje_multisense_init();
+
+   /* Do the Multisense runtime framework initialisation, if it is not EDC compilation mode */
+   if (!_on_edjecc)
+     _edje_multisense_init();
 
    _edje_real_part_mp = eina_mempool_add("chained_mempool",
 					 "Edje_Real_Part", NULL,

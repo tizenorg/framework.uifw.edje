@@ -218,6 +218,7 @@ main(int argc, char **argv)
 	exit(-1);
      }
 
+   _on_edjecc = EINA_TRUE;
    if (!edje_init())
      exit(-1);
 
