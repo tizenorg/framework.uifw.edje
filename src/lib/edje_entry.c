@@ -226,9 +226,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if (!rp) return;
 
    en = rp->entry_data;
-   if ((!en) || (rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
-       (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE))
-     return;
+   if (!en) return;
 
    if ((!en->block_handler_top) && (!en->block_handler_btm) &&
       (en->rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
@@ -269,6 +267,10 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
      edje_object_signal_emit(en->block_handler_top, "edje,focus,in", "edje");
    if (en->block_handler_btm)
      edje_object_signal_emit(en->block_handler_btm, "edje,focus,in", "edje");
+
+   if ((rp->part->type != EDJE_PART_TYPE_TEXTBLOCK) ||
+       (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE))
+     return;
 
 #ifdef HAVE_ECORE_IMF
    if (!en->imf_context) return;
