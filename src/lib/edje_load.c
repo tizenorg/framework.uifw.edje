@@ -126,7 +126,7 @@ edje_file_group_exists(const char *file, const char *glob)
    Eina_Bool is_glob = EINA_FALSE;
    const char *p;
 
-   if ((!file) || (!*file))
+   if ((!file) || (!*file) || (!glob))
       return EINA_FALSE;
 
    edf = _edje_cache_file_coll_open(file, NULL, &error_ret, NULL);
@@ -225,6 +225,20 @@ _edje_programs_patterns_init(Edje *ed)
 
    if (ssp->signals_patterns)
      return;
+
+   if (getenv("EDJE_DUMP_PROGRAMS"))
+     {
+       INF("Group '%s' programs:", ed->group);
+#define EDJE_DUMP_PROGRAM(Section)					\
+       for (i = 0; i < ed->collection->programs.Section##_count; i++)	\
+	 INF(#Section" for ('%s', '%s')", ed->collection->programs.Section[i]->signal, ed->collection->programs.Section[i]->source);
+
+       EDJE_DUMP_PROGRAM(strcmp);
+       EDJE_DUMP_PROGRAM(strncmp);
+       EDJE_DUMP_PROGRAM(strrncmp);
+       EDJE_DUMP_PROGRAM(fnmatch);
+       EDJE_DUMP_PROGRAM(nocmp);
+     }
 
    edje_match_program_hash_build(ed->collection->programs.strcmp,
 				 ed->collection->programs.strcmp_count,

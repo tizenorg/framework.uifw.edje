@@ -1,7 +1,8 @@
+#sbs-git:slp/pkgs/e/edje edje 1.1.0+svn.69011slp2+build03 96cd9783918ce594c786d12a5107be27aec4d34b
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.1.0+svn.67705slp2
-Release:    1.1
+Version:    1.1.0+svn.69917slp2+build01
+Release:    1
 Group:      System/Libraries
 License:    BSD
 URL:        http://www.enlightenment.org/
@@ -53,6 +54,8 @@ Edje is a graphical layout and animation library (tools)
 %setup -q
 
 %build
+export CFLAGS+=" -fvisibility=hidden -ffast-math -fPIC"
+export LDFLAGS+=" -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed"
 
 %autogen --disable-static
 %configure --disable-static
@@ -70,11 +73,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
 %{_datadir}/mime/packages/edje.xml
-%ifarch %{arm}
-%{_libdir}/edje/modules/multisense_factory/linux-gnueabi-armv7l-1.0.0/module.so
-%else
-%{_libdir}/edje/modules/multisense_factory/linux-gnu-i686-1.0.0/module.so
-%endif
+%{_libdir}/edje/modules/multisense_factory/*/module.so
 
 %files devel
 %defattr(-,root,root,-)
@@ -85,12 +84,6 @@ rm -rf %{buildroot}
 
 %files tools
 %defattr(-,root,root,-)
-%{_bindir}/edje_external_inspector
-%{_bindir}/edje_inspector
+%{_bindir}/*
 %{_libdir}/%{name}/utils/epp
-%{_bindir}/edje_player
-%{_bindir}/edje_cc
-%{_bindir}/edje_decc
-%{_bindir}/edje_recc
 %{_datadir}/%{name}/include/edje.inc
-

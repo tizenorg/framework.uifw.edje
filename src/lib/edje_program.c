@@ -479,8 +479,8 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
      }
    if ((recursions >= 64) || (recursion_limit))
      {
-	ERR("Programs recursing up to recursion limit of %i. Disabled.",
-	    64);
+	ERR("Programs recursing up to recursion limit of %i in '%s' with '%s', '%s' from '%s', '%s'. Disabled.",
+	    64, pr->name, ssig, ssrc, ed->path, ed->group);
 	recursion_limit = 1;
 	return;
      }
@@ -1037,12 +1037,8 @@ _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data, void (*f
 
 struct _Edje_Program_Data
 {
-#ifdef EDJE_PROGRAM_CACHE
   Eina_List     *matches;
-  int            matched;
-#endif
   Edje          *ed;
-  const char    *signal;
   const char    *source;
 };
 
@@ -1056,32 +1052,15 @@ static Eina_Bool _edje_glob_callback(Edje_Program *pr, void *dt)
      {
 	rp = _edje_real_part_get(data->ed, pr->filter.part ? pr->filter.part : data->source);
 	if (rp)
-	  exec = (rp->chosen_description->state.name == pr->filter.state);
+          exec = (rp->chosen_description->state.name == pr->filter.state);
      }
 
-#ifdef EDJE_PROGRAM_CACHE
-   data->matched++;
-#endif
+   pr->exec = exec;
 
-   if (exec)
-     _edje_program_run(data->ed, pr, 0, data->signal, data->source);
-
-   if (_edje_block_break(data->ed))
-     {
-#ifdef EDJE_PROGRAM_CACHE
-        eina_list_free(data->matches);
-        data->matches = NULL;
-#endif
-        return EINA_TRUE;
-     }
-
-#ifdef EDJE_PROGRAM_CACHE
    data->matches = eina_list_append(data->matches, pr);
-#endif
 
    return EINA_FALSE;
 }
-
 
 void
 _edje_callbacks_patterns_clean(Edje *ed)
@@ -1127,7 +1106,7 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
    
    if (ed->collection && ed->L)
      _edje_lua2_script_func_signal(ed, sig, src);
-   
+
    if (ed->collection)
      {
 #ifdef EDJE_PROGRAM_CACHE
@@ -1156,11 +1135,11 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
 
 	     if (eina_hash_find(ec->prog_cache.no_matches, tmps))
 	       {
-		  done = 1;
+ 		  done = 1;
 	       }
 	     else if ((matches = eina_hash_find(ec->prog_cache.matches, tmps)))
 	       {
-		 EINA_LIST_FOREACH(matches, l, pr)
+                  EINA_LIST_FOREACH(matches, l, pr)
 		    {
                        Eina_Bool exec = EINA_TRUE;
 
@@ -1169,15 +1148,12 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
                             Edje_Real_Part *rp;
 
                             rp = _edje_real_part_get(ed, pr->filter.part ? pr->filter.part : src);
-                            if (rp)
-                              {
-                                 if (rp->program)
-                                   exec = EINA_FALSE;
-                                 else
-                                   exec = (rp->chosen_description->state.name == pr->filter.state);
-                              }
+                            if (rp && !rp->program)
+                              exec = (rp->chosen_description->state.name == pr->filter.state);
                          }
 
+                       pr->exec = exec;
+#if 0
                        if (exec)
                          {
                             _edje_program_run(ed, pr, 0, sig, src);
@@ -1186,7 +1162,19 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
                                  goto break_prog;
                               }
                          }
+#endif
 		    }
+
+                  EINA_LIST_FOREACH(matches, l, pr)
+                    if (pr->exec)
+                      {
+                         _edje_program_run(ed, pr, 0, sig, src);
+                         if (_edje_block_break(ed))
+                           {
+                              goto break_prog;
+                           }
+                      }
+
 		  done = 1;
 	       }
 	  }
@@ -1197,11 +1185,8 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
 
              data.ed = ed;
              data.source = src;
-             data.signal = sig;
-#ifdef EDJE_PROGRAM_CACHE
-	     data.matched = 0;
 	     data.matches = NULL;
-#endif
+
              if (ed->table_programs_size > 0)
                {
 		  const Eina_List *match;
@@ -1223,12 +1208,29 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
 							    ed->patterns.programs.exact_match);
 		  EINA_LIST_FOREACH(match, l, pr)
 		    _edje_glob_callback(pr, &data);
+
+#ifdef EDJE_PROGRAM_CACHE
+                  EINA_LIST_FOREACH(data.matches, l, pr)
+#else
+                  EINA_LIST_FREE(data.matches, pr)
+#endif
+                    {
+                       if (pr->exec)
+                         _edje_program_run(ed, pr, 0, sig, src);
+
+                       if (_edje_block_break(ed))
+                         {
+                            eina_list_free(data.matches);
+                            data.matches = NULL;
+                            goto break_prog;
+                         }
+                    }
                }
 
 #ifdef EDJE_PROGRAM_CACHE
 	     if (tmps)
 	       {
-		  if (data.matched == 0)
+		  if (data.matches == NULL)
 		    {
 		      if (!ec->prog_cache.no_matches)
 			ec->prog_cache.no_matches = eina_hash_string_superfast_new(NULL);

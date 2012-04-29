@@ -106,6 +106,7 @@ static void st_collections_group_script_only(void);
 static void st_collections_group_alias(void);
 static void st_collections_group_min(void);
 static void st_collections_group_max(void);
+static void st_collections_group_broadcast_signal(void);
 static void st_collections_group_data_item(void);
 static void st_collections_group_orientation(void);
 
@@ -317,6 +318,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.alias", st_collections_group_alias},
      {"collections.group.min", st_collections_group_min},
      {"collections.group.max", st_collections_group_max},
+     {"collections.group.broadcast_signal", st_collections_group_broadcast_signal},
      {"collections.group.orientation", st_collections_group_orientation},
      {"collections.group.data.item", st_collections_group_data_item},
      {"collections.group.limits.horizontal", st_collections_group_limits_horizontal},
@@ -2151,6 +2153,7 @@ ob_collections_group(void)
    pc = mem_alloc(SZ(Edje_Part_Collection));
    edje_collections = eina_list_append(edje_collections, pc);
    pc->id = current_de->id;
+   pc->broadcast_signal = EINA_TRUE; /* This was the behaviour by default in Edje 1.1 */
 
    cd = mem_alloc(SZ(Code));
    codes = eina_list_append(codes, cd);
@@ -2187,6 +2190,7 @@ st_collections_group_name(void)
    older = eina_hash_find(edje_file->collection, current_de->entry);
    if (older) eina_hash_del(edje_file->collection, current_de->entry, older);
    eina_hash_direct_add(edje_file->collection, current_de->entry, current_de);
+   if (!older) return;
 
    EINA_LIST_FOREACH(aliases, l, alias)
      if (strcmp(alias->entry, current_de->entry) == 0)
@@ -2571,6 +2575,28 @@ st_collections_group_max(void)
 }
 
 /**
+   @page edcref
+   @property
+       broadcast_signal
+   @parameters
+       [broadcast]
+   @effect
+       Signal got automatically broadcasted to all sub group part. Default to
+       true since 1.1.
+   @endproperty
+*/
+static void
+st_collections_group_broadcast_signal(void)
+{
+   Edje_Part_Collection *pc;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+   pc->broadcast_signal = parse_bool(0);
+}
+
+/**
     @page edcref
     @block
         script
@@ -2731,7 +2757,7 @@ st_collections_group_orientation(void)
         This block is used to trigger some signal when the Edje object is resized.
     @endblock
 
-    @edcref
+    @page edcref
     @property
         vertical
     @parameters
@@ -4640,7 +4666,7 @@ st_collections_group_parts_part_description_fixed(void)
 
         When min is defined to SOURCE, it will look at the original
         image size and enforce it minimal size to match at least the
-        original one. The part must be an IMAGE part.
+        original one. The part must be an IMAGE or a GROUP part.
     @endproperty
 */
 static void
@@ -4652,21 +4678,19 @@ st_collections_group_parts_part_description_min(void)
       current_desc->min.w = parse_float_range(0, 0, 0x7fffffff);
       current_desc->min.h = parse_float_range(1, 0, 0x7fffffff);
    } else {
-      Edje_Part_Description_Image *desc;
       char *tmp;
 
       tmp = parse_str(0);
-      if (current_part->type != EDJE_PART_TYPE_IMAGE ||
+      if ((current_part->type != EDJE_PART_TYPE_IMAGE && current_part->type != EDJE_PART_TYPE_GROUP) ||
           !tmp || strcmp(tmp, "SOURCE") != 0)
         {
            ERR("%s: Error. parse error %s:%i. "
-               "Only IMAGE part can have a min: SOURCE; defined",
+               "Only IMAGE and GROUP part can have a min: SOURCE; defined",
                progname, file_in, line - 1);
            exit(-1);
         }
 
-      desc = (Edje_Part_Description_Image *) current_desc;
-      desc->image.min.limit = EINA_TRUE;
+      current_desc->min.limit = EINA_TRUE;
    }
 }
 
@@ -4714,7 +4738,6 @@ st_collections_group_parts_part_description_max(void)
       current_desc->max.w = parse_float_range(0, -1.0, 0x7fffffff);
       current_desc->max.h = parse_float_range(1, -1.0, 0x7fffffff);
    } else {
-      Edje_Part_Description_Image *desc;
       char *tmp;
 
       tmp = parse_str(0);
@@ -4727,8 +4750,7 @@ st_collections_group_parts_part_description_max(void)
            exit(-1);
         }
 
-      desc = (Edje_Part_Description_Image *) current_desc;
-      desc->image.max.limit = EINA_TRUE;
+      current_desc->max.limit = EINA_TRUE;
    }
 }
 

@@ -2,21 +2,30 @@
 # include "config.h"
 #endif
 
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+# include <stddef.h>
+#else
+# ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+#endif
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
+#elif !defined alloca
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _AIX
+#  define alloca __alloca
+# elif defined _MSC_VER
+#  include <malloc.h>
+#  define alloca _alloca
+# elif !defined HAVE_ALLOCA
+#  ifdef  __cplusplus
 extern "C"
-# endif
+#  endif
 void *alloca (size_t);
+# endif
 #endif
 
 #include <string.h>
@@ -1624,6 +1633,7 @@ data_process_lookups(void)
    Eina_List *l;
    Eina_Hash *images_in_use;
    void *data;
+   Eina_Bool is_lua = EINA_FALSE;
 
    /* remove all unreferenced Edje_Part_Collection */
    EINA_LIST_FOREACH_SAFE(edje_collections, l, l2, pc)
@@ -1675,6 +1685,8 @@ data_process_lookups(void)
 	unsigned int count = 0;
 	unsigned int i;
 
+        if (pc->lua_script_only)
+           is_lua = EINA_TRUE;
 #define PROGRAM_ID_SET(Type, Pc, It, Count)				\
 	for (It = 0; It < Pc->programs.Type ## _count; ++It)		\
 	  {								\
@@ -1875,7 +1887,7 @@ data_process_lookups(void)
 	free(image);
      }
 
-   if (edje_file->image_dir)
+   if (edje_file->image_dir && !is_lua)
      {
 	Edje_Image_Directory_Entry *de;
         Edje_Image_Directory_Set *set;

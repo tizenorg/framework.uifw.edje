@@ -1,11 +1,11 @@
 /**
- * Simple Edje example illustrating text functions.
+ * Simple Edje example illustrating swallow functions.
  *
  * You'll need at least one Evas engine built for it (excluding the
  * buffer one). See stdout/stderr for output.
  *
  * @verbatim
- * edje_cc text.edc && gcc -o edje-text edje-text.c `pkg-config --libs --cflags ecore-evas edje`
+ * edje_cc swallow.edc && gcc -o edje-swallow2 edje-swallow2.c `pkg-config --libs --cflags evas ecore ecore-evas edje`
  * @endverbatim
  */
 
@@ -28,22 +28,21 @@ _on_delete(Ecore_Evas *ee __UNUSED__)
    ecore_main_loop_quit();
 }
 
-static void
-_on_text_change(void *data __UNUSED__, Evas_Object *obj, const char *part)
-{
-   printf("text: %s\n", edje_object_part_text_unescaped_get(obj, part));
-}
-
 int
 main(int argc __UNUSED__, char *argv[])
 {
    char         edje_file_path[PATH_MAX];
-   const char  *edje_file = "text.edj";
+   char         img_file_path[PATH_MAX];
+   const char  *edje_file = "swallow.edj";
+   const char  *img_file = "bubble.png";
    Ecore_Evas  *ee;
    Evas        *evas;
    Evas_Object *bg;
+   Evas_Object *img;
+   Evas_Object *obj;
    Evas_Object *edje_obj;
    Eina_Prefix *pfx;
+   Evas_Load_Error err;
 
    if (!ecore_evas_init())
      return EXIT_FAILURE;
@@ -69,7 +68,8 @@ main(int argc __UNUSED__, char *argv[])
      goto free_prefix;
 
    ecore_evas_callback_delete_request_set(ee, _on_delete);
-   ecore_evas_title_set(ee, "Edje text Example");
+
+   ecore_evas_title_set(ee, "Edje Swallow Example");
 
    evas = ecore_evas_get(ee);
 
@@ -78,7 +78,9 @@ main(int argc __UNUSED__, char *argv[])
    evas_object_move(bg, 0, 0); /* at canvas' origin */
    evas_object_resize(bg, WIDTH, HEIGHT); /* covers full canvas */
    evas_object_show(bg);
-   ecore_evas_object_associate(ee, bg, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
+   ecore_evas_data_set(ee, "background", bg);
+
+   ecore_evas_object_associate(ee,bg, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
 
    edje_obj = edje_object_add(evas);
 
@@ -89,15 +91,27 @@ main(int argc __UNUSED__, char *argv[])
    evas_object_resize(edje_obj, WIDTH - 40, HEIGHT - 40);
    evas_object_show(edje_obj);
 
-   edje_object_text_change_cb_set(edje_obj, _on_text_change, NULL);
-   edje_object_part_text_set(edje_obj, "part_one", "one");
-   edje_object_part_text_set(edje_obj, "part_two", "<b>two");
+   snprintf(img_file_path, sizeof(edje_file_path),
+            "%s/examples/%s", eina_prefix_data_get(pfx), img_file);
 
-   edje_object_part_text_select_allow_set(edje_obj, "part_two", EINA_TRUE);
-   edje_object_part_text_select_all(edje_obj, "part_two");
-   printf("selection: %s\n", edje_object_part_text_selection_get(edje_obj, "part_two"));
-   edje_object_part_text_select_none(edje_obj, "part_two");
-   printf("selection: %s\n", edje_object_part_text_selection_get(edje_obj, "part_two"));
+   img = evas_object_image_filled_add(evas);
+   evas_object_image_file_set(img, img_file_path, NULL);
+
+   err = evas_object_image_load_error_get(img);
+
+   if (err != EVAS_LOAD_ERROR_NONE)
+   {
+      fprintf(stderr, "could not load image '%s'. error string is \"%s\"\n",
+              img_file_path, evas_load_error_str(err));
+     goto free_prefix;
+   }
+
+   edje_object_part_swallow(edje_obj, "part_one", img);
+
+   obj = edje_object_part_swallow_get(edje_obj, "part_one");
+
+   if(obj == img)
+      printf("Swallowing worked!\n");
 
    ecore_evas_show(ee);
 

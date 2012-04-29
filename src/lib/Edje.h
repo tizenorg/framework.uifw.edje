@@ -19,7 +19,7 @@ Please see the @ref authors page for contact details.
 
 Edje is a complex graphical design & layout library.
 
-It doesn't pretend to do containing and regular layout like a widget
+It doesn't intend to do containing and regular layout like a widget
 set, but it is the base for such components. Based on the requirements
 of Enlightenment 0.17, Edje should serve all the purposes of creating
 visual elements (borders of windows, buttons, scrollbars, etc.) and
@@ -110,197 +110,11 @@ The application using Edje will then create an object in its Evas
 canvas and set the bundle file to use, specifying the @b group name to
 use. Edje will load such information and create all the required
 children objects with the specified properties as defined in each @b
-part of the given group. See the following annotated example:
+part of the given group. See the following example:
+@include edje_example.c
 
-@code
-
-#include <Eina.h>
-#include <Evas.h>
-#include <Ecore.h>
-#include <Ecore_Evas.h>
-#include <Edje.h>
-
-#define WIDTH 320
-#define HEIGHT 240
-
-static Evas_Object *create_my_group(Evas *canvas, const char *text)
-{
-   Evas_Object *edje;
-
-   edje = edje_object_add(canvas);
-   if (!edje)
-     {
-	EINA_LOG_CRIT("could not create edje object!");
-	return NULL;
-     }
-
-   if (!edje_object_file_set(edje, "edje_example.edj", "my_group"))
-     {
-	int err = edje_object_load_error_get(edje);
-	const char *errmsg = edje_load_error_str(err);
-	EINA_LOG_ERR("could not load 'my_group' from edje_example.edj: %s",
-		     errmsg);
-
-	evas_object_del(edje);
-	return NULL;
-     }
-
-   if (text)
-     {
-	if (!edje_object_part_text_set(edje, "text", text))
-	  {
-	     EINA_LOG_WARN("could not set the text. "
-			   "Maybe part 'text' does not exist?");
-	  }
-     }
-
-   evas_object_move(edje, 0, 0);
-   evas_object_resize(edje, WIDTH, HEIGHT);
-   evas_object_show(edje);
-   return edje;
-}
-
-int main(int argc, char *argv[])
-{
-   Ecore_Evas *window;
-   Evas *canvas;
-   Evas_Object *edje;
-   const char *text;
-
-   eina_init();
-   evas_init();
-   ecore_init();
-   ecore_evas_init();
-   edje_init();
-
-   window = ecore_evas_new(NULL, 0, 0, WIDTH, HEIGHT, NULL);
-   if (!window)
-     {
-	EINA_LOG_CRIT("could not create window.");
-	return -1;
-     }
-   canvas = ecore_evas_get(window);
-
-   text = (argc > 1) ? argv[1] : NULL;
-
-   edje = create_my_group(canvas, text);
-   if (!edje)
-     return -2;
-
-   ecore_evas_show(window);
-   ecore_main_loop_begin();
-
-   evas_object_del(edje);
-   ecore_evas_free(window);
-
-   return 0;
-}
-@endcode
-
-It requires the following source Edje file:
-@code
-// compile: edje_cc edje_example.edc
-collections {
-   group {
-      name: "my_group"; // must be the same as in edje_example.c
-
-      parts {
-         part {
-            name: "background";
-            type: RECT; // plain boring rectangle
-            mouse_events: 0; // we don't need any mouse event on the background
-
-            // just one state "default"
-            description {
-               state: "default" 0.0; // must always exist
-               color: 255 255 255 255; // white
-
-               // define part coordinates:
-
-               rel1 { // top-left point at (0, 0) [WIDTH * 0 + 0, HEIGHT * 0 + 0]
-                  relative: 0.0 0.0;
-                  offset: 0 0;
-               }
-               rel2 { // bottom-right point at (WIDTH * 1.0 - 1, HEIGHT * 1.0 - 1)
-                  relative: 1.0 1.0;
-                  offset: -1 -1;
-               }
-            }
-         }
-
-         part {
-            name: "text";
-            type: TEXT;
-            mouse_events: 1; // we want to change the color on mouse-over
-
-            // 2 states, one "default" and another "over" to be used
-            // on mouse over effect
-
-            description {
-               state: "default" 0.0;
-               color: 255 0 0 255; // red
-
-               // define part coordinates:
-
-               rel1 { // top-left at (WIDTH * 0.1 + 5, HEIGHT * 0.2 + 10)
-                  relative: 0.1 0.2;
-                  offset: 5 10;
-               }
-               rel2 { // bottom-right at (WIDTH * 0.9 - 6, HEIGHT * 0.8 - 11)
-                  relative: 0.9 0.8;
-                  offset: -6 -11;
-               }
-
-               // define text specific state details
-               text {
-                  font: "Sans"; // using fontconfig name!
-                  size: 10;
-                  text: "hello world";
-               }
-            }
-
-            description {
-               state: "over" 0.0;
-               inherit: "default" 0.0; // copy everything from "default" at this point
-
-               color: 0 255 0 255; // override color, now it is green
-            }
-         }
-
-         // do programs to change color on text mouse in/out (over)
-         programs {
-            program {
-               // what triggers this program:
-               signal: "mouse,in";
-               source: "text";
-
-               // what this program does:
-               action: STATE_SET "over" 0.0;
-               target: "text";
-
-               // do the state-set in a nice interpolation animation
-               // using linear time in 0.1 second
-               transition: LINEAR 0.1;
-            }
-
-            program {
-               // what triggers this program:
-               signal: "mouse,out";
-               source: "text";
-
-               // what this program does:
-               action: STATE_SET "default" 0.0;
-               target: "text";
-
-               // do the state-set in a nice interpolation animation
-               // using linear time in 0.1 second
-               transition: LINEAR 0.1;
-            }
-         }
-      }
-   }
-}
-@endcode
+The above example requires the following annotated source Edje file:
+@include edje_example.edc
 
 
 One should save these files as edje_example.c and edje_example.edc then:
@@ -347,16 +161,21 @@ Unlike Ebits, Edje separates the layout and behavior logic.
 What follows is a list with various commented examples, covering a great
 part of Edje's API:
 
+@note The example files are located at /Where/Enlightenment/is/installed/share/edje/examples
+
 - @ref Example_Edje_Basics
+- @ref tutorial_edje_basic2
 - @ref tutorial_edje_swallow
+- @ref tutorial_edje_swallow2
 - @ref tutorial_edje_table
 - @ref tutorial_edje_box
 - @ref tutorial_edje_box2
 - @ref tutorial_edje_color_class
 - @ref tutorial_edje_animations
 - @ref Example_Edje_Signals_Messages
-
-
+- @ref tutorial_edje_text
+- @ref tutorial_edje_drag
+- @ref tutorial_edje_perspective
 */
 
 /**
@@ -384,6 +203,7 @@ part of Edje's API:
 @author Govindaraju SM <govi.sm@samsung.com> <govism@gmail.com>
 @author Prince Kumar Dubey <prince.dubey@samsung.com> <prince.dubey@gmail.com>
 @author David Seikel <onefang at gmail.com>
+@author Guilherme Íscaro <iscaro@profusion.mobi>
 
 Please contact <enlightenment-devel@lists.sourceforge.net> to get in
 contact with the developers and maintainers.
@@ -782,7 +602,7 @@ typedef enum _Edje_External_Param_Type
 {
    EDJE_EXTERNAL_PARAM_TYPE_INT, /**< Parameter value is an integer. */
    EDJE_EXTERNAL_PARAM_TYPE_DOUBLE, /**< Parameter value is a double. */
-   EDJE_EXTERNAL_PARAM_TYPE_STRING, /**< Paramater value is a string. */
+   EDJE_EXTERNAL_PARAM_TYPE_STRING, /**< Parameter value is a string. */
    EDJE_EXTERNAL_PARAM_TYPE_BOOL, /**< Parameter value is boolean. */
    EDJE_EXTERNAL_PARAM_TYPE_CHOICE, /**< Parameter value is one of a set of
                                       predefined string choices. */
@@ -795,10 +615,10 @@ typedef enum _Edje_External_Param_Type
  */
 typedef enum _Edje_External_Param_Flags
 {
-   EDJE_EXTERNAL_PARAM_FLAGS_NONE        = 0, /**< Propery is incapable of operations, this is used to catch bogus flags. */
+   EDJE_EXTERNAL_PARAM_FLAGS_NONE        = 0, /**< Property is incapable of operations, this is used to catch bogus flags. */
    EDJE_EXTERNAL_PARAM_FLAGS_GET         = (1 << 0), /**< Property can be read/get. */
    EDJE_EXTERNAL_PARAM_FLAGS_SET         = (1 << 1), /**< Property can be written/set. This only enables edje_object_part_external_param_set() and Embryo scripts. To enable the parameter being set from state description whenever it changes state, use #EDJE_EXTERNAL_PARAM_FLAGS_STATE. */
-   EDJE_EXTERNAL_PARAM_FLAGS_STATE       = (1 << 2), /**< Property can be set from state dsecription. */
+   EDJE_EXTERNAL_PARAM_FLAGS_STATE       = (1 << 2), /**< Property can be set from state description. */
    EDJE_EXTERNAL_PARAM_FLAGS_CONSTRUCTOR = (1 << 3), /**< This property is only set once when the object is constructed using its value from "default" 0.0 state description. Setting this overrides #EDJE_EXTERNAL_PARAM_FLAGS_STATE. */
    EDJE_EXTERNAL_PARAM_FLAGS_REGULAR     = (EDJE_EXTERNAL_PARAM_FLAGS_GET |
                                             EDJE_EXTERNAL_PARAM_FLAGS_SET |
@@ -820,6 +640,24 @@ typedef enum _Edje_Input_Panel_Layout
    EDJE_INPUT_PANEL_LAYOUT_TERMINAL,        /**< Command-line terminal layout @since 1.2 */
    EDJE_INPUT_PANEL_LAYOUT_PASSWORD         /**< Like normal, but no auto-correct, no auto-capitalization etc. @since 1.2 */
 } Edje_Input_Panel_Layout;
+
+typedef enum _Edje_Input_Panel_Lang
+{
+   EDJE_INPUT_PANEL_LANG_AUTOMATIC,    /**< Automatic @since 1.2 */
+   EDJE_INPUT_PANEL_LANG_ALPHABET      /**< Alphabet @since 1.2 */
+} Edje_Input_Panel_Lang;
+
+typedef enum _Edje_Input_Panel_Return_Key_Type
+{
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_DEFAULT, /**< Default @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_DONE,    /**< Done @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_GO,      /**< Go @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_JOIN,    /**< Join @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_LOGIN,   /**< Login @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_NEXT,    /**< Next @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_SEARCH,  /**< Search or magnifier icon @since 1.2 */
+   EDJE_INPUT_PANEL_RETURN_KEY_TYPE_SEND     /**< Send @since 1.2 */
+} Edje_Input_Panel_Return_Key_Type;
 
 /**
  * @brief Converts type identifier to string nicer representation.
@@ -890,18 +728,18 @@ struct _Edje_External_Param_Info
                                       used. */
    union {
       struct {
-         int                 def, /**< Default value for the paramter. */
+         int                 def, /**< Default value for the parameter. */
                              min, /**< Minimum value it can have. */
                              max, /**< Maximum value it can have. */
                              step; /**< Values will be a multiple of this. */
-      } i; /**< Info about integer type parametrs. Use #EDJE_EXTERNAL_INT_UNSET
+      } i; /**< Info about integer type parameters. Use #EDJE_EXTERNAL_INT_UNSET
              on any of them to indicate they are not defined.*/
       struct {
-         double              def, /**< Default value for the paramter. */
+         double              def, /**< Default value for the parameter. */
                              min, /**< Minimum value it can have. */
                              max, /**< Maximum value it can have. */
                              step; /**< Values will be a multiple of this. */
-      } d; /**< Info about double type parametrs. Use
+      } d; /**< Info about double type parameters. Use
 #EDJE_EXTERNAL_DOUBLE_UNSET on any of them to indicate they are not defined.*/
       struct {
          const char         *def; /**< Default value. */
@@ -1192,7 +1030,7 @@ EAPI const char  *edje_fontset_append_get         (void);
  * edje_object_scale_set(), that factor will @b override the global
  * one.
  *
- * Scaling affects the values of mininum/maximum @b part sizes, which
+ * Scaling affects the values of minimum/maximum @b part sizes, which
  * are @b multiplied by it. Font sizes are scaled, too.
  *
  * @warning Only parts which, at EDC level, had the @c "scale"
@@ -1249,7 +1087,7 @@ EAPI void edje_password_show_last_timeout_set(double password_show_last_timeout)
  *
  * @param obj A handle to an Edje object
  * @param scale The scaling factor (the default value is @c 0.0,
- * meaning indivinual scaling @b not set)
+ * meaning individual scaling @b not set)
  *
  * This function sets an @b individual scaling factor on the @a obj
  * Edje object. This property (or Edje's global scaling factor, when
@@ -1284,7 +1122,7 @@ EAPI double       edje_object_scale_get           (const Evas_Object *obj);
  * @brief Set the RTL orientation for this object.
  *
  * @param obj A handle to an Edje object.
- * @rtl new value of flag EINA_TRUE/EINA_FALSE
+ * @param rtl new value of flag EINA_TRUE/EINA_FALSE
  * @since 1.1.0
  */
 EAPI void         edje_object_mirrored_set        (Evas_Object *obj, Eina_Bool rtl);
@@ -1668,9 +1506,9 @@ EAPI void         edje_box_layout_register        (const char *name, Evas_Object
  * 
  * @note You can get a callback every time edje re-calculates the object
  * (either due to animation or some kind of signal or input). This is called
- * in-line just after the recalculation has occured. It is a good idea not
+ * in-line just after the recalculation has occurred. It is a good idea not
  * to go and delete or alter the object inside this callbacks, simply make
- * a note that the recalculation has taken place and then do somethnig about
+ * a note that the recalculation has taken place and then do something about
  * it outside the callback. to register a callback use code like:
  * 
  * @code
@@ -1888,7 +1726,7 @@ EAPI Eina_Bool        edje_object_preload         (Evas_Object *obj, Eina_Bool c
  * buttons on an interface, you'd be registering for notifications on
  * events of mouse buttons being pressed down on either of those parts
  * (those events all have the @c "mouse,down," common prefix on their
- * names, with a suffix giving the button number). The actual emisson
+ * names, with a suffix giving the button number). The actual emission
  * and source strings of an event will be passed in as the @a emission
  * and @a source parameters of the callback function (e.g. @c
  * "mouse,down,2" and @c "button.close"), for each of those events.
@@ -2219,6 +2057,27 @@ EAPI Eina_Bool    edje_object_text_class_set          (Evas_Object *obj, const c
 EAPI void         edje_object_size_min_get            (const Evas_Object *obj, Evas_Coord *minw, Evas_Coord *minh);
 
 /**
+ * @brief Edje will automatically update the size hints on itself.
+ *
+ * @param obj A handle to an Edje object.
+ * @param update Wether or not update the size hints.
+ *
+ * By default edje doesn't set size hints on itself. With this function
+ * call, it will do so if update is true. Be carefully, it cost a lot to
+ * trigger this feature as it will recalc the object every time it make
+ * sense to be sure that's its minimal size hint is always accurate.
+ */
+EAPI void edje_object_update_hints_set(Evas_Object *obj, Eina_Bool update);
+
+/**
+ * @brief Wether or not Edje will update size hints on itself.
+ *
+ * @param obj A handle to an Edje object.
+ * @return @c true if does, @c false if it doesn't.
+ */
+EAPI Eina_Bool edje_object_update_hints_get(Evas_Object *obj);
+
+/**
  * @brief Get the maximum size specified -- as an EDC property -- for a
  * given Edje object
  *
@@ -2286,7 +2145,6 @@ EAPI void         edje_object_size_min_calc           (Evas_Object *obj, Evas_Co
  * object's area, <b>occupied by all parts in the object</b>
  *
  * @param obj A handle to an Edje object
- * @param part The Edje part's name
  * @param x A pointer to a variable where to store the parts region's
  * x coordinate
  * @param y A pointer to a variable where to store the parts region's
@@ -2367,12 +2225,12 @@ EAPI Eina_Bool    edje_object_part_exists             (const Evas_Object *obj, c
  * @return A pointer to the Evas object implementing the given part,
  * or @c NULL on failure (e.g. the given part doesn't exist)
  *
- * This function gets a pointer the Evas object corresponding to a
+ * This function gets a pointer of the Evas object corresponding to a
  * given part in the @p obj object's group.
  *
  * You should @b never modify the state of the returned object (with
  * @c evas_object_move() or @c evas_object_hide() for example),
- * because it's meant to be managed be Edje, solely. You are safe to
+ * because it's meant to be managed by Edje, solely. You are safe to
  * query information about its current state (with @c
  * evas_object_visible_get() or @c evas_object_color_get() for
  * example), though.
@@ -2463,7 +2321,7 @@ EAPI const char  *edje_object_part_text_get           (const Evas_Object *obj, c
  *
  * @since 1.2.0
  */
-EAPI void edje_object_part_text_style_user_set(Evas_Object *obj, const char *part, const char *style);
+EAPI void edje_object_part_text_style_user_push(Evas_Object *obj, const char *part, const char *style);
 
 /**
  * @brief Return the text of the object part.
@@ -2477,7 +2335,17 @@ EAPI void edje_object_part_text_style_user_set(Evas_Object *obj, const char *par
  *
  * @since 1.2.0
  */
-EAPI const char *edje_object_part_text_style_user_get(Evas_Object *obj, const char *part);
+EAPI const char *edje_object_part_text_style_user_peek(const Evas_Object *obj, const char *part);
+
+/**
+ * @brief Delete the top style form the user style stack.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @since 1.2.0
+ */
+EAPI void edje_object_part_text_style_user_pop(Evas_Object *obj, const char *part);
 
 /**
  * @brief Sets the raw (non escaped) text for an object part.
@@ -2647,6 +2515,16 @@ EAPI Eina_Bool        edje_object_part_text_item_geometry_get       (const Evas_
 EAPI void             edje_object_part_text_cursor_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
 
 /**
+ * @brief Deletes the selection and emits a change event.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param text The text string
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_user_insert        (const Evas_Object *obj, const char *part, const char *text);
+
+/**
  * @brief Enables selection if the entry is an EXPLICIT selection mode
  * type.
  *
@@ -2748,7 +2626,7 @@ EAPI void             edje_object_part_text_cursor_end_set              (Evas_Ob
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
- * @param sry the cursor to copy from
+ * @param src the cursor to copy from
  * @param dst the cursor to copy to
  */
 EAPI void             edje_object_part_text_cursor_copy                 (Evas_Object *obj, const char *part, Edje_Cursor src, Edje_Cursor dst);
@@ -2800,7 +2678,7 @@ EAPI Eina_Bool        edje_object_part_text_cursor_is_format_get        (const E
 
 /**
  * @brief Return true if the cursor points to a visible format
- * For example \t, \n, item and etc.
+ * For example \\t, \\n, item and etc.
  * @see  evas_textblock_cursor_format_is_visible_get
  *
  * @param obj A valid Evas_Object handle
@@ -2845,6 +2723,31 @@ EAPI void             edje_object_part_text_cursor_pos_set              (Evas_Ob
 EAPI int              edje_object_part_text_cursor_pos_get              (const Evas_Object *obj, const char *part, Edje_Cursor cur);
 
 /**
+ * @brief Reset the input method context if needed.
+ *
+ * This can be necessary in the case where modifying the buffer would confuse on-going input method behavior
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_imf_context_reset           (const Evas_Object *obj, const char *part);
+
+/**
+ * @brief Get the input method context in entry.
+ *
+ * If ecore_imf was not available when edje was compiled, this function returns NULL
+ * otherwise, the returned pointer is an Ecore_IMF *
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * @return The input method context (Ecore_IMF_Context *) in entry 
+ * @since 1.2.0
+ */
+EAPI void              *edje_object_part_text_imf_context_get           (const Evas_Object *obj, const char *part);
+
+/**
  * @brief Retrieves the current position of the selection
  *
  * @param obj A valid Evas_Object handle
@@ -2860,32 +2763,8 @@ EAPI int              edje_object_part_text_cursor_pos_get              (const E
 EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
 
 /**
- * @brief Enables autoperiod.
- * Autoperiod is the feature that period (.) will be automatically added when space bar is pressed twice in a short time.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- * @param autoperiod EINA_TRUE to enable, EINA_FALSE otherwise
- */
-EAPI void             edje_object_part_text_autoperiod_set (const Evas_Object *obj, const char *part, Eina_Bool autoperiod);
-
-/**
- * @brief Get the input method context in entry.
- *
- * @param obj A valid Evas_Object handle
- * @param part The part name
- *
- * @return The input method context in entry
- */
-#ifdef HAVE_ECORE_IMF
-EAPI Ecore_IMF_Context *edje_object_part_text_imf_context_get (const Evas_Object *obj, const char *part);
-#else
-EAPI void              *edje_object_part_text_imf_context_get (const Evas_Object *obj, const char *part);
-#endif
-
-/*
  * @brief Set the layout of the input panel.
- * 
+ *
  * The layout of the input panel or virtual keyboard can make it easier or
  * harder to enter content. This allows you to hint what kind of input you
  * are expecting to enter and thus have the input panel automatically
@@ -2896,7 +2775,7 @@ EAPI void              *edje_object_part_text_imf_context_get (const Evas_Object
  * @param layout layout type
  * @since 1.1
  */
-EAPI void             edje_object_part_text_input_panel_layout_set (const Evas_Object *obj, const char *part, Edje_Input_Panel_Layout layout);
+EAPI void             edje_object_part_text_input_panel_layout_set      (Evas_Object *obj, const char *part, Edje_Input_Panel_Layout layout);
 
 /**
  * @brief Get the layout of the input panel.
@@ -2919,7 +2798,7 @@ EAPI Edje_Input_Panel_Layout edje_object_part_text_input_panel_layout_get (const
  * @param autocapital_type The type of autocapitalization
  * @since 1.1.0
  */
-EAPI void         edje_object_part_text_autocapital_type_set        (const Evas_Object *obj, const char *part, Edje_Text_Autocapital_Type autocapital_type);
+EAPI void         edje_object_part_text_autocapital_type_set            (Evas_Object *obj, const char *part, Edje_Text_Autocapital_Type autocapital_type);
 
 /**
  * @brief Retrieves the autocapitalization type
@@ -2932,6 +2811,26 @@ EAPI void         edje_object_part_text_autocapital_type_set        (const Evas_
 EAPI Edje_Text_Autocapital_Type edje_object_part_text_autocapital_type_get (const Evas_Object *obj, const char *part);
 
 /**
+ * @brief Set whether the prediction is allowed or not.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param prediction If true, the prediction feature is allowed.
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_prediction_allow_set        (Evas_Object *obj, const char *part, Eina_Bool prediction);
+
+/**
+ * @brief Get whether the prediction is allowed or not.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @return EINA_TRUE if prediction feature is allowed.
+ * @since 1.2.0
+ */
+EAPI Eina_Bool        edje_object_part_text_prediction_allow_get        (const Evas_Object *obj, const char *part);
+
+/**
  * @brief Sets the attribute to show the input panel automatically.
  *
  * @param obj A valid Evas_Object handle
@@ -2939,7 +2838,7 @@ EAPI Edje_Text_Autocapital_Type edje_object_part_text_autocapital_type_get (cons
  * @param enabled If true, the input panel is appeared when entry is clicked or has a focus
  * @since 1.1.0
  */
-EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_Object *obj, const char *part, Eina_Bool enabled);
+EAPI void             edje_object_part_text_input_panel_enabled_set     (Evas_Object *obj, const char *part, Eina_Bool enabled);
 
 /**
  * @brief Retrieve the attribute to show the input panel automatically.
@@ -2951,6 +2850,125 @@ EAPI void             edje_object_part_text_input_panel_enabled_set (const Evas_
  * @since 1.1.0
  */
 EAPI Eina_Bool        edje_object_part_text_input_panel_enabled_get (const Evas_Object *obj, const char *part);
+
+/**
+ * @brief Show the input panel (virtual keyboard) based on the input panel property such as layout, autocapital types, and so on.
+ *
+ * Note that input panel is shown or hidden automatically according to the focus state.
+ * This API can be used in the case of manually controlling by using edje_object_part_text_input_panel_enabled_set.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_show(const Evas_Object *obj, const char *part);
+
+/**
+ * @brief Hide the input panel (virtual keyboard).
+ * @see edje_object_part_text_input_panel_show
+ *
+ * Note that input panel is shown or hidden automatically according to the focus state.
+ * This API can be used in the case of manually controlling by using edje_object_part_text_input_panel_enabled_set.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_hide(const Evas_Object *obj, const char *part);
+
+/**
+ * Set the language mode of the input panel.
+ *
+ * This API can be used if you want to show the Alphabet keyboard.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param lang the language to be set to the input panel.
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_language_set(Evas_Object *obj, const char *part, Edje_Input_Panel_Lang lang);
+
+/**
+ * Get the language mode of the input panel.
+ *
+ * See @ref edje_object_part_text_input_panel_language_set for more details.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @return input panel language type
+ * @since 1.2.0
+ */
+EAPI Edje_Input_Panel_Lang edje_object_part_text_input_panel_language_get(const Evas_Object *obj, const char *part);
+
+/**
+ * Set the input panel-specific data to deliver to the input panel.
+ *
+ * This API is used by applications to deliver specific data to the input panel.
+ * The data format MUST be negotiated by both application and the input panel.
+ * The size and format of data are defined by the input panel.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param data The specific data to be set to the input panel.
+ * @param len the length of data, in bytes, to send to the input panel
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_imdata_set(Evas_Object *obj, const char *part, const void *data, int len);
+
+/**
+ * Get the specific data of the current active input panel.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param data The specific data to be got from the input panel
+ * @param len The length of data
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_imdata_get(const Evas_Object *obj, const char *part, void *data, int *len);
+
+/**
+ * Set the "return" key type. This type is used to set string or icon on the "return" key of the input panel.
+ *
+ * An input panel displays the string or icon associated with this type
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param return_key_type The type of "return" key on the input panel
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_return_key_type_set(Evas_Object *obj, const char *part, Edje_Input_Panel_Return_Key_Type return_key_type);
+
+/**
+ * Get the "return" key type.
+ *
+ * @see edje_object_part_text_input_panel_return_key_type_set() for more details
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @return The type of "return" key on the input panel
+ * @since 1.2.0
+ */
+EAPI Edje_Input_Panel_Return_Key_Type edje_object_part_text_input_panel_return_key_type_get(const Evas_Object *obj, const char *part);
+
+/**
+ * Set the return key on the input panel to be disabled.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param disabled The state
+ * @since 1.2.0
+ */
+EAPI void             edje_object_part_text_input_panel_return_key_disabled_set(Evas_Object *obj, const char *part, Eina_Bool disabled);
+
+/**
+ * Get whether the return key on the input panel should be disabled or not.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @return EINA_TRUE if it should be disabled
+ * @since 1.2.0
+ */
+EAPI Eina_Bool        edje_object_part_text_input_panel_return_key_disabled_get(const Evas_Object *obj, const char *part);
 
 /**
  * @brief Set the viewport region of the text.
@@ -3005,19 +3023,19 @@ EAPI void             edje_object_part_text_copy_paste_disabled_set     (const E
  * text.
  *
  * @warning This function will be deprecated because of difficulty in use.
- *          The type(format, text, or makrup) of text should be always
+ *          The type(format, text, or markup) of text should be always
  *          checked in the filter function for correct filtering.
- *          Please use edje_object_markup_filter_callback_add() instead. There
+ *          Please use edje_object_text_markup_filter_callback_add() instead. There
  *          is no need to check the type of text in the filter function
  *          because the text is always markup.
  * @warning If you use this function with
- *          edje_object_markup_filter_callback_add() togehter, all
+ *          edje_object_text_markup_filter_callback_add() together, all
  *          Edje_Text_Filter_Cb functions and Edje_Markup_Filter_Cb functions
  *          will be executed, and then filtered text will be inserted.
  *
  * @see edje_object_text_insert_filter_callback_del
  * @see edje_object_text_insert_filter_callback_del_full
- * @see edje_object_markup_filter_callback_add
+ * @see edje_object_text_markup_filter_callback_add
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
@@ -3039,7 +3057,7 @@ EAPI void             edje_object_text_insert_filter_callback_add       (Evas_Ob
  * @param part The part name
  * @param func The function callback to remove
  *
- * @return The user data pointer if succesful, or NULL otherwise
+ * @return The user data pointer if successful, or NULL otherwise
  */
 EAPI void            *edje_object_text_insert_filter_callback_del       (Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func);
 
@@ -3058,7 +3076,7 @@ EAPI void            *edje_object_text_insert_filter_callback_del       (Evas_Ob
  * @param func The function callback to remove
  * @param data The data passed to the callback function
  *
- * @return The same data pointer if succesful, or NULL otherwise
+ * @return The same data pointer if successful, or NULL otherwise
  */
 EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Object *obj, const char *part, Edje_Text_Filter_Cb func, void *data);
 
@@ -3083,8 +3101,8 @@ EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Ob
  *          Edje_Text_Filter_Cb functions and Edje_Markup_Filter_Cb functions
  *          will be executed, and then filtered text will be inserted.
  *
- * @see edje_object_markup_filter_callback_del
- * @see edje_object_markup_filter_callback_del_full
+ * @see edje_object_text_markup_filter_callback_del
+ * @see edje_object_text_markup_filter_callback_del_full
  * @see edje_object_text_insert_filter_callback_add
  *
  * @param obj A valid Evas_Object handle
@@ -3093,7 +3111,7 @@ EAPI void            *edje_object_text_insert_filter_callback_del_full  (Evas_Ob
  * @param data User provided data to pass to the filter function
  * @since 1.2.0
  */
-EAPI void edje_object_markup_filter_callback_add(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
+EAPI void edje_object_text_markup_filter_callback_add(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
 
 /**
  * Delete a function from the markup filter list.
@@ -3101,17 +3119,17 @@ EAPI void edje_object_markup_filter_callback_add(Evas_Object *obj, const char *p
  * Delete the given @p func filter from the list in @p part. Returns
  * the user data pointer given when added.
  *
- * @see edje_object_markup_filter_callback_add
- * @see edje_object_markup_filter_callback_del_full
+ * @see edje_object_text_markup_filter_callback_add
+ * @see edje_object_text_markup_filter_callback_del_full
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
  * @param func The function callback to remove
  *
- * @return The user data pointer if succesful, or NULL otherwise
+ * @return The user data pointer if successful, or NULL otherwise
  * @since 1.2.0
  */
-EAPI void *edje_object_markup_filter_callback_del(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func);
+EAPI void *edje_object_text_markup_filter_callback_del(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func);
 
 /**
  * Delete a function and matching user data from the markup filter list.
@@ -3120,18 +3138,18 @@ EAPI void *edje_object_markup_filter_callback_del(Evas_Object *obj, const char *
  * in @p part.
  * Returns the user data pointer given when added.
  *
- * @see edje_object_markup_filter_callback_add
- * @see edje_object_markup_filter_callback_del
+ * @see edje_object_text_markup_filter_callback_add
+ * @see edje_object_text_markup_filter_callback_del
  *
  * @param obj A valid Evas_Object handle
  * @param part The part name
  * @param func The function callback to remove
  * @param data The data passed to the callback function
  *
- * @return The same data pointer if succesful, or NULL otherwise
+ * @return The same data pointer if successful, or NULL otherwise
  * @since 1.2.0
  */
-EAPI void *edje_object_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
+EAPI void *edje_object_text_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
 
 /**
  * @brief Swallows an object into the edje.
@@ -3434,7 +3452,7 @@ EAPI Eina_Bool                 edje_object_part_external_param_set      (Evas_Ob
  *
  * Parts of type external may carry extra properties that have
  * meanings defined by the external plugin. For instance, it may be a
- * string that defines a button label. This property can be modifed by
+ * string that defines a button label. This property can be modified by
  * state parameters, by explicit calls to
  * edje_object_part_external_param_set() or getting the actual object
  * with edje_object_part_external_object_get() and calling native
@@ -4040,8 +4058,8 @@ EAPI const Edje_External_Param_Info *edje_external_param_info_get   (const char 
     * This sets the parameters of the perspective transformation. X, Y and Z
     * values are used. The px and py points specify the "infinite distance" point
     * in the 3D conversion (where all lines converge to like when artists draw
-    * 3D by hand). The @p z0 value specifis the z value at which there is a 1:1
-    * mapping between spatial coorinates and screen coordinates. Any points
+    * 3D by hand). The @p z0 value specifies the z value at which there is a 1:1
+    * mapping between spatial coordinates and screen coordinates. Any points
     * on this z value will not have their X and Y values modified in the transform.
     * Those further away (Z value higher) will shrink into the distance, and
     * those less than this value will expand and become bigger. The @p foc value
@@ -4050,9 +4068,9 @@ EAPI const Edje_External_Param_Info *edje_external_param_info_get   (const char 
     * results are undefined) and the "z0" z value. This allows for some "depth"
     * control and @p foc must be greater than 0.
     *
-    * @param m map to change.
-    * @param px The pespective distance X coordinate
-    * @param py The pespective distance Y coordinate
+    * @param ps The perspective object
+    * @param px The perspective distance X coordinate
+    * @param py The perspective distance Y coordinate
     * @param z0 The "0" z plane value
     * @param foc The focal distance
     */
