@@ -7,6 +7,7 @@ Group:      System/Libraries
 License:    BSD
 URL:        http://www.enlightenment.org/
 Source0:    %{name}-%{version}.tar.gz
+Source1001: packaging/edje.manifest 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires:  pkgconfig(ecore)
@@ -54,6 +55,7 @@ Edje is a graphical layout and animation library (tools)
 %setup -q
 
 %build
+cp %{SOURCE1001} .
 export CFLAGS+=" -fvisibility=hidden -ffast-math -fPIC"
 export LDFLAGS+=" -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed"
 
@@ -70,12 +72,14 @@ rm -rf %{buildroot}
 %postun -p /sbin/ldconfig
 
 %files
+%manifest edje.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
 %{_datadir}/mime/packages/edje.xml
 %{_libdir}/edje/modules/multisense_factory/*/module.so
 
 %files devel
+%manifest edje.manifest
 %defattr(-,root,root,-)
 %{_includedir}/edje-1/*.h
 %{_libdir}/libedje.so
@@ -83,6 +87,7 @@ rm -rf %{buildroot}
 %exclude /usr/share/edje/examples/*
 
 %files tools
+%manifest edje.manifest
 %defattr(-,root,root,-)
 %{_bindir}/*
 %{_libdir}/%{name}/utils/epp
