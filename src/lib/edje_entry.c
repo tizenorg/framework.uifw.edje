@@ -4101,6 +4101,7 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx __UN
                        strncpy(pretag, str, preedit_tag_index-str);
                     }
                }
+             free(str);
           }
      }
 
