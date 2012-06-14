@@ -2,23 +2,19 @@
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
 Version:    1.2.0+svn.70401slp2+build02
-Release:    1
+Release:    2
 Group:      System/Libraries
 License:    BSD
 URL:        http://www.enlightenment.org/
 Source0:    %{name}-%{version}.tar.gz
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
-BuildRequires:  pkgconfig(ecore)
-BuildRequires:  pkgconfig(ecore-evas)
-BuildRequires:  pkgconfig(ecore-file)
-BuildRequires:  pkgconfig(ecore-imf)
-BuildRequires:  pkgconfig(ecore-imf-evas)
-BuildRequires:  pkgconfig(eet)
-BuildRequires:  pkgconfig(eina)
-BuildRequires:  pkgconfig(embryo)
-BuildRequires:  pkgconfig(evas)
-BuildRequires:  pkgconfig(lua)
+BuildRequires:  eina-devel
+BuildRequires:  eet-devel
+BuildRequires:  embryo-devel
+BuildRequires:  evas-devel
+BuildRequires:  ecore-devel
+BuildRequires:  liblua-devel
 
 
 %description
