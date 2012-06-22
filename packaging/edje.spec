@@ -1,7 +1,7 @@
 #sbs-git:slp/pkgs/e/edje edje 1.1.0+svn.69011slp2+build03 96cd9783918ce594c786d12a5107be27aec4d34b
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.2.0+svn.72379slp2+build01
+Version:    1.2.0+svn.72379slp2+build03
 Release:    1
 Group:      System/Libraries
 License:    BSD
@@ -15,6 +15,9 @@ BuildRequires:  embryo-devel
 BuildRequires:  evas-devel
 BuildRequires:  ecore-devel
 BuildRequires:  liblua-devel
+BuildRequires:  libremix-devel
+BuildRequires:  libflac-devel
+BuildRequires:  libsndfile-devel
 
 
 %description
@@ -68,6 +71,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
+%{_libdir}/remix/*.so
 %{_datadir}/mime/packages/edje.xml
 %{_libdir}/edje/modules/multisense_factory/*/module.so
 
