@@ -55,6 +55,7 @@ Eet_Data_Descriptor *_edje_edd_edje_part_description_external_pointer = NULL;
 Eet_Data_Descriptor *_edje_edd_edje_part_image_id = NULL;
 Eet_Data_Descriptor *_edje_edd_edje_part_image_id_pointer = NULL;
 Eet_Data_Descriptor *_edje_edd_edje_external_param = NULL;
+Eet_Data_Descriptor *_edje_edd_edje_part_limit = NULL;
 
 #define EMP(Type, Minus)				\
   Eina_Mempool *_emp_##Type = NULL;			\
@@ -109,7 +110,7 @@ struct {
   { EDJE_PART_TYPE_TABLE,     "table" },
   { EDJE_PART_TYPE_EXTERNAL,  "external" },
   { EDJE_PART_TYPE_PROXY,     "proxy" },
-  { EDJE_PART_TYPE_SPACER,   "spacer" }
+  { EDJE_PART_TYPE_SPACER,    "spacer" }
 };
 
 static const char *
@@ -218,6 +219,7 @@ _edje_edd_shutdown(void)
    FREED(_edje_edd_edje_external_param);
    FREED(_edje_edd_edje_image_directory_set);
    FREED(_edje_edd_edje_image_directory_set_entry);
+   FREED(_edje_edd_edje_part_limit);
 }
 
 #define EDJE_DEFINE_POINTER_TYPE(Type, Name)				\
@@ -454,6 +456,7 @@ _edje_edd_init(void)
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "state.name", state.name, EET_T_STRING); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "state.value", state.value, EET_T_DOUBLE); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "visible", visible, EET_T_CHAR); \
+      EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "limit", limit, EET_T_CHAR); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "align.x", align.x, EDJE_T_FLOAT); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "align.y", align.y, EDJE_T_FLOAT); \
       EET_DATA_DESCRIPTOR_ADD_BASIC(Edd, Type, "fixed.w", fixed.w, EET_T_UCHAR); \
@@ -740,6 +743,7 @@ _edje_edd_init(void)
    EDJE_DATA_DESCRIPTOR_DESCRIPTION_COMMON_SUB(_edje_edd_edje_part_description_external, Edje_Part_Description_External, common);
    EET_DATA_DESCRIPTOR_ADD_LIST(_edje_edd_edje_part_description_external, Edje_Part_Description_External, "external_params", external_params, _edje_edd_edje_external_param);
 
+   EDJE_DEFINE_POINTER_TYPE(Part_Description_Common, part_description_spacer);
    EDJE_DEFINE_POINTER_TYPE(Part_Description_Common, part_description_rectangle);
    EDJE_DEFINE_POINTER_TYPE(Part_Description_Common, part_description_swallow);
    EDJE_DEFINE_POINTER_TYPE(Part_Description_Common, part_description_group);
@@ -862,8 +866,14 @@ _edje_edd_init(void)
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "select_mode", select_mode, EET_T_UCHAR);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "cursor_mode", cursor_mode, EET_T_UCHAR);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "multiline", multiline, EET_T_UCHAR);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "access", access, EET_T_UCHAR);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "api.name", api.name, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part, Edje_Part, "api.description", api.description, EET_T_STRING);
+
+   EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Edje_Part_Limit);
+   _edje_edd_edje_part_limit = eet_data_descriptor_file_new(&eddc);
+
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_limit, Edje_Part_Limit, "part", part, EET_T_INT);
 
    EET_EINA_FILE_DATA_DESCRIPTOR_CLASS_SET(&eddc, Edje_Part_Collection);
    _edje_edd_edje_part_collection  =
@@ -882,6 +892,7 @@ _edje_edd_init(void)
    EDJE_DEFINE_POINTER_TYPE(Limit, limit);
    EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY(_edje_edd_edje_part_collection, Edje_Part_Collection, "limits.vertical", limits.vertical, _edje_edd_edje_limit_pointer);
    EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY(_edje_edd_edje_part_collection, Edje_Part_Collection, "limits.horizontal", limits.horizontal, _edje_edd_edje_limit_pointer);
+   EET_DATA_DESCRIPTOR_ADD_VAR_ARRAY(_edje_edd_edje_part_collection, Edje_Part_Collection, "limits.parts", limits.parts, _edje_edd_edje_part_limit);
 
    EET_DATA_DESCRIPTOR_ADD_HASH(_edje_edd_edje_part_collection, Edje_Part_Collection, "data", data, _edje_edd_edje_string);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_edje_part_collection, Edje_Part_Collection, "id", id, EET_T_INT);
