@@ -1,7 +1,7 @@
 #sbs-git:slp/pkgs/e/edje edje 1.1.0+svn.69011slp2+build03 96cd9783918ce594c786d12a5107be27aec4d34b
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.2.0+svn.73008slp2+build02
+Version:    1.2.0+svn.73008slp2+build03
 Release:    1
 Group:      System/Libraries
 License:    BSD
