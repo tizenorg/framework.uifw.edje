@@ -194,8 +194,6 @@ void   *mem_alloc(size_t size);
 char   *mem_strdup(const char *s);
 #define SZ sizeof
 
-void    using_file(const char *filename);
-
 void    error_and_abort(Eet_File *ef, const char *fmt, ...);
 
 /* global vars */
@@ -207,7 +205,6 @@ extern char                  *file_in;
 extern char                  *tmp_dir;
 extern char                  *file_out;
 extern char                  *progname;
-extern char                  *watchfile;
 extern int                    verbose;
 extern int                    no_lossy;
 extern int                    no_comp;
@@ -227,7 +224,6 @@ extern Eina_List             *defines;
 extern Eina_List             *aliases;
 extern New_Object_Handler     object_handlers[];
 extern New_Statement_Handler  statement_handlers[];
-extern int                    compress_mode;
-extern int                    threads;
+
 
 #endif

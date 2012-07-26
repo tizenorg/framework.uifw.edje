@@ -119,57 +119,44 @@ err_show(void)
    err_show_params();
 }
 
-static Eina_Hash *_new_object_hash = NULL;
-static Eina_Hash *_new_statement_hash = NULL;
-static void
-fill_object_statement_hashes(void)
-{
-   int i, n;
-
-   if (_new_object_hash) return;
-   
-   _new_object_hash = eina_hash_string_superfast_new(NULL);
-   _new_statement_hash = eina_hash_string_superfast_new(NULL);
-   
-   n = object_handler_num();
-   for (i = 0; i < n; i++)
-     {
-        eina_hash_add(_new_object_hash, object_handlers[i].type,
-                      &(object_handlers[i]));
-     }
-   n = statement_handler_num();
-   for (i = 0; i < n; i++)
-     {
-        eina_hash_add(_new_statement_hash, statement_handlers[i].type,
-                      &(statement_handlers[i]));
-     }
-}
-
 static void
 new_object(void)
 {
    char *id;
-   New_Object_Handler *oh;
-   New_Statement_Handler *sh;
+   int i;
+   int handled = 0;
 
-   fill_object_statement_hashes();
    id = stack_id();
-   oh = eina_hash_find(_new_object_hash, id);
-   if (oh)
+   for (i = 0; i < object_handler_num(); i++)
      {
-        if (oh->func) oh->func();
+	if (!strcmp(object_handlers[i].type, id))
+	  {
+	     handled = 1;
+	     if (object_handlers[i].func)
+	       {
+		  object_handlers[i].func();
+	       }
+	     break;
+	  }
      }
-   else
+   if (!handled)
      {
-        sh = eina_hash_find(_new_statement_hash, id);
-        if (!sh)
-          {
-             ERR("%s: Error. %s:%i unhandled keyword %s",
-                 progname, file_in, line - 1,
-                 (char *)eina_list_data_get(eina_list_last(stack)));
-             err_show();
-             exit(-1);
-          }
+	for (i = 0; i < statement_handler_num(); i++)
+	  {
+	     if (!strcmp(statement_handlers[i].type, id))
+	       {
+		  free(id);
+		  return;
+	       }
+	  }
+     }
+   if (!handled)
+     {
+	ERR("%s: Error. %s:%i unhandled keyword %s",
+	    progname, file_in, line - 1,
+	    (char *)eina_list_data_get(eina_list_last(stack)));
+        err_show();
+	exit(-1);
      }
    free(id);
 }
@@ -178,22 +165,29 @@ static void
 new_statement(void)
 {
    char *id;
-   New_Statement_Handler *sh;
+   int i;
+   int handled = 0;
 
-   fill_object_statement_hashes();
    id = stack_id();
-   sh = eina_hash_find(_new_statement_hash, id);
-   if (sh)
+   for (i = 0; i < statement_handler_num(); i++)
      {
-        if (sh->func) sh->func();
+	if (!strcmp(statement_handlers[i].type, id))
+	  {
+	     handled = 1;
+	     if (statement_handlers[i].func)
+	       {
+		  statement_handlers[i].func();
+	       }
+	     break;
+	  }
      }
-   else
+   if (!handled)
      {
-        ERR("%s: Error. %s:%i unhandled keyword %s",
-            progname, file_in, line - 1,
-            (char *)eina_list_data_get(eina_list_last(stack)));
+	ERR("%s: Error. %s:%i unhandled keyword %s",
+	    progname, file_in, line - 1,
+	    (char *)eina_list_data_get(eina_list_last(stack)));
         err_show();
-        exit(-1);
+	exit(-1);
      }
    free(id);
 }
@@ -745,8 +739,8 @@ compile(void)
                  eina_prefix_lib_get(pfx));
         if (ecore_file_exists(buf2))
           {
-             snprintf(buf, sizeof(buf), "%s -a %s %s -I%s %s -o %s",
-                      buf2, watchfile ? watchfile : "/dev/null", file_in, inc, def, tmpn);
+             snprintf(buf, sizeof(buf), "%s %s -I%s %s -o %s",
+                      buf2, file_in, inc, def, tmpn);
              ret = system(buf);
           }
         else

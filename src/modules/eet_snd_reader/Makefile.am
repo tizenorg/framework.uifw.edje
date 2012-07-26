@@ -5,7 +5,6 @@ pkglibdir = $(REMIX_PLUGIN_DIR)
 AM_CPPFLAGS = \
 -I. \
 @EDJE_CFLAGS@ \
-@EIO_CFLAGS@ \
 @REMIX_CFLAGS@
 
 pkgdir = $(REMIX_PLUGIN_DIR)

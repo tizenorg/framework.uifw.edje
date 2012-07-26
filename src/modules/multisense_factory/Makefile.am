@@ -11,7 +11,6 @@ AM_CPPFLAGS = \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
 -DPACKAGE_EXAMPLES_DIR=\"$(datadir)/$(PACKAGE)/multisense_factory\" \
 @EDJE_CFLAGS@ \
-@EIO_CFLAGS@ \
 @REMIX_CFLAGS@
 
 pkgdir = $(libdir)/edje/modules/multisense_factory/$(MODULE_ARCH)

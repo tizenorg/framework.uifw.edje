@@ -74,10 +74,6 @@ void *alloca (size_t);
 #endif
 #include <Embryo.h>
 
-#ifdef HAVE_EIO
-# include <Eio.h>
-#endif
-
 #include "Edje.h"
 
 EAPI extern int _edje_default_log_dom ;
@@ -471,13 +467,6 @@ struct _Edje_File
 
    Eet_File                       *ef;
 
-#ifdef HAVE_EIO
-   Eio_Monitor                    *monitor;
-   Eina_List                      *edjes;
-   Eina_List                      *handlers;
-   Ecore_Timer                    *timeout;
-#endif
-
    unsigned char                   free_strings : 1;
    unsigned char                   dangling : 1;
    unsigned char		   warning : 1;
@@ -676,7 +665,6 @@ struct _Edje_Limit
       TYPE      GROUP;            \
       TYPE      BOX;              \
       TYPE      TABLE;            \
-      TYPE      SPACER;	  \
       TYPE      EXTERNAL;
 
 struct _Edje_Part_Collection_Directory_Entry
@@ -1161,12 +1149,9 @@ struct _Edje
       void                  *data;
    } item_provider;
 
-   Eina_List            *user_defined;
-
-   int                   walking_callbacks;
-
    unsigned int          dirty : 1;
    unsigned int          recalc : 1;
+   unsigned int          walking_callbacks : 1;
    unsigned int          delete_callbacks : 1;
    unsigned int          just_added_callbacks : 1;
    unsigned int          have_objects : 1;
@@ -1551,52 +1536,6 @@ struct _Edje_Patterns
    size_t          finals[];
 };
 
-typedef enum _Edje_User_Defined_Type 
-{
-   EDJE_USER_SWALLOW,
-   EDJE_USER_BOX_PACK,
-   EDJE_USER_TABLE_PACK,
-   EDJE_USER_STRING,
-   EDJE_USER_DRAG_STEP,
-   EDJE_USER_DRAG_PAGE,
-   EDJE_USER_DRAG_VALUE,
-   EDJE_USER_DRAG_SIZE
-} Edje_User_Defined_Type;
-
-typedef struct _Edje_User_Defined Edje_User_Defined;
-struct _Edje_User_Defined
-{
-   Edje_User_Defined_Type type;
-   const char *part;
-   Edje *ed;
-
-   union {
-      struct {
-         const char *text;
-      } string;
-      struct {
-         Evas_Object *child;
-      } swallow;
-      struct {
-         Evas_Object *child;
-         int index;
-      } box;
-      struct {
-         Evas_Object *child;
-         unsigned short col;
-         unsigned short row;
-         unsigned short colspan;
-         unsigned short rowspan;
-      } table;
-      struct {
-         double x, y;
-      } drag_position;
-      struct {
-         double w, h;
-      } drag_size;
-   } u;
-};
-
 Edje_Patterns   *edje_match_collection_dir_init(const Eina_List *lst);
 Edje_Patterns   *edje_match_programs_signal_init(Edje_Program * const *array,
 						 unsigned int count);
@@ -1670,7 +1609,6 @@ extern Eina_Mempool *_emp_GROUP;
 extern Eina_Mempool *_emp_BOX;
 extern Eina_Mempool *_emp_TABLE;
 extern Eina_Mempool *_emp_EXTERNAL;
-extern Eina_Mempool *_emp_SPACER;
 extern Eina_Mempool *_emp_part;
 
 void  _edje_part_pos_set(Edje *ed, Edje_Real_Part *ep, int mode, FLOAT_T pos, FLOAT_T v1, FLOAT_T v2);
@@ -1871,7 +1809,7 @@ void _edje_textblock_styles_del(Edje *ed);
 void _edje_textblock_style_all_update(Edje *ed);
 void _edje_textblock_style_parse_and_fix(Edje_File *edf);
 void _edje_textblock_style_cleanup(Edje_File *edf);
-Edje_File *_edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret, Edje *ed);
+Edje_File *_edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret);
 void _edje_cache_coll_clean(Edje_File *edf);
 void _edje_cache_coll_flush(Edje_File *edf);
 void _edje_cache_coll_unref(Edje_File *edf, Edje_Part_Collection *edc);
@@ -2119,7 +2057,6 @@ void _edje_lib_ref(void);
 void _edje_lib_unref(void);
 
 void _edje_subobj_register(Edje *ed, Evas_Object *ob);
-void _edje_subobj_unregister(Edje *ed, Evas_Object *ob);
 
 void _edje_multisense_init(void);
 void _edje_multisense_shutdown(void);
@@ -2127,9 +2064,6 @@ Eina_Bool _edje_multisense_internal_sound_sample_play(Edje *ed, const char *samp
 Eina_Bool _edje_multisense_internal_sound_tone_play(Edje *ed, const char *tone_name, const double duration);
 
 void _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *state);
-
-void _edje_user_definition_remove(Edje_User_Defined *eud, Evas_Object *child);
-void _edje_user_definition_free(Edje_User_Defined *eud);
 
 #ifdef HAVE_LIBREMIX
 #include <remix/remix.h>

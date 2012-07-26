@@ -4,7 +4,7 @@
 These routines are used for Edje.
 
 @mainpage Edje Library Documentation
-@version 1.2
+@version 1.1
 @date 2003-2012
 
 Please see the @ref authors page for contact details.
@@ -197,7 +197,7 @@ part of Edje's API:
 @author Davide Andreoli <dave@@gurumeditation.it>
 @author Sebastian Dransfeld <sd@@tango.flipp.net>
 @author Tom Hacohen <tom@@stosb.com>
-@author Aharon Hillel <a.hillel@@samsung.com>
+@author Aharon Hillel <a.hillel@@partner.samsung.com>
 @author Shilpa Singh <shilpa.singh@samsung.com> <shilpasingh.o@gmail.com>
 @author Mike Blumenkrantz <michael.blumenkrantz@gmail.com
 @author Jaehwan Kim <jae.hwan.kim@samsung.com>
@@ -382,8 +382,7 @@ typedef enum _Edje_Part_Type
    EDJE_PART_TYPE_TABLE     = 9,
    EDJE_PART_TYPE_EXTERNAL  = 10,
    EDJE_PART_TYPE_PROXY     = 11,
-   EDJE_PART_TYPE_SPACER    = 12, /**< @since 1.3 */
-   EDJE_PART_TYPE_LAST      = 13
+   EDJE_PART_TYPE_LAST      = 12
 } Edje_Part_Type;
 
 typedef enum _Edje_Text_Effect
@@ -1383,11 +1382,6 @@ EAPI Eina_List   *edje_color_class_list           (void);
  *
  * This function updates all Edje members at the process level which
  * belong to this text class with the new font attributes.
- * If the @p size is 0 then the font size will be kept with the previous size.
- * If the @p size is less then 0 then the font size will be calculated in the
- * percentage. For example, if the @p size is -50, then the font size will be
- * scaled to half of the original size and if the @p size is -10 then the font
- * size will be scaled as much as 0.1x. 
  *
  * @see edje_text_class_get().
  *
@@ -3174,40 +3168,18 @@ EAPI void *edje_object_text_markup_filter_callback_del(Evas_Object *obj, const c
 EAPI void *edje_object_text_markup_filter_callback_del_full(Evas_Object *obj, const char *part, Edje_Markup_Filter_Cb func, void *data);
 
 /**
- * @brief "Swallows" an object into one of the Edje object @c SWALLOW
- * parts.
+ * @brief Swallows an object into the edje.
  *
- * @param obj A valid Edje object handle
- * @param part The swallow part's name
- * @param obj_swallow The object to occupy that part
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ * @param obj_swallow The object to swallow
  *
- * Swallowing an object into an Edje object is, for a given part of
- * type @c SWALLOW in the EDC group which gave life to @a obj, to set
- * an external object to be controlled by @a obj, being displayed
- * exactly over that part's region inside the whole Edje object's
- * viewport.
- *
- * From this point on, @a obj will have total control over @a
- * obj_swallow's geometry and visibility. For instance, if @a obj is
- * visible, as in @c evas_object_show(), the swallowed object will be
- * visible too -- if the given @c SWALLOW part it's in is also
- * visible. Other actions on @a obj will also reflect on the swallowed
- * object as well (e.g. resizing, moving, raising/lowering, etc.).
- *
- * Finally, all internal changes to @a part, specifically, will
- * reflect on the displaying of @a obj_swallow, for example state
- * changes leading to different visibility states, geometries,
- * positions, etc.
+ * Swallows the object into the edje part so that all geometry changes
+ * for the part affect the swallowed object. (e.g. resize, move, show,
+ * raise/lower, etc.).
  *
  * If an object has already been swallowed into this part, then it
- * will first be unswallowed (as in edje_object_part_unswallow())
- * before the new object is swallowed.
- *
- * @note @a obj @b won't delete the swallowed object once it is
- * deleted -- @a obj_swallow will get to an unparented state again.
- *
- * For more details on EDC @c SWALLOW parts, see @ref edcref "syntax
- * reference".
+ * will first be unswallowed before the new object is swallowed.
  */
 EAPI Eina_Bool        edje_object_part_swallow        (Evas_Object *obj, const char *part, Evas_Object *obj_swallow);
 
