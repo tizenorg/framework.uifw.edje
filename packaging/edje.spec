@@ -1,7 +1,7 @@
 #sbs-git:slp/pkgs/e/edje edje 1.1.0+svn.69011slp2+build03 96cd9783918ce594c786d12a5107be27aec4d34b
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.2.0+svn.73008slp2+build03
+Version:    1.2.0+svn.70401slp2+build03
 Release:    1
 Group:      System/Libraries
 License:    BSD
@@ -9,15 +9,16 @@ URL:        http://www.enlightenment.org/
 Source0:    %{name}-%{version}.tar.gz
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
-BuildRequires:  eina-devel
-BuildRequires:  eet-devel
-BuildRequires:  embryo-devel
-BuildRequires:  evas-devel
-BuildRequires:  ecore-devel
-BuildRequires:  liblua-devel
-BuildRequires:  libremix-devel
-BuildRequires:  libflac-devel
-BuildRequires:  libsndfile-devel
+BuildRequires:  pkgconfig(ecore)
+BuildRequires:  pkgconfig(ecore-evas)
+BuildRequires:  pkgconfig(ecore-file)
+BuildRequires:  pkgconfig(ecore-imf)
+BuildRequires:  pkgconfig(ecore-imf-evas)
+BuildRequires:  pkgconfig(eet)
+BuildRequires:  pkgconfig(eina)
+BuildRequires:  pkgconfig(embryo)
+BuildRequires:  pkgconfig(evas)
+BuildRequires:  pkgconfig(lua)
 
 
 %description
@@ -71,7 +72,6 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
-%{_libdir}/remix/*.so
 %{_datadir}/mime/packages/edje.xml
 %{_libdir}/edje/modules/multisense_factory/*/module.so
 
