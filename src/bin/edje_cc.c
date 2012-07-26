@@ -30,7 +30,7 @@ int        no_save = 0;
 int        min_quality = 0;
 int        max_quality = 100;
 int        compress_mode = EET_COMPRESSION_DEFAULT;
-int        threads = 0;
+int        threads = 1;
 
 static void
 main_help(void)
@@ -248,7 +248,6 @@ main(int argc, char **argv)
 	exit(-1);
      }
 
-   _on_edjecc = EINA_TRUE;
    using_file(file_in);
 
    if (!edje_init())

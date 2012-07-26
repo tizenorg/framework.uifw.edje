@@ -1139,6 +1139,7 @@ _edje_file_del(Edje *ed)
 	       }
 	     if (rp->swallowed_object)
 	       {
+                  _edje_real_part_swallow_clear(rp);
                   /* Objects swallowed by the app do not get deleted,
                    but those internally swallowed (GROUP type) do. */
 		  switch (rp->part->type)
@@ -1152,7 +1153,6 @@ _edje_file_del(Edje *ed)
 		     default:
 			break;
 		    }
-                  _edje_real_part_swallow_clear(rp);
 		  rp->swallowed_object = NULL;
 	       }
 	     if (rp->items)
@@ -1731,7 +1731,6 @@ _cb_signal_repeat(void *data, Evas_Object *obj, const char *sig, const char *sou
    emsg.sig = sig;
    emsg.src = alias ? alias : new_src;
    emsg.data = NULL;
-   if (ed_parent)
-     _edje_message_send(ed_parent, EDJE_QUEUE_SCRIPT, 
-                        EDJE_MESSAGE_SIGNAL, 0, &emsg);
+   _edje_message_send(ed_parent, EDJE_QUEUE_SCRIPT, 
+                      EDJE_MESSAGE_SIGNAL, 0, &emsg);
 }

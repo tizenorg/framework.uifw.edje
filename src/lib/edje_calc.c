@@ -667,79 +667,6 @@ _edje_recalc_do(Edje *ed)
         edje_object_size_min_calc(ed->obj, &w, &h);
         evas_object_size_hint_min_set(ed->obj, w, h);
      }
-
-   if (!ed->collection) return ;
-
-   for (i = 0; i < ed->collection->limits.parts_count; i++)
-     {
-        const char *name;
-        unsigned char limit;
-        int part;
-
-        name = ed->collection->parts[i]->name;
-        part = ed->collection->limits.parts[i].part;
-        limit = ed->table_parts[part]->chosen_description->limit;
-        switch (limit)
-          {
-           case 0:
-              ed->collection->limits.parts[i].width = 2;
-              ed->collection->limits.parts[i].height = 2;
-              break;
-           case 1:
-              ed->collection->limits.parts[i].height = 2;
-              break;
-           case 2:
-              ed->collection->limits.parts[i].width = 2;
-              break;
-           case 3:
-              break;
-          }
-
-        if (limit | 1)
-          {
-             if (ed->table_parts[part]->w > 0 &&
-                 (ed->collection->limits.parts[i].width <= 0 ||
-                  ed->collection->limits.parts[i].width == 2))
-               {
-                  ed->collection->limits.parts[i].width = 1;
-                  _edje_emit(ed, "limit,width,over", name);
-               }
-             else if (ed->table_parts[part]->w < 0 &&
-                      ed->collection->limits.parts[i].width >= 0)
-               {
-                  ed->collection->limits.parts[i].width = -1;
-                  _edje_emit(ed, "limit,width,below", name);
-               }
-             else if (ed->table_parts[part]->w == 0 &&
-                      ed->collection->limits.parts[i].width != 0)
-               {
-                  ed->collection->limits.parts[i].width = 0;
-                  _edje_emit(ed, "limit,width,zero", name);
-               }
-          }
-        if (limit | 2)
-          {
-             if (ed->table_parts[part]->h > 0 &&
-                 (ed->collection->limits.parts[i].height <= 0 ||
-                  ed->collection->limits.parts[i].height == 2))
-               {
-                  ed->collection->limits.parts[i].height = 1;
-                  _edje_emit(ed, "limit,height,over", name);
-               }
-             else if (ed->table_parts[part]->h < 0 &&
-                      ed->collection->limits.parts[i].height >= 0)
-               {
-                  ed->collection->limits.parts[i].height = -1;
-                  _edje_emit(ed, "limit,height,beloh", name);
-               }
-             else if (ed->table_parts[part]->h == 0 &&
-                      ed->collection->limits.parts[i].height != 0)
-               {
-                  ed->collection->limits.parts[i].height = 0;
-                  _edje_emit(ed, "limit,height,zero", name);
-               }
-          }
-     }
 }
 
 void
@@ -1252,32 +1179,6 @@ _edje_part_recalc_single_textblock(FLOAT_T sc,
                   if (*maxh < *minh) *maxh = *minh;
 	       }
 	  }
-        if ((chosen_desc->text.fit_x) || (chosen_desc->text.fit_y))
-          {
-             double s = 1.0;
-             
-             if (ep->part->scale) s = TO_DOUBLE(sc);
-             evas_object_scale_set(ep->object, s);
-             evas_object_textblock_size_formatted_get(ep->object, &tw, &th);
-             if (chosen_desc->text.fit_x)
-               {
-                  if ((tw > 0) && (tw > params->w))
-                    {
-                       s = (s * params->w) / (double)tw;
-                       evas_object_scale_set(ep->object, s);
-                       evas_object_textblock_size_formatted_get(ep->object, &tw, &th);
-                    }
-               }
-             if (chosen_desc->text.fit_y)
-               {
-                  if ((th > 0) && (th > params->h))
-                    {
-                       s = (s * params->h) / (double)th;
-                       evas_object_scale_set(ep->object, s);
-                       evas_object_textblock_size_formatted_get(ep->object, &tw, &th);
-                    }
-               }
-          }
         evas_object_textblock_valign_set(ep->object, TO_DOUBLE(chosen_desc->text.align.y));
      }
 }
