@@ -505,8 +505,3 @@
 2012-06-24  Cedric Bail
 
 	* Emit signal for flagged part when their size get to zero.
-
-2012-07-12  Tom Hacohen (TAsn)
-
-	* Textblock: Fixed issue with updating only the font size using text
-	classes.

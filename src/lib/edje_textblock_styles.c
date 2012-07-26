@@ -176,13 +176,7 @@ _edje_textblock_style_all_update(Edje *ed)
 
 	/* Make sure the style contains a text_class */
 	EINA_LIST_FOREACH(stl->tags, ll, tag)
-          {
-             if (tag->text_class)
-               {
-                  found = 1;
-                  break;
-               }
-          }
+	  if (tag->text_class) found = 1;
 
 	/* No text classes , goto next style */
 	if (!found) continue;
@@ -204,7 +198,11 @@ _edje_textblock_style_all_update(Edje *ed)
 	     eina_strbuf_append(txt, "='");
 
 	     /* Configure fonts from text class if it exists */
-	     tc = _edje_text_class_find(ed, tag->text_class);
+	     if ((tc = _edje_text_class_find(ed, tag->text_class)))
+	       {
+		  /* Only update if not clearing, If clear leave it at zero */
+		  if (tc->font) found = 1;
+	       }
 
 	     /* Add and Ha`ndle tag parsed data */
 	     eina_strbuf_append(txt, tag->value);
@@ -225,7 +223,7 @@ _edje_textblock_style_all_update(Edje *ed)
 	       {
 		  char font_size[32];
 
-		  if (tc && tc->size)
+		  if (found)
 		    snprintf(font_size, sizeof(font_size), "%f", (double) _edje_text_size_calc(tag->font_size, tc));
 		  else
 		    snprintf(font_size, sizeof(font_size), "%f", tag->font_size);
@@ -242,9 +240,10 @@ _edje_textblock_style_all_update(Edje *ed)
 		  eina_strbuf_append(txt, " ");
 		  eina_strbuf_append(txt, "font=");
 
-		  f = (tc && tc->font) ? tc->font : tag->font;
+		  f = (found) ? tc->font : tag->font;
 		  eina_strbuf_append_escaped(txt, f);
 	       }
+	     found = 0;
 
 	     eina_strbuf_append(txt, "'");
 	  }
