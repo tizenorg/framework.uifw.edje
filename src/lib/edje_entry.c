@@ -796,10 +796,8 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                     {
                        Evas_Coord nx, ny, handler_height = 0;
                        const char *bh_position = edje_object_data_get(en->block_handler_top, "position");
-                       const char *key_data = NULL;
 
-                       key_data = edje_object_data_get(en->block_handler_top, "height");
-                       if (key_data) handler_height = atoi(key_data);
+                       edje_object_part_geometry_get(en->block_handler_top, "handle", NULL, NULL, NULL, &handler_height);
 
                        if (bh_position && !strcmp(bh_position, "BOTTOM"))
                          {
@@ -840,10 +838,8 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                   if (list_idx == list_cnt)
                     {
                        Evas_Coord nx, ny, handler_height = 0;
-                       const char *key_data = NULL;
 
-                       key_data = edje_object_data_get(en->block_handler_btm, "height");
-                       if (key_data) handler_height = atoi(key_data);
+                       edje_object_part_geometry_get(en->block_handler_btm, "handle", NULL, NULL, NULL, &handler_height);
 
                        nx = x + r->x + r->w;
                        ny = y + r->y + r->h;
