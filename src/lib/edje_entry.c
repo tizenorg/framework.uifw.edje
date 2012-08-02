@@ -2409,6 +2409,9 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           }
         else if (en->long_press_state == _ENTRY_LONG_PRESSED)
           {
+             Evas_Coord flx, fly, flh;
+             Evas_Coord cnx, cny;
+
              tc = evas_object_textblock_cursor_new(rp->object);
              evas_textblock_cursor_copy(en->cursor, tc);
              evas_object_geometry_get(rp->object, &x, &y, &w, &h);
@@ -2416,6 +2419,31 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
              cx = ev->cur.canvas.x - x;
              cy = ev->cur.canvas.y - y;
              evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
+
+             /* handle the special cases in which pressed position is above the first line or below the last line  */
+             evas_object_textblock_line_number_geometry_get(rp->object, 0, &flx, &fly, NULL, &flh);
+             evas_textblock_cursor_line_geometry_get(en->cursor, &cnx, &cny, NULL, NULL);
+             if ((cnx == flx) && (cny == fly))
+               {
+                  /* cursor is in the first line */
+                  evas_textblock_cursor_char_coord_set(en->cursor, cx, fly + flh / 2);
+               }
+             else
+               {
+                  Evas_Textblock_Cursor *lc;
+                  Evas_Coord llx, lly, llh;
+
+                  lc = evas_object_textblock_cursor_new(rp->object);
+                  evas_textblock_cursor_copy(en->cursor, lc);
+                  evas_textblock_cursor_paragraph_last(lc);
+                  evas_textblock_cursor_line_geometry_get(lc, &llx, &lly, NULL, &llh);
+                  if ((cnx == llx) && (cny == lly))
+                    {
+                       /* cursor is in the last line */
+                       evas_textblock_cursor_char_coord_set(en->cursor, cx, lly + llh / 2);
+                    }
+                  evas_textblock_cursor_free(lc);
+               }
 
              if (evas_textblock_cursor_compare(tc, en->cursor))
                _edje_emit(rp->edje, "cursor,changed", rp->part->name);
