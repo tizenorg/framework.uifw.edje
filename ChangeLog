@@ -426,3 +426,12 @@
 	* Text classes: Fixed edje_text_class_set to behave like
 	edje_object_text_class_set (and as expected) wrt NULL fonts.
 
+2012-07-30  Thiep Ha
+
+	* Entry: Fixed issue of selection handler is displayed below IME.
+
+2012-08-03 Thiep Ha
+
+	* Entry: Fixed issue of cannot move cursor with magnifier in the
+	first or last line.
+
