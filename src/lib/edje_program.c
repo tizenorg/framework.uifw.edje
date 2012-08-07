@@ -992,7 +992,7 @@ _edje_emit_full(Edje *ed, const char *sig, const char *src, void *data, void (*f
               break ;
 
            default:
-              ERR("SPANK SPANK SPANK !!!\nYou should never be here !");
+//              ERR("SPANK SPANK SPANK !!!\nYou should never be here !");
               break;
           }
      }
@@ -1148,21 +1148,16 @@ _edje_emit_handle(Edje *ed, const char *sig, const char *src,
                             Edje_Real_Part *rp;
 
                             rp = _edje_real_part_get(ed, pr->filter.part ? pr->filter.part : src);
-                            if (rp && !rp->program)
-                              exec = (rp->chosen_description->state.name == pr->filter.state);
+                            if (rp)
+                              {
+                                 if (rp->program)
+                                   exec = EINA_FALSE;
+                                 else
+                                   exec = (rp->chosen_description->state.name == pr->filter.state);
+                              }
                          }
 
                        pr->exec = exec;
-#if 0
-                       if (exec)
-                         {
-                            _edje_program_run(ed, pr, 0, sig, src);
-                            if (_edje_block_break(ed))
-                              {
-                                 goto break_prog;
-                              }
-                         }
-#endif
 		    }
 
                   EINA_LIST_FOREACH(matches, l, pr)
@@ -1280,7 +1275,7 @@ _edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Da
    if (ed->just_added_callbacks)
      _edje_callbacks_patterns_clean(ed);
 
-   ed->walking_callbacks = 1;
+   ed->walking_callbacks++;
 
    if (ed->callbacks)
      {
@@ -1312,14 +1307,15 @@ _edje_emit_cb(Edje *ed, const char *sig, const char *src, Edje_Message_Signal_Da
                {
                   escb->func(escb->data, ed->obj, sig, src);
                   if (_edje_block_break(ed))
-                    goto break_prog;
+                    break;
                }
           }
      }
    break_prog:
 
-   ed->walking_callbacks = 0;
-   if ((ed->delete_callbacks) || (ed->just_added_callbacks))
+   ed->walking_callbacks--;
+   if (!ed->walking_callbacks &&
+       ((ed->delete_callbacks) || (ed->just_added_callbacks)))
      {
 	ed->delete_callbacks = 0;
 	ed->just_added_callbacks = 0;

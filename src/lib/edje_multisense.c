@@ -84,7 +84,7 @@ init_multisense_environment(void)
      strncpy(ms_factory, ms_factory_env, BUF_LEN);
    else
      strcpy(ms_factory, "multisense_factory");
-   
+
    m = _edje_module_handle_load(ms_factory);
    if (!m) goto err;
 #ifdef HAVE_LIBREMIX
@@ -279,7 +279,7 @@ _player_job(void *data __UNUSED__, Ecore_Thread *th)
 #endif
 // disable and move outside of thread due to dlsym etc. thread issues   
 //   Multisense_Data * msdata = init_multisense_environment();
-   
+
    if (!msdata) return;
 
    fcntl(command_pipe[0], F_SETFL, O_NONBLOCK);
@@ -290,13 +290,17 @@ _player_job(void *data __UNUSED__, Ecore_Thread *th)
      {
         if (!msdata->remaining)
           {
-             //Cleanup already played sound sources
+	     int err;
+             
+	     //Cleanup already played sound sources
              EINA_LIST_FREE(msdata->snd_src_list, sound)
                {
                   remix_destroy(msdata->msenv->remixenv, sound);
                }
              //wait for new sound
-             select(command_pipe[0] + 1, &wait_fds, NULL, NULL, 0);
+             err = select(command_pipe[0] + 1, &wait_fds, NULL, NULL, 0);
+	     if (ecore_thread_check(th))
+	       break;
           }
         //read sound command , if any
         sound_command_handler(msdata);
@@ -340,8 +344,13 @@ _edje_multisense_internal_sound_sample_play(Edje *ed, const char *sample_name, c
    ssize_t size = 0;
 #if defined(ENABLE_MULTISENSE) && defined(HAVE_LIBREMIX)
    Edje_Multisense_Sound_Action command;
-   
+
    if ((!pipe_initialized) && (!player_thread)) return EINA_FALSE;
+   if (!sample_name)
+     {
+        ERR("Given Sample Name is NULL\n");
+        return EINA_FALSE;
+     }
 
    command.action = EDJE_PLAY_SAMPLE;
    command.ed = ed;
@@ -363,14 +372,20 @@ _edje_multisense_internal_sound_tone_play(Edje *ed, const char *tone_name, const
    ssize_t size = 0;
 #if defined(ENABLE_MULTISENSE) && defined(HAVE_LIBREMIX)
    Edje_Multisense_Sound_Action command;
-   
+
    if ((!pipe_initialized) && (!player_thread)) return EINA_FALSE;
+   if (!tone_name)
+     {
+        ERR("Given Tone Name is NULL\n");
+        return EINA_FALSE;
+     }
+
    command.action = EDJE_PLAY_TONE;
    command.ed = ed;
    strncpy(command.type.tone.tone_name, tone_name, BUF_LEN);
    command.type.tone.duration = duration;
    size = write(command_pipe[1], &command, sizeof(command));
-#else   
+#else
    // warning shh
    (void) ed;
    (void) duration;
@@ -390,8 +405,9 @@ _edje_multisense_init(void)
 
    // init msdata outside of thread due to thread issues in dlsym etc.
    if (!msdata) msdata = init_multisense_environment();
+
    if (!player_thread)
-     player_thread = ecore_thread_run(_player_job, _player_end, _player_cancel, NULL);
+     player_thread = ecore_thread_feedback_run(_player_job, NULL, _player_end, _player_cancel, NULL, EINA_TRUE);
 #endif
 }
 
@@ -399,11 +415,14 @@ void
 _edje_multisense_shutdown(void)
 {
 #ifdef ENABLE_MULTISENSE
+   if (player_thread) ecore_thread_cancel(player_thread);
    if (pipe_initialized)
      {
+        int i = 42;
+
+        write(command_pipe[1], &i, sizeof (int));
         close(command_pipe[1]);
         close(command_pipe[0]);
      }
-   if (player_thread) ecore_thread_cancel(player_thread);
 #endif
 }

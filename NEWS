@@ -1,3 +1,35 @@
+Edje 1.3.0
+
+Changes since Edje 1.2.0:
+-------------------------
+
+Additions:
+    * Add edje_watch to monitore change on edje source.
+    * Emit ['edje,change,file', 'edje'] when the file change on disk.
+    * edje_player will automatically reload the file when it change on disk.
+    * Add SPACER part. This part are not putting anything into the canvas. So lighter and faster to
+    process (Use it to replace RECT part that are never visible and never catch any event).
+    * Add accessibility flags and API to retrieve the relevant part.
+    * Emit signal when flagged part size get to zero.
+    * Warn at compile time about forgotten image.
+    * Stop compilation when clipping to a non RECT part.
+
+Improvements:
+    * Allocate once and reuse Evas_Map.
+    * Make edje_cc faster by improving the parser, mapping file in memory and using threads.
+    * Made state index optional in EDC files and Embryo scripts.
+
+Fixes:
+    * Add missing files in the tarballs.
+    * Prevent crash when running nested edje_object_signal_emit with edje_object_signal_callback_{add,del}.
+    * Do actually verify that the file on disk is different from the file we have loaded.
+    * Preserve user drag, box and table information during call of edje_object_file_set.
+    * Fix table and text when fixed point is turned on.
+    * Clamp image tween to never underflow also.
+    * [entry] display preedit string even though there is no attribute
+    * Fix shutdown of Edje_Multisense.
+    * Reduce potential reentrant issue when using edje_object_signal_emit.
+
 Edje 1.2.0
 
 Changes since Edje 1.1.0:
