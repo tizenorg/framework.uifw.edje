@@ -20,6 +20,7 @@ char      *file_in = NULL;
 char      *tmp_dir = NULL;
 char      *file_out = NULL;
 char      *progname = NULL;
+char      *watchfile = NULL;
 int        verbose = 0;
 
 int        no_lossy = 0;
@@ -28,6 +29,8 @@ int        no_raw = 0;
 int        no_save = 0;
 int        min_quality = 0;
 int        max_quality = 100;
+int        compress_mode = EET_COMPRESSION_DEFAULT;
+int        threads = 1;
 
 static void
 main_help(void)
@@ -38,6 +41,7 @@ main_help(void)
       "\n"
       "Where OPTIONS is one or more of:\n"
       "\n"
+      "-w files.txt             Dump all sources files path into files.txt\n"
       "-id image/directory      Add a directory to look in for relative path images\n"
       "-fd font/directory       Add a directory to look in for relative path fonts\n"
       "-sd sound/directory      Add a directory to look in for relative path sounds samples\n"
@@ -50,6 +54,10 @@ main_help(void)
       "-min-quality VAL         Do NOT allow lossy images with quality < VAL (0-100)\n"
       "-max-quality VAL         Do NOT allow lossy images with quality > VAL (0-100)\n"
       "-Ddefine_val=to          CPP style define to define input macro definitions to the .edc source\n"
+      "-fastcomp                Use a faster compression algorithm (LZ4) (mutually exclusive with -fastdecomp)\n"
+      "-fastdecomp              Use a faster decompression algorithm (LZ4HC) (mutually exclusive with -fastcomp)\n"
+      "-threads                 Compile the edje file using multiple parallel threads (by default)\n"
+      "-nothreads               Compile the edje file using only the main loop\n"
       ,progname);
 }
 
@@ -142,6 +150,22 @@ main(int argc, char **argv)
 	     if (max_quality < 0) max_quality = 0;
 	     if (max_quality > 100) max_quality = 100;
 	  }
+	else if (!strcmp(argv[i], "-fastcomp"))
+	  {
+             compress_mode = EET_COMPRESSION_SUPERFAST;
+	  }
+	else if (!strcmp(argv[i], "-fastdecomp"))
+	  {
+             compress_mode = EET_COMPRESSION_VERYFAST;
+	  }
+	else if (!strcmp(argv[i], "-threads"))
+	  {
+             threads = 1;
+	  }
+	else if (!strcmp(argv[i], "-nothreads"))
+	  {
+             threads = 0;
+	  }
 	else if (!strncmp(argv[i], "-D", 2))
 	  {
 	     defines = eina_list_append(defines, mem_strdup(argv[i]));
@@ -150,6 +174,12 @@ main(int argc, char **argv)
 	  {
 	     i++;
 	     file_out = argv[i];
+	  }
+	else if ((!strcmp(argv[i], "-w")) && (i < (argc - 1)))
+	  {
+             i++;
+             watchfile = argv[i];
+             unlink(watchfile);
 	  }
 	else if (!file_in)
 	  file_in = argv[i];
@@ -218,7 +248,8 @@ main(int argc, char **argv)
 	exit(-1);
      }
 
-   _on_edjecc = EINA_TRUE;
+   using_file(file_in);
+
    if (!edje_init())
      exit(-1);
 

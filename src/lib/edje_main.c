@@ -51,6 +51,14 @@ edje_init(void)
 	goto shutdown_embryo;
      }
 
+#ifdef HAVE_EIO
+   if (!eio_init())
+     {
+        ERR("Eio init failed");
+        goto shutdown_eet;
+     }
+#endif
+
    _edje_scale = FROM_DOUBLE(1.0);
 
    _edje_edd_init();
@@ -66,25 +74,25 @@ edje_init(void)
 
    _edje_real_part_mp = eina_mempool_add("chained_mempool",
 					 "Edje_Real_Part", NULL,
-					 sizeof (Edje_Real_Part), 128);
+					 sizeof (Edje_Real_Part), 32);
    if (!_edje_real_part_mp)
      {
 	ERR("Mempool for Edje_Real_Part cannot be allocated.");
-	goto shutdown_eet;
+	goto shutdown_all;
      }
 
    _edje_real_part_state_mp = eina_mempool_add("chained_mempool",
 					       "Edje_Real_Part_State", NULL,
-					       sizeof (Edje_Real_Part_State), 256);
+					       sizeof (Edje_Real_Part_State), 32);
    if (!_edje_real_part_state_mp)
      {
 	ERR("Mempool for Edje_Real_Part_State cannot be allocated.");
-	goto shutdown_eet;
+	goto shutdown_all;
      }
 
    return _edje_init_count;
 
- shutdown_eet:
+ shutdown_all:
    eina_mempool_del(_edje_real_part_state_mp);
    eina_mempool_del(_edje_real_part_mp);
    _edje_real_part_state_mp = NULL;
@@ -96,6 +104,10 @@ edje_init(void)
    _edje_text_class_members_free();
    _edje_text_class_hash_free();
    _edje_edd_shutdown();
+#ifdef HAVE_EIO
+   eio_shutdown();
+ shutdown_eet:
+#endif
    eet_shutdown();
  shutdown_embryo:
    embryo_shutdown();
@@ -134,6 +146,9 @@ _edje_shutdown_core(void)
    _edje_text_class_hash_free();
    _edje_edd_shutdown();
 
+#ifdef HAVE_EIO
+   eio_shutdown();
+#endif
    eet_shutdown();
    embryo_shutdown();
    ecore_shutdown();
@@ -159,6 +174,11 @@ _edje_lib_unref(void)
 EAPI int
 edje_shutdown(void)
 {
+   if (_edje_init_count <= 0)
+     {
+        ERR("Init count not greater than 0 in shutdown.");
+        return 0;
+     }
    if (--_edje_init_count != 0)
      return _edje_init_count;
 
