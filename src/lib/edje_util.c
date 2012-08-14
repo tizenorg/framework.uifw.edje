@@ -91,18 +91,21 @@ _edje_user_definition_free(Edje_User_Defined *eud)
       case EDJE_USER_SWALLOW:
 	child = eud->u.swallow.child;
 	rp = _edje_real_part_recursive_get(eud->ed, eud->part);
-	_edje_real_part_swallow_clear(rp);
-	rp->swallowed_object = NULL;
-	rp->swallow_params.min.w = 0;
-	rp->swallow_params.min.h = 0;
-	rp->swallow_params.max.w = 0;
-	rp->swallow_params.max.h = 0;
-	rp->edje->dirty = 1;
-	rp->edje->recalc_call = 1;
+	if (rp)
+	  {
+	    _edje_real_part_swallow_clear(rp);
+	    rp->swallowed_object = NULL;
+	    rp->swallow_params.min.w = 0;
+	    rp->swallow_params.min.h = 0;
+	    rp->swallow_params.max.w = 0;
+	    rp->swallow_params.max.h = 0;
+	    rp->edje->dirty = 1;
+	    rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
-	rp->invalidate = 1;
+	    rp->invalidate = 1;
 #endif
-	_edje_recalc_do(rp->edje);
+	    _edje_recalc_do(rp->edje);
+	  }
 	break;
       case EDJE_USER_BOX_PACK:
 	child = eud->u.box.child;
@@ -823,8 +826,7 @@ edje_text_class_set(const char *text_class, const char *font, Evas_Font_Size siz
            return EINA_TRUE;
 
         /* Update the class found */
-        eina_stringshare_del(tc->font);
-        tc->font = eina_stringshare_add(font);
+        eina_stringshare_replace(&tc->font, font);
         tc->size = size;
      }
 
@@ -905,7 +907,7 @@ edje_object_text_class_set(Evas_Object *obj, const char *text_class, const char 
 {
    Edje *ed;
    Eina_List *l;
-   Edje_Text_Class *tc;
+   Edje_Text_Class *tc = NULL;
    unsigned int i;
 
    ed = _edje_fetch(obj);
@@ -923,34 +925,26 @@ edje_object_text_class_set(Evas_Object *obj, const char *text_class, const char 
                 return EINA_TRUE;
 
 	     /* Update new text class properties */
-	     if (tc->font) eina_stringshare_del(tc->font);
-	     if (font) tc->font = eina_stringshare_add(font);
-	     else tc->font = NULL;
+             eina_stringshare_replace(&tc->font, font);
 	     tc->size = size;
-
-	     /* Update edje */
-	     ed->dirty = 1;
-             ed->recalc_call = 1;
-#ifdef EDJE_CALC_CACHE
-	     ed->text_part_change = 1;
-#endif
-	     _edje_recalc(ed);
-	     return EINA_TRUE;
+             break;
 	  }
      }
 
-   /* No matches, create a new text class */
-   tc = calloc(1, sizeof(Edje_Text_Class));
-   if (!tc) return EINA_FALSE;
-   tc->name = eina_stringshare_add(text_class);
-   if (!tc->name)
+   if (!tc)
      {
-	free(tc);
-	return EINA_FALSE;
+        /* No matches, create a new text class */
+        tc = calloc(1, sizeof(Edje_Text_Class));
+        if (!tc) return EINA_FALSE;
+        tc->name = eina_stringshare_add(text_class);
+        if (!tc->name)
+          {
+             free(tc);
+             return EINA_FALSE;
+          }
+        tc->font = eina_stringshare_add(font);
+        tc->size = size;
      }
-   if (font) tc->font = eina_stringshare_add(font);
-   else tc->font = NULL;
-   tc->size = size;
 
    for (i = 0; i < ed->table_parts_size; i++)
      {
@@ -4152,7 +4146,7 @@ _edje_table_child_remove(Edje_Real_Part *rp, Evas_Object *child)
 }
 
 EAPI Evas_Object *
-edje_object_part_table_child_get(Evas_Object *obj, const char *part, unsigned int col, unsigned int row)
+edje_object_part_table_child_get(const Evas_Object *obj, const char *part, unsigned int col, unsigned int row)
 {
    Edje *ed;
    Edje_Real_Part *rp;

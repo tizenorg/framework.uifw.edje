@@ -204,10 +204,9 @@ error_and_abort(Eet_File *ef __UNUSED__, const char *fmt, ...)
 {
    va_list ap;
 
-   fprintf(stderr, "%s: Error. ", progname);
-
    va_start(ap, fmt);
-   vfprintf(stderr, fmt, ap);
+   eina_log_vprint(_edje_cc_log_dom, EINA_LOG_LEVEL_CRITICAL,
+                   "unknown", "unknown", 0, fmt, ap);
    va_end(ap);
    unlink(file_out);
    exit(-1);
@@ -226,18 +225,17 @@ check_image_part_desc(Edje_Part_Collection *pc, Edje_Part *ep,
 {
    unsigned int i;
    
-#if 0 /* FIXME: This check sounds like not a useful one */
-   if (epd->image.id == -1)
-     ERR(ef, "Collection %s(%i): image attributes missing for "
-	 "part \"%s\", description \"%s\" %f\n",
+   /* FIXME: This check sounds like not a useful one */
+   if (epd->image.id == -1 && epd->common.visible)
+     WRN("Collection %s(%i): image attributes missing for "
+	 "part \"%s\", description \"%s\" %f",
 	 pc->part, pc->id, ep->name, epd->common.state.name, epd->common.state.value);
-#endif
 
    for (i = 0; i < epd->image.tweens_count; ++i)
      {
 	if (epd->image.tweens[i]->id == -1)
 	  error_and_abort(ef, "Collection %i: tween image id missing for "
-			  "part \"%s\", description \"%s\" %f\n",
+			  "part \"%s\", description \"%s\" %f",
 			  pc->id, ep->name, epd->common.state.name, epd->common.state.value);
     }
 }
@@ -251,11 +249,11 @@ check_packed_items(Edje_Part_Collection *pc, Edje_Part *ep, Eet_File *ef)
      {
 	if (ep->items[i]->type == EDJE_PART_TYPE_GROUP && !ep->items[i]->source)
 	  error_and_abort(ef, "Collection %i: missing source on packed item "
-			  "of type GROUP in part \"%s\"\n",
+			  "of type GROUP in part \"%s\"",
 			  pc->id, ep->name);
 	if (ep->type == EDJE_PART_TYPE_TABLE && (ep->items[i]->col < 0 || ep->items[i]->row < 0))
 	  error_and_abort(ef, "Collection %i: missing col/row on packed item "
-			  "for part \"%s\" of type TABLE\n",
+			  "for part \"%s\" of type TABLE",
 			  pc->id, ep->name);
      }
 }
@@ -264,7 +262,7 @@ static void
 check_nameless_state(Edje_Part_Collection *pc, Edje_Part *ep, Edje_Part_Description_Common *ed, Eet_File *ef)
 {
    if (!ed->state.name)
-      error_and_abort(ef, "Collection %i: description with state missing on part \"%s\"\n",
+      error_and_abort(ef, "Collection %i: description with state missing on part \"%s\"",
                       pc->id, ep->name);
 }
 
@@ -275,7 +273,7 @@ check_part(Edje_Part_Collection *pc, Edje_Part *ep, Eet_File *ef)
    /* FIXME: check image set and sort them. */
    if (!ep->default_desc)
      error_and_abort(ef, "Collection %i: default description missing "
-		     "for part \"%s\"\n", pc->id, ep->name);
+		     "for part \"%s\"", pc->id, ep->name);
 
    for (i = 0; i < ep->other.desc_count; ++i)
      check_nameless_state(pc, ep, ep->other.desc[i], ef);
@@ -290,6 +288,12 @@ check_part(Edje_Part_Collection *pc, Edje_Part *ep, Eet_File *ef)
    else if ((ep->type == EDJE_PART_TYPE_BOX) ||
 	    (ep->type == EDJE_PART_TYPE_TABLE))
      check_packed_items(pc, ep, ef);
+
+   /* FIXME: When mask are supported remove this check */
+   if (ep->clip_to_id != -1 &&
+       pc->parts[ep->clip_to_id]->type != EDJE_PART_TYPE_RECTANGLE)
+     error_and_abort(ef, "Collection %i: clip_to point to a non RECT part '%s' !",
+                     pc->id, pc->parts[ep->clip_to_id]->name);
 }
 
 static void
@@ -304,7 +308,7 @@ check_program(Edje_Part_Collection *pc, Edje_Program *ep, Eet_File *ef)
       case EDJE_ACTION_TYPE_DRAG_VAL_PAGE:
 	 if (!ep->targets)
 	   error_and_abort(ef, "Collection %i: target missing in program "
-			   "\"%s\"\n", pc->id, ep->name);
+			   "\"%s\"", pc->id, ep->name);
 	 break;
       default:
 	 break;
@@ -332,7 +336,7 @@ data_thread_head(void *data, Ecore_Thread *thread __UNUSED__)
 		  if (!ce->entry)
                     {
                        snprintf(buf, sizeof(buf),
-                                "Collection %i: name missing.\n", ce->id);
+                                "Collection %i: name missing.", ce->id);
                        hw->errstr = strdup(buf);
                        return;
                     }
@@ -351,7 +355,7 @@ data_thread_head(void *data, Ecore_Thread *thread __UNUSED__)
 		  if (!sce)
                     {
                        snprintf(buf, sizeof(buf),
-                                "Collection %s (%i) can't find an correct alias.\n",
+                                "Collection %s (%i) can't find an correct alias.",
                                 ce->entry, ce->id);
                        hw->errstr = strdup(buf);
                        return;
@@ -365,16 +369,15 @@ data_thread_head(void *data, Ecore_Thread *thread __UNUSED__)
 	if (bytes <= 0)
           {
              snprintf(buf, sizeof(buf),
-                      "Unable to write \"edje_file\" entry to \"%s\" \n",
+                      "Unable to write \"edje_file\" entry to \"%s\"",
                       file_out);
              hw->errstr = strdup(buf);
              return;
           }
      }
 
-   if (verbose)
-     printf("%s: Wrote %9i bytes (%4iKb) for \"edje_file\" header\n",
-            progname, bytes, (bytes + 512) / 1024);
+   INF("Wrote %9i bytes (%4iKb) for \"edje_file\" header",
+       bytes, (bytes + 512) / 1024);
 }
 
 static void
@@ -448,7 +451,7 @@ data_thread_fonts(void *data, Ecore_Thread *thread __UNUSED__)
      {
         if (f) eina_file_close(f);
         snprintf(buf, sizeof(buf),
-                 "Unable to load font part \"%s\" entry to %s \n",
+                 "Unable to load font part \"%s\" entry to %s",
                  fc->fn->file, file_out);
         fc->errstr = strdup(buf);
         return;
@@ -463,16 +466,15 @@ data_thread_fonts(void *data, Ecore_Thread *thread __UNUSED__)
         eina_file_close(f);
         snprintf(buf2, sizeof(buf2),
                  "Unable to write font part \"%s\" as \"%s\" "
-                 "part entry to %s \n", fc->fn->file, buf, file_out);
+                 "part entry to %s", fc->fn->file, buf, file_out);
         fc->errstr = strdup(buf2);
         return;
      }
 
-   if (verbose)
-     printf("%s: Wrote %9i bytes (%4iKb) for \"%s\" font entry \"%s\" compress: [real: %2.1f%%]\n",
-            progname, bytes, (bytes + 512) / 1024, buf, fc->fn->file,
-            100 - (100 * (double)bytes) / ((double)(eina_file_size_get(f)))
-            );
+   INF("Wrote %9i bytes (%4iKb) for \"%s\" font entry \"%s\" compress: [real: %2.1f%%]",
+       bytes, (bytes + 512) / 1024, buf, fc->fn->file,
+       100 - (100 * (double)bytes) / ((double)(eina_file_size_get(f)))
+       );
    eina_file_map_free(f, m);
    eina_file_close(f);
 }
@@ -602,7 +604,7 @@ error_and_abort_image_load_error(Eet_File *ef, const char *file, int error)
      }
  show_err:
    error_and_abort
-     (ef, "Unable to load image \"%s\" used by file \"%s\": %s.%s\n",
+     (ef, "Unable to load image \"%s\" used by file \"%s\": %s.%s",
       file, file_out, errmsg, hint);
 }
 
@@ -610,7 +612,7 @@ static void
 data_thread_image(void *data, Ecore_Thread *thread __UNUSED__)
 {
    Image_Write *iw = data;
-   char buf[PATH_MAX];
+   char buf[PATH_MAX], buf2[PATH_MAX];
    unsigned int *start, *end;
    Eina_Bool opaque = EINA_TRUE;
    int bytes = 0;
@@ -683,31 +685,31 @@ data_thread_image(void *data, Ecore_Thread *thread __UNUSED__)
                                        0, qual, 1);
         if (bytes <= 0)
           {
-             snprintf(buf, sizeof(buf),
+             snprintf(buf2, sizeof(buf2),
                       "Unable to write image part "
                       "\"%s\" as \"%s\" part entry to "
-                      "%s\n", iw->img->entry, buf, file_out);
-             iw->errstr = strdup(buf);
+                      "%s", iw->img->entry, buf, file_out);
+             iw->errstr = strdup(buf2);
              return;
           }
      }
    else
      {
-        snprintf(buf, sizeof(buf),
+        snprintf(buf2, sizeof(buf2),
                  "Unable to load image part "
                  "\"%s\" as \"%s\" part entry to "
-                 "%s\n", iw->img->entry, buf, file_out);
-        iw->errstr = strdup(buf);
+                 "%s", iw->img->entry, buf, file_out);
+        iw->errstr = strdup(buf2);
         return;
      }
 
-   if (verbose)
+   if (eina_log_domain_level_check(_edje_cc_log_dom, EINA_LOG_LEVEL_INFO))
      {
         struct stat st;
 
         if (!iw->path || (stat(iw->path, &st))) st.st_size = 0;
-        printf("%s: Wrote %9i bytes (%4iKb) for \"%s\" image entry \"%s\" compress: [raw: %2.1f%%] [real: %2.1f%%]\n",
-               progname, bytes, (bytes + 512) / 1024, buf, iw->img->entry,
+        INF("Wrote %9i bytes (%4iKb) for \"%s\" image entry \"%s\" compress: [raw: %2.1f%%] [real: %2.1f%%]",
+               bytes, (bytes + 512) / 1024, buf, iw->img->entry,
                100 - (100 * (double)bytes) / ((double)(iw->w * iw->h * 4)),
                100 - (100 * (double)bytes) / ((double)(st.st_size))
               );
@@ -760,8 +762,7 @@ data_write_images(Eet_File *ef, int *image_num)
    ecore_evas_init();
    ee = ecore_evas_buffer_new(1, 1);
    if (!ee)
-     error_and_abort(ef, "Cannot create buffer engine canvas for image "
-                     "load.\n");
+     error_and_abort(ef, "Cannot create buffer engine canvas for image load.");
    evas = ecore_evas_get(ee);
    
    for (i = 0; i < (int)edje_file->image_dir->entries_count; i++)
@@ -785,10 +786,11 @@ data_write_images(Eet_File *ef, int *image_num)
              iw->ef = ef;
              iw->img = img;
              iw->im = im = evas_object_image_add(evas);
-             evas_object_event_callback_add(im,
-                                            EVAS_CALLBACK_IMAGE_PRELOADED,
-                                            data_image_preload_done,
-                                            iw);
+             if (threads)
+               evas_object_event_callback_add(im,
+                                              EVAS_CALLBACK_IMAGE_PRELOADED,
+                                              data_image_preload_done,
+                                              iw);
              EINA_LIST_FOREACH(img_dirs, ll, s)
                {
                   char buf[PATH_MAX];
@@ -801,8 +803,11 @@ data_write_images(Eet_File *ef, int *image_num)
                        *image_num += 1;
                        iw->path = strdup(buf);
                        pending_threads++;
-                       evas_object_image_preload(im, 0);
+                       if (threads)
+                         evas_object_image_preload(im, 0);
                        using_file(buf);
+                       if (!threads)
+                         data_image_preload_done(iw, evas, im, NULL);
                        break;
                     }
                }
@@ -815,8 +820,11 @@ data_write_images(Eet_File *ef, int *image_num)
                        *image_num += 1;
                        iw->path = strdup(img->entry);
                        pending_threads++;
-                       evas_object_image_preload(im, 0);
+                       if (threads)
+                         evas_object_image_preload(im, 0);
                        using_file(img->entry);
+                       if (!threads)
+                         data_image_preload_done(iw, evas, im, NULL);
                     }
                   else
                     error_and_abort_image_load_error
@@ -866,8 +874,7 @@ data_thread_sounds(void *data, Ecore_Thread *thread __UNUSED__)
 #endif
    if (!f)
      {
-        ERR("%s: Error: Unable to load sound data of: %s",
-            progname, sw->sample->name);
+        ERR("Unable to load sound data of: %s", sw->sample->name);
         exit(-1);
      }
 
@@ -879,8 +886,8 @@ data_thread_sounds(void *data, Ecore_Thread *thread __UNUSED__)
                           EET_COMPRESSION_NONE);
         if (eina_file_map_faulted(f, m))
           {
-             ERR("%s: Error: File access error when reading '%s'",
-                 progname, eina_file_filename_get(f));
+             ERR("File access error when reading '%s'",
+                 eina_file_filename_get(f));
              exit(-1);
           }
         eina_file_map_free(f, m);
@@ -891,18 +898,16 @@ data_thread_sounds(void *data, Ecore_Thread *thread __UNUSED__)
    //If encoded temporary file, delete it.
    if (enc_info->encoded) unlink(enc_info->file);
 #endif
-   if (verbose)
-     {
 #ifdef HAVE_LIBSNDFILE
-        printf ("%s: Wrote %9i bytes (%4iKb) for \"%s\" %s sound entry"
-                "\"%s\" \n", progname, bytes, (bytes + 512) / 1024,
-                sndid_str, enc_info->comp_type, sw->sample->name);
+   INF("Wrote %9i bytes (%4iKb) for \"%s\" %s sound entry \"%s\"",
+       bytes, (bytes + 512) / 1024,
+       sndid_str, enc_info->comp_type, sw->sample->name);
 #else
-        printf ("%s: Wrote %9i bytes (%4iKb) for \"%s\" %s sound entry"
-                "\"%s\" \n", progname, bytes, (bytes + 512) / 1024,
-                sndid_str, "RAW PCM", sw->sample->name);
+   INF("Wrote %9i bytes (%4iKb) for \"%s\" %s sound entry \"%s\"",
+       bytes, (bytes + 512) / 1024,
+       sndid_str, "RAW PCM", sw->sample->name);
 #endif
-     }
+
 #ifdef HAVE_LIBSNDFILE
    if ((enc_info->file) && (!enc_info->encoded))
      eina_stringshare_del(enc_info->file);
@@ -990,15 +995,14 @@ data_thread_group(void *data, Ecore_Thread *thread __UNUSED__)
    if (bytes <= 0)
      {
         snprintf(buf2, sizeof(buf2),
-                 "Error. Unable to write \"%s\" part entry to %s\n",
+                 "Unable to write \"%s\" part entry to %s",
                  buf, file_out);
         gw->errstr = strdup(buf2);
         return;
      }
-   
-   if (verbose)
-     printf("%s: Wrote %9i bytes (%4iKb) for \"%s\" aka \"%s\" collection entry\n",
-            progname, bytes, (bytes + 512) / 1024, buf, gw->pc->part);
+
+   INF("Wrote %9i bytes (%4iKb) for \"%s\" aka \"%s\" collection entry",
+       bytes, (bytes + 512) / 1024, buf, gw->pc->part);
 }
 
 static void
@@ -1028,8 +1032,7 @@ data_write_groups(Eet_File *ef, int *collection_num)
         gw = calloc(1, sizeof(Group_Write));
         if (!gw)
           {
-             error_and_abort(ef,
-                             "Error. Cannot allocate memory for group writer\n");
+             error_and_abort(ef, "Cannot allocate memory for group writer");
              return;
           }
         gw->ef = ef;
@@ -1052,7 +1055,7 @@ create_script_file(Eet_File *ef, const char *filename, const Code *cd, int fd)
    FILE *f = fdopen(fd, "wb");
    if (!f)
      error_and_abort(ef, "Unable to open temp file \"%s\" for script "
-		     "compilation.\n", filename);
+		     "compilation.", filename);
 
    Eina_List *ll;
    Code_Program *cp;
@@ -1136,7 +1139,7 @@ data_thread_script(void *data, Ecore_Thread *thread __UNUSED__)
    if (!f)
      {
         snprintf(buf, sizeof(buf),
-                 "Unable to open script object \"%s\" for reading.\n",
+                 "Unable to open script object \"%s\" for reading.",
                  sc->tmpo);
         sc->errstr = strdup(buf);
         return;
@@ -1155,7 +1158,7 @@ data_thread_script(void *data, Ecore_Thread *thread __UNUSED__)
 	     if (fread(dat, size, 1, f) != 1)
                {
                   snprintf(buf, sizeof(buf),
-                           "Unable to read all of script object \"%s\"\n",
+                           "Unable to read all of script object \"%s\"",
                            sc->tmpo);
                   sc->errstr = strdup(buf);
                   return;
@@ -1168,7 +1171,7 @@ data_thread_script(void *data, Ecore_Thread *thread __UNUSED__)
         else
           {
              snprintf(buf, sizeof(buf),
-                      "Alloc failed for %lu bytes\n", (unsigned long)size);
+                      "Alloc failed for %lu bytes", (unsigned long)size);
              sc->errstr = strdup(buf);
              return;
           }
@@ -1226,7 +1229,7 @@ data_scripts_exe_del_cb(void *data __UNUSED__, int evtype __UNUSED__, void *evin
    if (ecore_exe_data_get(ev->exe) != sc) return ECORE_CALLBACK_RENEW;
    if (ev->exit_code != 0)
      {
-        error_and_abort(sc->ef, "Compiling script code not clean.\n");
+        error_and_abort(sc->ef, "Compiling script code not clean.");
         return ECORE_CALLBACK_CANCEL;
      }
    if (threads)
@@ -1276,14 +1279,14 @@ data_write_scripts(Eet_File *ef)
         sc->tmpn_fd = mkstemp(sc->tmpn);
         if (sc->tmpn_fd < 0)
           error_and_abort(ef, "Unable to open temp file \"%s\" for script "
-                          "compilation.\n", sc->tmpn);
+                          "compilation.", sc->tmpn);
         snprintf(sc->tmpo, PATH_MAX, "%s/edje_cc.amx-tmp-XXXXXX", tmp_dir);
         sc->tmpo_fd = mkstemp(sc->tmpo);
         if (sc->tmpo_fd < 0)
           {
              unlink(sc->tmpn);
              error_and_abort(ef, "Unable to open temp file \"%s\" for script "
-                             "compilation.\n", sc->tmpn);
+                             "compilation.", sc->tmpn);
           }
         create_script_file(ef, sc->tmpn, cd, sc->tmpn_fd);
         snprintf(buf, sizeof(buf),
@@ -1342,7 +1345,7 @@ _edje_lua_error_and_abort(lua_State *L, int err_code, Script_Write *sc)
 	break;
      }
    snprintf(buf, sizeof(buf),
-            "Lua %s error: %s\n", err_type, lua_tostring(L, -1));
+            "Lua %s error: %s", err_type, lua_tostring(L, -1));
    sc->errstr = strdup(buf);
 }
 
@@ -1365,7 +1368,7 @@ data_thread_lua_script(void *data, Ecore_Thread *thread __UNUSED__)
    if (!L)
      {
         snprintf(buf, sizeof(buf),
-                 "Lua error: Lua state could not be initialized\n");
+                 "Lua error: Lua state could not be initialized");
         sc->errstr = strdup(buf);
         return;
      }
@@ -1432,7 +1435,7 @@ data_thread_lua_script(void *data, Ecore_Thread *thread __UNUSED__)
    if (eet_write(sc->ef, buf, dat.buf, dat.size, compress_mode) <= 0)
      {
         snprintf(buf, sizeof(buf),
-                 "Unable to write script %i\n", sc->i);
+                 "Unable to write script %i", sc->i);
         sc->errstr = strdup(buf);
         return;
      }
@@ -1528,16 +1531,14 @@ data_write(void)
 
    if (!edje_file)
      {
-	ERR("%s: Error. No data to put in \"%s\"",
-	    progname, file_out);
+	ERR("No data to put in \"%s\"", file_out);
 	exit(-1);
      }
 
    ef = eet_open(file_out, EET_FILE_MODE_WRITE);
    if (!ef)
      {
-	ERR("%s: Error. Unable to open \"%s\" for writing output",
-	    progname, file_out);
+	ERR("Unable to open \"%s\" for writing output", file_out);
 	exit(-1);
      }
 
@@ -1548,25 +1549,15 @@ data_write(void)
    pending_threads++;
    t = ecore_time_get();
    data_write_header(ef);
-   if (verbose)
-     {
-        printf("header: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+
+   INF("header: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    data_write_groups(ef, &collection_num);
-   if (verbose)
-     {
-        printf("groups: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("groups: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    data_write_scripts(ef);
-   if (verbose)
-     {
-        printf("scripts: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("scripts: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    data_write_lua_scripts(ef);
-   if (verbose)
-     {
-        printf("lua scripts: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("lua scripts: %3.5f", ecore_time_get() - t); t = ecore_time_get();
+
    pending_threads++;
    if (threads)
      ecore_thread_run(data_thread_source, data_thread_source_end, NULL, ef);
@@ -1575,10 +1566,7 @@ data_write(void)
         data_thread_source(ef, NULL);
         data_thread_source_end(ef, NULL);
      }
-   if (verbose)
-     {
-        printf("source: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("source: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    pending_threads++;
    if (threads)
      ecore_thread_run(data_thread_fontmap, data_thread_fontmap_end, NULL, ef);
@@ -1587,45 +1575,32 @@ data_write(void)
         data_thread_fontmap(ef, NULL);
         data_thread_fontmap_end(ef, NULL);
      }
-   if (verbose)
-     {
-        printf("fontmap: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("fontmap: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    data_write_images(ef, &image_num);
-   if (verbose)
-     {
-        printf("images: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("images: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    data_write_fonts(ef, &font_num);
-   if (verbose)
-     {
-        printf("fonts: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("fonts: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    data_write_sounds(ef, &sound_num);
-   if (verbose)
-     {
-        printf("sounds: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("sounds: %3.5f", ecore_time_get() - t); t = ecore_time_get();
    pending_threads--;
    if (pending_threads > 0) ecore_main_loop_begin();
-   if (verbose)
-     {
-        printf("THREADS: %3.5f\n", ecore_time_get() - t); t = ecore_time_get();
-     }
+   INF("THREADS: %3.5f", ecore_time_get() - t); t = ecore_time_get();
 
    eet_close(ef);
 
-   if (verbose)
-     printf("Summary:\n"
-            "  Wrote %i collections\n"
-            "  Wrote %i images\n"
-            "  Wrote %i sounds\n"
-            "  Wrote %i fonts\n"
-            ,
-            collection_num,
-            image_num,
-            sound_num,
-            font_num);
+   if (eina_log_domain_level_check(_edje_cc_log_dom, EINA_LOG_LEVEL_INFO))
+     {
+        printf("Summary:\n"
+               "  Wrote %i collections\n"
+               "  Wrote %i images\n"
+               "  Wrote %i sounds\n"
+               "  Wrote %i fonts\n"
+               ,
+               collection_num,
+               image_num,
+               sound_num,
+               font_num);
+     }
 }
 
 void
@@ -1646,7 +1621,7 @@ reorder_parts(void)
           {
              ep = (Edje_Part_Parser *)pc->parts[i];
              if (ep->reorder.insert_before && ep->reorder.insert_after)
-               ERR("%s: Error. Unable to use together insert_before and insert_after in part \"%s\".", progname, pc->parts[i]->name);
+               ERR("Unable to use together insert_before and insert_after in part \"%s\".", pc->parts[i]->name);
 
              if (ep->reorder.done)
                {
@@ -1662,9 +1637,11 @@ reorder_parts(void)
                          {
                             ep2 = (Edje_Part_Parser *)pc->parts[j];
                             if (ep2->reorder.after)
-                              ERR("%s: Error. The part \"%s\" is ambiguous ordered part.", progname, pc->parts[i]->name);
+                              ERR("The part \"%s\" is ambiguous ordered part.",
+                                  pc->parts[i]->name);
                             if (ep2->reorder.linked_prev)
-                              ERR("%s: Error. Unable to insert two or more parts in same part \"%s\".", progname, pc->parts[j]->name);
+                              ERR("Unable to insert two or more parts in same part \"%s\".",
+                                  pc->parts[j]->name);
                             k = j - 1;
 			    found = EINA_TRUE;
                             ep2->reorder.linked_prev += ep->reorder.linked_prev + 1;
@@ -1681,9 +1658,9 @@ reorder_parts(void)
                          {
                             ep2 = (Edje_Part_Parser *)pc->parts[j];
                             if (ep2->reorder.before)
-                              ERR("%s: Error. The part \"%s\" is ambiguous ordered part.", progname, pc->parts[i]->name);
+                              ERR("The part \"%s\" is ambiguous ordered part.", pc->parts[i]->name);
                             if (ep2->reorder.linked_next)
-                              ERR("%s: Error. Unable to insert two or more parts in same part \"%s\".", progname, pc->parts[j]->name);
+                              ERR("Unable to insert two or more parts in same part \"%s\".", pc->parts[j]->name);
                             k = j;
 			    found = EINA_TRUE;
                             ep2->reorder.linked_next += ep->reorder.linked_next + 1;
@@ -1702,8 +1679,7 @@ reorder_parts(void)
 
                        if (((i > k) && ((i - ep->reorder.linked_prev) <= k))
                            || ((i < k) && ((i + ep->reorder.linked_next) >= k)))
-                         ERR("%s: Error. The part order is wrong. It has circular dependency.",
-                             progname);
+                         ERR("The part order is wrong. It has circular dependency.");
 
                        amount = ep->reorder.linked_prev + ep->reorder.linked_next + 1;
                        linked = i - ep->reorder.linked_prev;
@@ -2001,6 +1977,7 @@ data_queue_image_remove(int *dest, Eina_Bool *set)
         if (il->dest == dest && il->set == set)
           {
              image_lookups = eina_list_remove_list(image_lookups, l);
+             free(il->name);
              free(il);
              return ;
           }
@@ -2162,8 +2139,8 @@ data_process_lookups(void)
 
              if (i == part->pc->parts_count)
                {
-                  ERR("%s: Error. Unable to find part name \"%s\" needed in group '%s'.",
-                      progname, alias, part->pc->part);
+                  ERR("Unable to find part name \"%s\" needed in group '%s'.",
+                      alias, part->pc->part);
                   exit(-1);
                }
           }
@@ -2204,11 +2181,10 @@ data_process_lookups(void)
         if (!find)
           {
              if (!program->anonymous)
-               ERR("%s: Error. Unable to find program name \"%s\".",
-                   progname, program->u.name);
+               ERR("Unable to find program name \"%s\".",
+                   program->u.name);
              else
-               ERR("%s: Error. Unable to find anonymous program.",
-                   progname);
+               ERR("Unable to find anonymous program.");
              exit(-1);
           }
 
@@ -2247,8 +2223,7 @@ data_process_lookups(void)
 
         if (!de)
           {
-             ERR("%s: Error. Unable to find group name \"%s\".",
-                 progname, group->name);
+             ERR("Unable to find group name \"%s\".", group->name);
              exit(-1);
           }
 
@@ -2320,8 +2295,7 @@ free_group:
 
         if (!find)
           {
-             ERR("%s: Error. Unable to find image name \"%s\".",
-                 progname, image->name);
+             ERR("Unable to find image name \"%s\".", image->name);
              exit(-1);
           }
 
@@ -2342,14 +2316,8 @@ free_group:
              if (de->entry && eina_hash_find(images_in_use, de->entry))
                continue ;
 
-             if (verbose)
-               {
-                  printf("%s: Image '%s' in ressource 'edje/image/%i' will not be included as it is unused.\n", progname, de->entry, de->id);
-               }
-             else
-               {
-                  INF("Image '%s' in ressource 'edje/image/%i' will not be included as it is unused.", de->entry, de->id);
-               }
+             INF("Image '%s' in resource 'edje/image/%i' will not be included as it is unused.",
+                 de->entry, de->id);
 
              de->entry = NULL;
           }
@@ -2361,14 +2329,7 @@ free_group:
              if (set->name && eina_hash_find(images_in_use, set->name))
                continue ;
 
-             if (verbose)
-               {
-                  printf("%s: Set '%s' will not be included as it is unused.\n", progname, set->name);
-               }
-             else
-               {
-                  INF("Set '%s' will not be included as it is unused.", set->name);
-               }
+             INF("Set '%s' will not be included as it is unused.", set->name);
 
              set->name = NULL;
              set->entries = NULL;
@@ -2594,8 +2555,7 @@ data_process_script_lookups(void)
 	n = eina_convert_itoa(cl->val, buf);
 	if (n > cl->len)
 	  {
-	     ERR("%s: Error. The unexpected happened. A numeric replacement string was larger than the original!",
-		 progname);
+	     ERR("The unexpected happened. A numeric replacement string was larger than the original!");
 	     exit(-1);
 	  }
 	memset(cl->ptr, ' ', cl->len);
@@ -2609,7 +2569,7 @@ using_file(const char *filename)
    FILE *f;
 
    if (!watchfile) return;
-   f = fopen(watchfile, "a");
+   f = fopen(watchfile, "ab");
    if (!f) return ;
    fputs(filename, f);
    fputc('\n', f);

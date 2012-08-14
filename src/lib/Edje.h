@@ -305,7 +305,7 @@ extern "C" {
 #endif
 
 #define EDJE_VERSION_MAJOR 1
-#define EDJE_VERSION_MINOR 2
+#define EDJE_VERSION_MINOR 6
 
    typedef struct _Edje_Version
      {
@@ -382,7 +382,7 @@ typedef enum _Edje_Part_Type
    EDJE_PART_TYPE_TABLE     = 9,
    EDJE_PART_TYPE_EXTERNAL  = 10,
    EDJE_PART_TYPE_PROXY     = 11,
-   EDJE_PART_TYPE_SPACER    = 12, /**< @since 1.3 */
+   EDJE_PART_TYPE_SPACER    = 12, /**< @since 1.7 */
    EDJE_PART_TYPE_LAST      = 13
 } Edje_Part_Type;
 
@@ -3678,7 +3678,7 @@ EAPI Eina_Bool    edje_object_part_box_remove_all         (Evas_Object *obj, con
  *
  * @param obj A valid Evas_Object handle
  * @return A list all accessibility part names on @p obj
- * @since 1.3.0
+ * @since 1.7.0
  */
 EAPI Eina_List * edje_object_access_part_list_get         (const Evas_Object *obj);
 
@@ -3691,7 +3691,7 @@ EAPI Eina_List * edje_object_access_part_list_get         (const Evas_Object *ob
  * @param row The row of the child to get
  * @return The child Evas_Object
  */
-EAPI Evas_Object *edje_object_part_table_child_get        (Evas_Object *obj, const char *part, unsigned int col, unsigned int row);
+EAPI Evas_Object *edje_object_part_table_child_get        (const Evas_Object *obj, const char *part, unsigned int col, unsigned int row);
 
 /**
  * @brief Packs an object into the table.

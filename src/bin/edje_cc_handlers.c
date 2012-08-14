@@ -40,7 +40,7 @@
 /**
  * @page edcref Edje Data Collection reference
  * An Edje Data Collection, it's a plain text file (normally identified with the
- * .edc extension),consisting of instructions for the Edje Compiler.
+ * .edc extension), consisting of instructions for the Edje Compiler.
  *
  * The syntax for the edje data collection files follows a simple structure of
  * "blocks { .. }" that can contain "properties: ..", more blocks, or both.
@@ -975,7 +975,8 @@ _edje_part_description_alloc(unsigned char type, const char *collection, const c
 
    if (!result)
      {
-        ERR("%s: Error. Unknown type %i of part %s in collection %s.", progname, type, part, collection);
+        ERR("Unknown type %i of part %s in collection %s.",
+            type, part, collection);
         exit(-1);
      }
 
@@ -998,8 +999,8 @@ _edje_program_check(const char *name, Edje_Program *me, Edje_Program **pgrms, un
             epp = (Edje_Program_Parser *)pgrms[i];
             if (!epp->can_override)
               {
-                 ERR("%s: Error. parse error %s:%i. There is already a program of the name %s\n",
-                     progname, file_in, line - 1, name);
+                 ERR("parse error %s:%i. There is already a program of the name %s",
+                     file_in, line - 1, name);
                  exit(-1);
               }
             else
@@ -1077,9 +1078,8 @@ _edje_program_copy(Edje_Program *ep, Edje_Program *ep2)
           data_queue_copied_part_lookup(pc, &(et2->id), &(et->id));
         else
           {
-             ERR("%s: Error. parse error %s:%i. "
-                 "target may only be used after action",
-                 progname, file_in, line - 1);
+             ERR("parse error %s:%i. target may only be used after action",
+                 file_in, line - 1);
              exit(-1);
           }
      }
@@ -1168,7 +1168,7 @@ st_externals_external(void)
 	       0, sizeof (Edje_External_Directory));
 	if (!edje_file->external_dir->entries)
 	  {
-	     ERR("%s: Error. not enough memory", progname);
+	     ERR("not enough memory");
 	     exit(-1);
 	  }
 
@@ -1225,7 +1225,7 @@ st_externals_external(void)
         Compression methods:
         @li RAW: Uncompressed.
         @li COMP: Lossless compression.
-        @li LOSSY [0-100]: Lossy comression with quality from 0 to 100.
+        @li LOSSY [0-100]: Lossy compression with quality from 0 to 100.
         @li USER: Do not embed the file, refer to the external file instead.
     @endproperty
  */
@@ -1256,7 +1256,7 @@ st_images_image(void)
 	  0, sizeof (Edje_Image_Directory_Entry));
    if (!edje_file->image_dir->entries)
      {
-        ERR("%s: Error. No enough memory.", progname);
+        ERR("No enough memory.");
         exit(-1);
      }
 
@@ -1345,7 +1345,7 @@ ob_images_set(void)
 	  0, sizeof (Edje_Image_Directory_Set));
    if (!edje_file->image_dir->sets)
      {
-        ERR("%s: Error. Not enough memory.", progname);
+        ERR("Not enough memory.");
         exit(-1);
      }
    edje_file->image_dir->sets[edje_file->image_dir->sets_count - 1].id = edje_file->image_dir->sets_count - 1;
@@ -1370,6 +1370,16 @@ st_images_set_name(void)
    edje_file->image_dir->sets[edje_file->image_dir->sets_count - 1].name = parse_str(0);
 }
 
+/**
+    @page edcref
+
+    @block
+        image
+    @description
+        The "image" block inside a "set" block define the characteristic of an image.
+	Every block will describe one image and the size rule to use it.
+    @endblock
+**/
 static void
 ob_images_set_image(void)
 {
@@ -1383,6 +1393,23 @@ ob_images_set_image(void)
    set->entries = eina_list_append(set->entries, entry);
 }
 
+/**
+    @page edcref
+
+    @property
+        image
+    @parameters
+        [image file] [compression method] (compression level)
+    @effect
+        Used to include each image file. The full path to the directory holding
+        the images can be defined later with edje_cc's "-id" option.
+        Compression methods:
+        @li RAW: Uncompressed.
+        @li COMP: Lossless compression.
+        @li LOSSY [0-100]: Lossy compression with quality from 0 to 100.
+        @li USER: Do not embed the file, refer to the external file instead.
+    @endproperty
+**/
 static void
 st_images_set_image_image(void)
 {
@@ -1434,8 +1461,8 @@ st_images_set_image_size(void)
    if (entry->size.min.w > entry->size.max.w
        || entry->size.min.h > entry->size.max.h)
      {
-       ERR("%s: Error. parse error %s:%i. Image min and max size are not in the right order ([%i, %i] < [%i, %i])",
-	   progname, file_in, line - 1,
+       ERR("parse error %s:%i. Image min and max size are not in the right order ([%i, %i] < [%i, %i])",
+	   file_in, line - 1,
 	   entry->size.min.w, entry->size.min.h,
 	   entry->size.max.w, entry->size.max.h);
        exit(-1);
@@ -1545,7 +1572,7 @@ st_data_item(void)
     @parameters
         [parameter name] [parameter filename]
     @effect
-        Defines a new parameter , the value will be the contents of the
+        Defines a new parameter, the value will be the contents of the
         specified file formated as a single string of text. This property only
         works with plain text files.
     @endproperty
@@ -1573,23 +1600,23 @@ st_data_file(void)
    fd = open(filename, O_RDONLY | O_BINARY, S_IRUSR | S_IWUSR);
    if (fd < 0)
      {
-        ERR("%s: Error. %s:%i when opening file \"%s\": \"%s\"",
-	    progname, file_in, line, filename, strerror(errno));
+        ERR("%s:%i when opening file \"%s\": \"%s\"",
+	    file_in, line, filename, strerror(errno));
         exit(-1);
      }
 
    if (fstat(fd, &buf))
      {
-        ERR("%s: Error. %s:%i when stating file \"%s\": \"%s\"",
-	    progname, file_in, line, filename, strerror(errno));
+        ERR("%s:%i when stating file \"%s\": \"%s\"",
+	    file_in, line, filename, strerror(errno));
         exit(-1);
      }
 
    data = mmap(NULL, buf.st_size, PROT_READ, MAP_SHARED, fd, 0);
    if (data == MAP_FAILED)
      {
-        ERR("%s: Error. %s:%i when mapping file \"%s\": \"%s\"",
-	    progname, file_in, line, filename, strerror(errno));
+        ERR("%s:%i when mapping file \"%s\": \"%s\"",
+	    file_in, line, filename, strerror(errno));
         exit(-1);
      }
 
@@ -1597,8 +1624,7 @@ st_data_file(void)
    for (i = 0; i < buf.st_size; ++i, ++over)
      if (*over == '\0')
        {
-          ERR("%s: Error. %s:%i file \"%s\" is a binary file.",
-                  progname, file_in, line, filename);
+          ERR("%s:%i file \"%s\" is a binary file.", file_in, line, filename);
           exit(-1);
        }
 
@@ -1682,8 +1708,8 @@ st_color_class_name(void)
      {
 	if ((cc != tcc) && (!strcmp(cc->name, tcc->name)))
 	  {
-	     fprintf(stderr, "%s: Error. parse error %s:%i. There is already a color class named \"%s\"\n",
-		     progname, file_in, line - 1, cc->name);
+	     ERR("parse error %s:%i. There is already a color class named \"%s\"",
+		 file_in, line - 1, cc->name);
 	     exit(-1);
 	  }
      }
@@ -1813,8 +1839,8 @@ st_styles_style_name(void)
      {
 	if (stl->name && tstl->name && (stl != tstl) && (!strcmp(stl->name, tstl->name)))
 	  {
-	     ERR("%s: Error. parse error %s:%i. There is already a style named \"%s\"",
-		 progname, file_in, line - 1, stl->name);
+	     ERR("parse error %s:%i. There is already a style named \"%s\"",
+		 file_in, line - 1, stl->name);
 	     exit(-1);
 	  }
      }
@@ -1840,8 +1866,8 @@ st_styles_style_base(void)
    stl = eina_list_data_get(eina_list_last(edje_file->styles));
    if (stl->tags)
      {
-        ERR("%s: Error. parse error %s:%i. There is already a basic format for the style",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. There is already a basic format for the style",
+            file_in, line - 1);
         exit(-1);
      }
    tag = mem_alloc(SZ(Edje_Style_Tag));
@@ -1936,7 +1962,7 @@ ob_collections(void)
           source: "sound_file3.wav";
        }
        sample {
-          name: "sound_file4" AS-IS;
+          name: "sound_file4" AS_IS;
           source: "sound_file1.wav";
        }
     @description
@@ -1951,7 +1977,7 @@ ob_collections(void)
         the sounds can be defined later with edje_cc's "-sd" option.
         @li RAW: Uncompressed.
         @li COMP: Lossless compression.
-        @li LOSSY [45.0  - 1000.0]: Lossy comression with quality from 45.0 to 1000.0.
+        @li LOSSY [-0.1  - 1.0]: Lossy compression with quality from 0 to 1.0.
         @li AS_IS: Check for re-encoding, no compression/encoding, just write the file information as it is.
     @endproperty
     @since 1.1.0
@@ -1985,7 +2011,7 @@ st_collections_group_sound_sample_name(void)
 
    if (!edje_file->sound_dir->samples)
      {
-        ERR("%s: Error. No enough memory.", progname);
+        ERR("No enough memory.");
         exit(-1);
      }
    
@@ -2032,7 +2058,7 @@ st_collections_group_sound_sample_source(void)
 
    if (!edje_file->sound_dir->samples)
      {
-        ERR("%s: Error. Invalid sound sample source definition.", progname);
+        ERR("Invalid sound sample source definition.");
         exit(-1);
      }
    
@@ -2042,7 +2068,7 @@ st_collections_group_sound_sample_source(void)
    
    if (!sample)
      {
-        ERR("%s: Error. Invalid sound sample source definition.", progname);
+        ERR("Invalid sound sample source definition.");
         exit(-1);
      }
    sample->snd_src = parse_str(0);
@@ -2082,14 +2108,14 @@ st_collections_group_sound_tone(void)
      {
         if (!strcmp(edje_file->sound_dir->tones[i].name, tmp))
           {
-             ERR("%s: Error. Tone name: %s already exist.", progname, tmp);
+             ERR("Tone name: %s already exist.", tmp);
              free((char *)tmp);
              exit(-1);
           }
         if (edje_file->sound_dir->tones[i].value == value)
           {
-             ERR("%s: Error. Tone name %s with same frequency %d exist.",
-                 progname, edje_file->sound_dir->tones[i].name, value);
+             ERR("Tone name %s with same frequency %d exist.",
+                 edje_file->sound_dir->tones[i].name, value);
              exit(-1);
           }
      }
@@ -2101,7 +2127,7 @@ st_collections_group_sound_tone(void)
    
    if (!edje_file->sound_dir->tones)
      {
-        ERR("%s: Error. No enough memory.", progname);
+        ERR("No enough memory.");
         exit(-1);
      }
    
@@ -2149,7 +2175,7 @@ ob_collections_group(void)
 
    if (current_de && !current_de->entry)
      {
-        ERR("%p: Error. A collection without a name was detected, that's not allowed.", progname);
+        ERR("A collection without a name was detected, that's not allowed.");
         exit(-1);
      }
 
@@ -2274,16 +2300,16 @@ st_collections_group_inherit(void)
      }
    if (!pc2)
      {
-        ERR("%s: Error. parse error %s:%i. There isn't a group with the name %s",
-            progname, file_in, line - 1, parent_name);
+        ERR("parse error %s:%i. There isn't a group with the name %s",
+            file_in, line - 1, parent_name);
         exit(-1);
      }
    if (pc2 == pc)
      {
-        ERR("%s: Error. parse error %s:%i. You are trying to inherit '%s' from itself. That's not possible."
+        ERR("parse error %s:%i. You are trying to inherit '%s' from itself. That's not possible."
             "If there is another group of the same name, you want to inherit from that group and have the"
             "same name as that group, there is a trick ! Just put the inherit before the directive that set"
-            "the name !", progname, file_in, line - 1, parent_name);
+            "the name !", file_in, line - 1, parent_name);
         exit(-1);
      }
 
@@ -2674,8 +2700,8 @@ ob_collections_group_script(void)
 	     cd->l2 = get_verbatim_line2();
 	     if (cd->shared)
 	       {
-		  ERR("%s: Error. parse error %s:%i. There is already an existing script section for the group",
-		      progname, file_in, line - 1);
+		  ERR("parse error %s:%i. There is already an existing script section for the group",
+		      file_in, line - 1);
 		  exit(-1);
 	       }
 	     cd->shared = s;
@@ -2705,8 +2731,8 @@ ob_collections_group_lua_script(void)
 	     cd->l2 = get_verbatim_line2();
 	     if (cd->shared)
 	       {
-		  ERR("%s: Error. parse error %s:%i. There is already an existing script section for the group",
-		      progname, file_in, line - 1);
+		  ERR("parse error %s:%i. There is already an existing script section for the group",
+		      file_in, line - 1);
 		  exit(-1);
 	       }
 	     cd->shared = s;
@@ -2815,7 +2841,7 @@ st_collections_group_limits_vertical(void)
    pc->limits.vertical = realloc(pc->limits.vertical, pc->limits.vertical_count * sizeof (Edje_Limit *));
    if (!pc->limits.vertical || !el)
      {
-        ERR("%s: Error. Not enough memory.", progname);
+        ERR("Not enough memory.");
         exit(-1);
      }
 
@@ -2853,7 +2879,7 @@ st_collections_group_limits_horizontal(void)
    pc->limits.horizontal = realloc(pc->limits.horizontal, pc->limits.horizontal_count * sizeof (Edje_Limit *));
    if (!pc->limits.horizontal || !el)
      {
-        ERR("%s: Error. Not enough memory.", progname);
+        ERR("Not enough memory.");
         exit(-1);
      }
 
@@ -2947,7 +2973,7 @@ ob_collections_group_parts_part(void)
    pc->parts = realloc(pc->parts, pc->parts_count * sizeof (Edje_Part *));
    if (!pc->parts)
      {
-        ERR("%s: Error. Not enough memory.", progname);
+        ERR("Not enough memory.");
         exit(-1);
      }
    current_part = pc->parts[pc->parts_count - 1] = ep;
@@ -3014,8 +3040,8 @@ st_collections_group_parts_part_name(void)
                   epp = (Edje_Part_Parser *)pc->parts[i];
                   if (!epp->can_override)
                     {
-                       ERR("%s: Error. parse error %s:%i. There is already a part of the name %s",
-                           progname, file_in, line - 1, ep->name);
+                       ERR("parse error %s:%i. There is already a part of the name %s",
+                           file_in, line - 1, ep->name);
                        exit(-1);
                     }
                   else
@@ -3301,7 +3327,7 @@ st_collections_group_parts_part_precise_is_inside(void)
     @effect
         Only affects text and textblock parts, when enabled Edje will use
         different size measurement functions. Disabled by default. (note from
-        the author: I don't know what this is exactlu useful for?)
+        the author: I don't know what this is exactly useful for?)
     @endproperty
 */
 static void
@@ -3320,7 +3346,8 @@ st_collections_group_parts_part_use_alternate_font_metrics(void)
         [another part's name]
     @effect
         Only renders the area of part that coincides with another part's
-        container. Overflowing content will not be displayed.
+        container. Overflowing content will not be displayed. Note that
+        the part being clipped to can only be a rectangle part.
     @endproperty
 */
 static void
@@ -3584,7 +3611,7 @@ st_collections_group_parts_part_entry_mode(void)
         Sets the selection mode for a textblock part to one of:
         @li DEFAULT selection mode is what you would expect on any desktop. Press
         mouse, drag and release to end.
-        @li EXPLICITmode requires the application
+        @li EXPLICIT mode requires the application
         controlling the edje object has to explicitly begin and end selection
         modes, and the selection itself is dragable at both ends.
     @endproperty
@@ -3836,9 +3863,8 @@ static void ob_collections_group_parts_part_box_items_item(void)
 
    if ((ep->type != EDJE_PART_TYPE_BOX) && (ep->type != EDJE_PART_TYPE_TABLE))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "box attributes in non-BOX or TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. box attributes in non-BOX or TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -3846,7 +3872,7 @@ static void ob_collections_group_parts_part_box_items_item(void)
    ep->items = realloc(ep->items, sizeof (Edje_Pack_Element*) * ep->items_count);
    if (!ep->items)
      {
-        ERR("%s: Error. Not enough memory.", progname);
+        ERR("Not enough memory.");
         exit(-1);
      }
 
@@ -3901,9 +3927,8 @@ static void st_collections_group_parts_part_box_items_item_type(void)
 	s = parse_str(0);
 	if (strcmp(s, "GROUP"))
 	  {
-	     ERR("%s: Error. parse error %s:%i. "
-		 "token %s not one of: GROUP.",
-		 progname, file_in, line - 1, s);
+	     ERR("parse error %s:%i. token %s not one of: GROUP.",
+		 file_in, line - 1, s);
 	     exit(-1);
 	  }
 	/* FIXME: handle the enum, once everything else is supported */
@@ -3944,8 +3969,8 @@ static void st_collections_group_parts_part_box_items_item_name(void)
                   pitem = (Edje_Pack_Element_Parser *)ep->items[i];
                   if (!pitem->can_override)
                     {
-                       ERR("%s: Error. parse error %s:%i. There is already a item of the name %s",
-                           progname, file_in, line - 1, item->name);
+                       ERR("parse error %s:%i. There is already a item of the name %s",
+                           file_in, line - 1, item->name);
                        exit(-1);
                     }
                   else
@@ -4163,9 +4188,8 @@ static void st_collections_group_parts_part_table_items_item_position(void)
 
    if (current_part->type != EDJE_PART_TYPE_TABLE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "table attributes in non-TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. table attributes in non-TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -4190,9 +4214,8 @@ static void st_collections_group_parts_part_table_items_item_span(void)
 
    if (current_part->type != EDJE_PART_TYPE_TABLE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "table attributes in non-TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. table attributes in non-TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -4337,29 +4360,31 @@ st_collections_group_parts_part_description_inherit(void)
 
    if (!ed->state.name)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "inherit may only be used after state",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. inherit may only be used after state",
+            file_in, line - 1);
         exit(-1);
      }
 
    parent = parent_desc;
    if (!parent)
      {
-        check_arg_count(2);
+        check_min_arg_count(1);
 
         /* inherit may not be used in the default description */
         if (!ep->other.desc_count)
           {
-             ERR("%s: Error. parse error %s:%i. "
+             ERR("parse error %s:%i. "
                  "inherit may not be used in the default description",
-                 progname, file_in, line - 1);
+                 file_in, line - 1);
              exit(-1);
           }
 
         /* find the description that we inherit from */
         parent_name = parse_str(0);
-        parent_val = parse_float_range(1, 0.0, 1.0);
+        if (get_arg_count() == 2)
+          parent_val = parse_float_range(1, 0.0, 1.0);
+        else
+          parent_val = 0.0;
 
         if (!strcmp (parent_name, "default") && parent_val == 0.0)
           parent = ep->default_desc;
@@ -4396,9 +4421,9 @@ st_collections_group_parts_part_description_inherit(void)
 
         if (!parent)
           {
-             ERR("%s: Error. parse error %s:%i. "
-                 "cannot find referenced part state %s %lf",
-                 ep->name, file_in, line - 1, parent_name, parent_val);
+             ERR("parse error %s:%i. "
+                 "cannot find referenced part %s state %s %lf",
+                 file_in, line - 1, ep->name, parent_name, parent_val);
              exit(-1);
           }
 
@@ -4557,9 +4582,8 @@ st_collections_group_parts_part_description_source(void)
 
    if (current_part->type != EDJE_PART_TYPE_PROXY)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "source attributes in non-PROXY part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. source attributes in non-PROXY part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -4592,7 +4616,7 @@ st_collections_group_parts_part_description_state(void)
    Edje_Part_Description_Common *ed;
    char *s;
 
-   check_arg_count(2);
+   check_min_arg_count(1);
 
    ep = current_part;
 
@@ -4602,14 +4626,16 @@ st_collections_group_parts_part_description_state(void)
    s = parse_str(0);
    if (!strcmp (s, "custom"))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "invalid state name: '%s'.",
-            progname, file_in, line - 1, s);
+        ERR("parse error %s:%i. invalid state name: '%s'.",
+            file_in, line - 1, s);
         exit(-1);
      }
 
    ed->state.name = s;
-   ed->state.value = parse_float_range(1, 0.0, 1.0);
+   if (get_arg_count() == 1)
+     ed->state.value = 0.0;
+   else
+     ed->state.value = parse_float_range(1, 0.0, 1.0);
 
    if (ed != ep->default_desc)
      {
@@ -4665,9 +4691,8 @@ st_collections_group_parts_part_description_visible(void)
 
    if (current_part->type == EDJE_PART_TYPE_SPACER)
      {
-       ERR("%s: Error. parse error %s:%i. "
-	   "SPACER part can't have a visibility defined",
-	   progname, file_in, line - 1);
+       ERR("parse error %s:%i. SPACER part can't have a visibility defined",
+	   file_in, line - 1);
        exit(-1);
      }
 
@@ -4784,9 +4809,9 @@ st_collections_group_parts_part_description_min(void)
       if ((current_part->type != EDJE_PART_TYPE_IMAGE && current_part->type != EDJE_PART_TYPE_GROUP) ||
           !tmp || strcmp(tmp, "SOURCE") != 0)
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "Only IMAGE and GROUP part can have a min: SOURCE; defined",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
 
@@ -4844,9 +4869,9 @@ st_collections_group_parts_part_description_max(void)
       if (current_part->type != EDJE_PART_TYPE_IMAGE ||
           !tmp || strcmp(tmp, "SOURCE") != 0)
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "Only IMAGE part can have a max: SOURCE; defined",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
 
@@ -4942,9 +4967,8 @@ st_collections_group_parts_part_description_color_class(void)
 
    if (current_part->type == EDJE_PART_TYPE_SPACER)
      {
-       ERR("%s: Error. parse error %s:%i. "
-	   "SPACER part can't have a color defined",
-	   progname, file_in, line - 1);
+       ERR("parse error %s:%i. SPACER part can't have a color defined",
+	   file_in, line - 1);
        exit(-1);
      }
 
@@ -4968,9 +4992,8 @@ st_collections_group_parts_part_description_color(void)
 
    if (current_part->type == EDJE_PART_TYPE_SPACER)
      {
-       ERR("%s: Error. parse error %s:%i. "
-	   "SPACER part can't have a color defined",
-	   progname, file_in, line - 1);
+       ERR("parse error %s:%i. SPACER part can't have a color defined",
+	   file_in, line - 1);
        exit(-1);
      }
 
@@ -4997,9 +5020,8 @@ st_collections_group_parts_part_description_color2(void)
 
    if (current_part->type == EDJE_PART_TYPE_SPACER)
      {
-       ERR("%s: Error. parse error %s:%i. "
-	   "SPACER part can't have a color defined",
-	   progname, file_in, line - 1);
+       ERR("parse error %s:%i. SPACER part can't have a color defined",
+	   file_in, line - 1);
        exit(-1);
      }
 
@@ -5032,7 +5054,8 @@ st_collections_group_parts_part_description_color3(void)
    if (current_part->type != EDJE_PART_TYPE_TEXT
        && current_part->type != EDJE_PART_TYPE_TEXTBLOCK)
      {
-        ERR("%s: Error. Setting color3 in part %s from %s not of type TEXT or TEXTBLOCK.", progname, current_part->name, pc->part);
+        ERR("Setting color3 in part %s from %s not of type TEXT or TEXTBLOCK.",
+            current_part->name, pc->part);
         exit(-1);
      }
 
@@ -5313,9 +5336,9 @@ st_collections_group_parts_part_description_image_normal(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
+        ERR("parse error %s:%i. "
             "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5340,7 +5363,8 @@ st_collections_group_parts_part_description_image_normal(void)
     @effect
         Name of an image to be used in an animation loop, an image block can
         have none, one or multiple tween declarations. Images are displayed in
-        the order they are listed.
+        the order they are listed, during the transition to the state they are
+        declared in; the "normal" image is the final state.
     @endproperty
 */
 static void
@@ -5352,9 +5376,8 @@ st_collections_group_parts_part_description_image_tween(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5397,9 +5420,8 @@ st_collections_group_parts_part_description_image_border(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5432,9 +5454,8 @@ st_collections_group_parts_part_description_image_middle(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5475,9 +5496,8 @@ st_collections_group_parts_part_description_image_border_scale_by(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5506,9 +5526,8 @@ st_collections_group_parts_part_description_image_border_scale(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5540,9 +5559,8 @@ st_collections_group_parts_part_description_image_scale_hint(void)
 
    if (current_part->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5578,7 +5596,10 @@ st_collections_group_parts_part_description_image_scale_hint(void)
         }
     @description
         The fill method is an optional block that defines the way an IMAGE part
-	is going to be displayed inside its container.
+        is going to be displayed inside its container.
+        It can be used for tiling (repeating the image) or displaying only
+        part of an image. See @ref evas_object_image_fill_set() documentation
+        for more details.
     @endblock
 
     @property
@@ -5619,9 +5640,9 @@ st_collections_group_parts_part_description_fill_smooth(void)
         }
       default:
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "image and proxy attributes in non-IMAGE, non-PROXY `%s` part (%i).",
-               progname, file_in, line - 1, current_part->name, current_part->type);
+               file_in, line - 1, current_part->name, current_part->type);
            exit(-1);
         }
      }
@@ -5653,9 +5674,8 @@ st_collections_group_parts_part_description_fill_spread(void)
 
    /* XXX this will need to include IMAGES when spread support is added to evas images */
    {
-      ERR("%s: Error. parse error %s:%i. "
-	  "fill.spread not supported yet.",
-	  progname, file_in, line - 1);
+      ERR("parse error %s:%i. fill.spread not supported yet.",
+	  file_in, line - 1);
       exit(-1);
    }
 
@@ -5666,9 +5686,8 @@ st_collections_group_parts_part_description_fill_spread(void)
 
    if (ep->type != EDJE_PART_TYPE_IMAGE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "image attributes in non-IMAGE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -5719,9 +5738,9 @@ st_collections_group_parts_part_description_fill_type(void)
         }
       default:
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
      }
@@ -5792,9 +5811,9 @@ st_collections_group_parts_part_description_fill_origin_relative(void)
         }
       default:
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
      }
@@ -5842,9 +5861,9 @@ st_collections_group_parts_part_description_fill_origin_offset(void)
         }
       default:
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
      }
@@ -5880,7 +5899,7 @@ st_collections_group_parts_part_description_fill_origin_offset(void)
     @parameters
         [width] [height]
     @effect
-        Takes a pair of decimal values that represent the a percentual value
+        Takes a pair of decimal values that represent the percentual value
         of the original size of the element. For example, "0.5 0.5" represents
         half the size, while "2.0 2.0" represents the double. The default
         value is "1.0 1.0".
@@ -5915,9 +5934,9 @@ st_collections_group_parts_part_description_fill_size_relative(void)
         }
       default:
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
      }
@@ -5965,9 +5984,9 @@ st_collections_group_parts_part_description_fill_size_offset(void)
         }
       default:
         {
-           ERR("%s: Error. parse error %s:%i. "
+           ERR("parse error %s:%i. "
                "image and proxy attributes in non-IMAGE, non-PROXY part.",
-               progname, file_in, line - 1);
+               file_in, line - 1);
            exit(-1);
         }
      }
@@ -6029,9 +6048,8 @@ st_collections_group_parts_part_description_text_text(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6076,9 +6094,8 @@ st_collections_group_parts_part_description_text_text_class(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6109,9 +6126,8 @@ st_collections_group_parts_part_description_text_font(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6142,9 +6158,8 @@ st_collections_group_parts_part_description_text_style(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6176,9 +6191,8 @@ st_collections_group_parts_part_description_text_repch(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6209,9 +6223,8 @@ st_collections_group_parts_part_description_text_size(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6243,9 +6256,8 @@ st_collections_group_parts_part_description_text_size_range(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6255,9 +6267,8 @@ st_collections_group_parts_part_description_text_size_range(void)
    ed->text.size_range_max = parse_int_range(1, 0, 255);
    if (ed->text.size_range_min > ed->text.size_range_max)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "min size is bigger than max size.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. min size is bigger than max size.",
+            file_in, line - 1);
         exit(-1);
      }
 }
@@ -6284,9 +6295,8 @@ st_collections_group_parts_part_description_text_fit(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6319,9 +6329,8 @@ st_collections_group_parts_part_description_text_min(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6354,9 +6363,8 @@ st_collections_group_parts_part_description_text_max(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6388,9 +6396,8 @@ st_collections_group_parts_part_description_text_align(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6425,9 +6432,8 @@ st_collections_group_parts_part_description_text_source(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6467,9 +6473,8 @@ st_collections_group_parts_part_description_text_text_source(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6507,9 +6512,8 @@ st_collections_group_parts_part_description_text_elipsis(void)
    if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
        (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "text attributes in non-TEXT part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6603,9 +6607,8 @@ static void st_collections_group_parts_part_description_box_layout(void)
 
    if (current_part->type != EDJE_PART_TYPE_BOX)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "box attributes in non-BOX part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. box attributes in non-BOX part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6624,9 +6627,8 @@ static void st_collections_group_parts_part_description_box_align(void)
 
    if (current_part->type != EDJE_PART_TYPE_BOX)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "box attributes in non-BOX part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. box attributes in non-BOX part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6644,9 +6646,8 @@ static void st_collections_group_parts_part_description_box_padding(void)
 
    if (current_part->type != EDJE_PART_TYPE_BOX)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "box attributes in non-BOX part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. box attributes in non-BOX part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6665,9 +6666,8 @@ st_collections_group_parts_part_description_box_min(void)
 
    if (current_part->type != EDJE_PART_TYPE_BOX)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "box attributes in non-BOX part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. box attributes in non-BOX part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6752,9 +6752,8 @@ static void st_collections_group_parts_part_description_table_homogeneous(void)
 
    if (current_part->type != EDJE_PART_TYPE_TABLE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "table attributes in non-TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. table attributes in non-TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6775,9 +6774,8 @@ static void st_collections_group_parts_part_description_table_align(void)
 
    if (current_part->type != EDJE_PART_TYPE_TABLE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "table attributes in non-TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. table attributes in non-TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6795,9 +6793,8 @@ static void st_collections_group_parts_part_description_table_padding(void)
 
    if (current_part->type != EDJE_PART_TYPE_TABLE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "table attributes in non-TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. table attributes in non-TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -6816,9 +6813,8 @@ st_collections_group_parts_part_description_table_min(void)
 
    if (current_part->type != EDJE_PART_TYPE_TABLE)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "box attributes in non-TABLE part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. box attributes in non-TABLE part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -7100,7 +7096,7 @@ st_collections_group_parts_part_description_map_rotation_x(void)
     @parameters
         [Y degrees]
     @effect
-        This sets the rotation around the u axis of the part considering
+        This sets the rotation around the y axis of the part considering
         the center set. In degrees.
     @endproperty
 */
@@ -7225,9 +7221,8 @@ _st_collections_group_parts_part_description_params(Edje_External_Param_Type typ
 
    if (current_part->type != EDJE_PART_TYPE_EXTERNAL)
      {
-        ERR("%s: Error. parse error %s:%i. "
-            "params in non-EXTERNAL part.",
-            progname, file_in, line - 1);
+        ERR("parse error %s:%i. params in non-EXTERNAL part.",
+            file_in, line - 1);
         exit(-1);
      }
 
@@ -7270,8 +7265,8 @@ _st_collections_group_parts_part_description_params(Edje_External_Param_Type typ
 	 param->s = parse_str(1);
 	 break;
       default:
-	 ERR("%s: Error. parse error %s:%i. Invalid param type.\n",
-	     progname, file_in, line - 1);
+	 ERR("parse error %s:%i. Invalid param type.",
+	     file_in, line - 1);
 	 break;
      }
 
@@ -7594,7 +7589,10 @@ st_collections_group_programs_program_action(void)
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
 	ep->state = parse_str(1);
-	ep->value = parse_float_range(2, 0.0, 1.0);
+	if (get_arg_count() == 1)
+	  ep->value = 0.0;
+	else
+	  ep->value = parse_float_range(2, 0.0, 1.0);
      }
    else if (ep->action == EDJE_ACTION_TYPE_SIGNAL_EMIT)
      {
@@ -7612,8 +7610,7 @@ st_collections_group_programs_program_action(void)
                break;
              if (i == (int)(edje_file->sound_dir->samples_count - 1))
                {
-                  ERR("%s: Error. No Sample name %s exist.", progname,
-                      ep->sample_name);
+                  ERR("No Sample name %s exist.", ep->sample_name);
                   exit(-1);
                }
           }
@@ -7630,8 +7627,7 @@ st_collections_group_programs_program_action(void)
                break;
              if (i == (int)(edje_file->sound_dir->tones_count - 1))
                {
-                  ERR("%s: Error. No Tone name %s exist.", progname,
-                      ep->tone_name);
+                  ERR("No Tone name %s exist.", ep->tone_name);
                   exit(-1);
                }
           }
@@ -7728,13 +7724,13 @@ st_collections_group_programs_program_action(void)
         ACCEL_FAC, DECEL_FAC and SIN_FAC need the extra optional
         "interp val 1" to determine the "factor" of curviness. 1.0 is the same
         as their non-factor counterparts, where 0.0 is equal to linear.
-        numbers higher than one make the curve angles steeper with a more
-        prnounced curve point.
+        Numbers higher than one make the curve angles steeper with a more
+        pronounced curve point.
         
         DIVIS, BOUNCE and SPRING also require "interp val 2" in addition
         to "interp val 1".
         
-        DIVIS uses val 1 as the initial graident start
+        DIVIS uses val 1 as the initial gradient start
         (0.0 is horizontal, 1.0 is diagonal (linear), 2.0 is twice the
         gradient of linear etc.). val 2 is interpreted as an integer factor
         defining how much the value swings "outside" the gradient only to come
@@ -7742,7 +7738,7 @@ st_collections_group_programs_program_action(void)
         to linear interpolation. Note that DIVIS can exceed 1.0
         
         BOUNCE uses val 2 as the number of bounces (so its rounded down to
-        the nearest integer value), with val 2 determining how much the
+        the nearest integer value), with val 1 determining how much the
         bounce decays, with 0.0 giving linear decay per bounce, and higher
         values giving much more decay.
 
@@ -7795,9 +7791,8 @@ st_collections_group_programs_program_transition(void)
           current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
         else if (get_arg_count() != 2)
           {
-             ERR("%s: Error. parse error %s:%i. "
-                 "Need 2rd parameter to set time",
-                 progname, file_in, line - 1);
+             ERR("parse error %s:%i. Need 2rd parameter to set time",
+                 file_in, line - 1);
              exit(-1);
           }
      }
@@ -7813,9 +7808,8 @@ st_collections_group_programs_program_transition(void)
           current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
         else if (get_arg_count() != 3)
           {
-	     ERR("%s: Error. parse error %s:%i. "
-		 "Need 3rd parameter to set factor",
-		 progname, file_in, line - 1);
+	     ERR("parse error %s:%i. Need 3rd parameter to set factor",
+		 file_in, line - 1);
 	     exit(-1);
           }
         current_program->tween.v1 = FROM_DOUBLE(parse_float_range(2, 0.0, 999999999.0));
@@ -7832,9 +7826,9 @@ st_collections_group_programs_program_transition(void)
           current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
         else if (get_arg_count() != 4)
           {
-	     ERR("%s: Error. parse error %s:%i. "
+	     ERR("parse error %s:%i. "
 		 "Need 3rd and 4th parameters to set factor and counts",
-		 progname, file_in, line - 1);
+		 file_in, line - 1);
 	     exit(-1);
           }
         current_program->tween.v1 = FROM_DOUBLE(parse_float_range(2, 0.0, 999999999.0));
@@ -7904,9 +7898,8 @@ st_collections_group_programs_program_target(void)
 	  data_queue_part_lookup(pc, name, &(et->id));
 	else
 	  {
-	     ERR("%s: Error. parse error %s:%i. "
-		 "target may only be used after action",
-		 progname, file_in, line - 1);
+	     ERR("parse error %s:%i. target may only be used after action",
+		 file_in, line - 1);
 	     exit(-1);
 	  }
 	free(name);
@@ -8019,8 +8012,8 @@ ob_collections_group_programs_program_script(void)
              cp->original = strdup(s);
              if (cd->shared && cd->is_lua)
                {
-                  ERR("%s: Error. parse error %s:%i. You're trying to mix Embryo and Lua scripting in the same group",
-                      progname, file_in, line - 1);
+                  ERR("parse error %s:%i. You're trying to mix Embryo and Lua scripting in the same group",
+                      file_in, line - 1);
                   exit(-1);
                }
              cd->is_lua = 0;

@@ -420,10 +420,10 @@ _edje_real_part_image_set(Edje *ed, Edje_Real_Part *ep, FLOAT_T pos)
 	    {
 	       if (image_num == (image_count - 1))
 		 {
-		   image_id = _edje_image_find(ep->object, ed,
-					       &ep->param2->set,
-					       (Edje_Part_Description_Image*) ep->param2->description,
-					       NULL);
+                    image_id = _edje_image_find(ep->object, ed,
+                                                &ep->param2->set,
+                                                (Edje_Part_Description_Image*) ep->param2->description,
+                                                NULL);
 		 }
 	       else
 		 {
@@ -435,11 +435,13 @@ _edje_real_part_image_set(Edje *ed, Edje_Real_Part *ep, FLOAT_T pos)
 	    }
 	if (image_id < 0)
 	  {
-	     ERR("¨Part \"%s\" has description, "
-		 "\"%s\" %3.3f with a missing image id!!!",
+	     ERR("¨Part \"%s\" description, "
+		 "\"%s\" %3.3f with image %i index has a missing image id in a set of %i !!!",
 		 ep->part->name,
 		 ep->param1.description->state.name,
-		 ep->param1.description->state.value);
+		 ep->param1.description->state.value,
+		 image_num,
+		 image_count);
 	  }
 	else
 	  {
@@ -676,66 +678,64 @@ _edje_recalc_do(Edje *ed)
         unsigned char limit;
         int part;
 
-        name = ed->collection->parts[i]->name;
         part = ed->collection->limits.parts[i].part;
+        name = ed->collection->parts[part]->name;
         limit = ed->table_parts[part]->chosen_description->limit;
         switch (limit)
           {
            case 0:
-              ed->collection->limits.parts[i].width = 2;
-              ed->collection->limits.parts[i].height = 2;
+              ed->collection->limits.parts[i].width = EDJE_PART_LIMIT_UNKNOWN;
+              ed->collection->limits.parts[i].height = EDJE_PART_LIMIT_UNKNOWN;
               break;
            case 1:
-              ed->collection->limits.parts[i].height = 2;
+              ed->collection->limits.parts[i].height = EDJE_PART_LIMIT_UNKNOWN;
               break;
            case 2:
-              ed->collection->limits.parts[i].width = 2;
+              ed->collection->limits.parts[i].width = EDJE_PART_LIMIT_UNKNOWN;
               break;
            case 3:
               break;
           }
 
-        if (limit | 1)
+        if ((limit & 1) == 1)
           {
              if (ed->table_parts[part]->w > 0 &&
-                 (ed->collection->limits.parts[i].width <= 0 ||
-                  ed->collection->limits.parts[i].width == 2))
+                 (ed->collection->limits.parts[i].width != EDJE_PART_LIMIT_OVER))
                {
-                  ed->collection->limits.parts[i].width = 1;
+                  ed->collection->limits.parts[i].width = EDJE_PART_LIMIT_OVER;
                   _edje_emit(ed, "limit,width,over", name);
                }
              else if (ed->table_parts[part]->w < 0 &&
-                      ed->collection->limits.parts[i].width >= 0)
+                      ed->collection->limits.parts[i].width != EDJE_PART_LIMIT_BELOW)
                {
-                  ed->collection->limits.parts[i].width = -1;
+                  ed->collection->limits.parts[i].width = EDJE_PART_LIMIT_BELOW;
                   _edje_emit(ed, "limit,width,below", name);
                }
              else if (ed->table_parts[part]->w == 0 &&
-                      ed->collection->limits.parts[i].width != 0)
+                      ed->collection->limits.parts[i].width != EDJE_PART_LIMIT_ZERO)
                {
-                  ed->collection->limits.parts[i].width = 0;
+                  ed->collection->limits.parts[i].width = EDJE_PART_LIMIT_ZERO;
                   _edje_emit(ed, "limit,width,zero", name);
                }
           }
-        if (limit | 2)
+        if ((limit & 2) == 2)
           {
              if (ed->table_parts[part]->h > 0 &&
-                 (ed->collection->limits.parts[i].height <= 0 ||
-                  ed->collection->limits.parts[i].height == 2))
+                 (ed->collection->limits.parts[i].height != EDJE_PART_LIMIT_OVER))
                {
-                  ed->collection->limits.parts[i].height = 1;
+                  ed->collection->limits.parts[i].height = EDJE_PART_LIMIT_OVER;
                   _edje_emit(ed, "limit,height,over", name);
                }
              else if (ed->table_parts[part]->h < 0 &&
-                      ed->collection->limits.parts[i].height >= 0)
+                      ed->collection->limits.parts[i].height != EDJE_PART_LIMIT_BELOW)
                {
-                  ed->collection->limits.parts[i].height = -1;
-                  _edje_emit(ed, "limit,height,beloh", name);
+                  ed->collection->limits.parts[i].height = EDJE_PART_LIMIT_BELOW;
+                  _edje_emit(ed, "limit,height,below", name);
                }
              else if (ed->table_parts[part]->h == 0 &&
-                      ed->collection->limits.parts[i].height != 0)
+                      ed->collection->limits.parts[i].height != EDJE_PART_LIMIT_ZERO)
                {
-                  ed->collection->limits.parts[i].height = 0;
+                  ed->collection->limits.parts[i].height = EDJE_PART_LIMIT_ZERO;
                   _edje_emit(ed, "limit,height,zero", name);
                }
           }
@@ -2157,6 +2157,8 @@ _edje_part_recalc_single(Edje *ed,
 
 	   params->type.common.spec.image.t = img_desc->image.border.t;
 	   params->type.common.spec.image.b = img_desc->image.border.b;
+           
+           params->type.common.spec.image.border_scale_by = img_desc->image.border.scale_by;
 	   break;
 	}
       case EDJE_PART_TYPE_TEXT:
@@ -2289,9 +2291,9 @@ _edje_image_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edj
    evas_object_image_smooth_scale_set(ep->object, p3->smooth);
    if (chosen_desc->image.border.scale)
      {
-        if (chosen_desc->image.border.scale_by > FROM_DOUBLE(0.0))
+        if (p3->type.common.spec.image.border_scale_by > FROM_DOUBLE(0.0))
           {
-             FLOAT_T sc2 = MUL(sc, chosen_desc->image.border.scale_by);
+             FLOAT_T sc2 = MUL(sc, p3->type.common.spec.image.border_scale_by);
              evas_object_image_border_scale_set(ep->object, TO_DOUBLE(sc2));
           }
         else
@@ -2299,9 +2301,9 @@ _edje_image_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edj
      }
    else
      {
-        if (chosen_desc->image.border.scale_by > FROM_DOUBLE(0.0))
+        if (p3->type.common.spec.image.border_scale_by > FROM_DOUBLE(0.0))
            evas_object_image_border_scale_set
-           (ep->object, TO_DOUBLE(chosen_desc->image.border.scale_by));
+           (ep->object, TO_DOUBLE(p3->type.common.spec.image.border_scale_by));
         else
            evas_object_image_border_scale_set(ep->object, 1.0);
      }
@@ -2711,6 +2713,7 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
 	      p3->type.common.spec.image.r = INTP(p1->type.common.spec.image.r, p2->type.common.spec.image.r, pos);
 	      p3->type.common.spec.image.t = INTP(p1->type.common.spec.image.t, p2->type.common.spec.image.t, pos);
 	      p3->type.common.spec.image.b = INTP(p1->type.common.spec.image.b, p2->type.common.spec.image.b, pos);
+              p3->type.common.spec.image.border_scale_by = INTP(p1->type.common.spec.image.border_scale_by, p2->type.common.spec.image.border_scale_by, pos);
            case EDJE_PART_TYPE_PROXY:
  	      p3->type.common.fill.x = INTP(p1->type.common.fill.x, p2->type.common.fill.x, pos);
  	      p3->type.common.fill.y = INTP(p1->type.common.fill.y, p2->type.common.fill.y, pos);

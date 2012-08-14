@@ -11,10 +11,13 @@ Additions:
     process (Use it to replace RECT part that are never visible and never catch any event).
     * Add accessibility flags and API to retrieve the relevant part.
     * Emit signal when flagged part size get to zero.
+    * Warn at compile time about forgotten image.
+    * Stop compilation when clipping to a non RECT part.
 
 Improvements:
     * Allocate once and reuse Evas_Map.
     * Make edje_cc faster by improving the parser, mapping file in memory and using threads.
+    * Made state index optional in EDC files and Embryo scripts.
 
 Fixes:
     * Add missing files in the tarballs.
@@ -24,6 +27,8 @@ Fixes:
     * Fix table and text when fixed point is turned on.
     * Clamp image tween to never underflow also.
     * [entry] display preedit string even though there is no attribute
+    * Fix shutdown of Edje_Multisense.
+    * Reduce potential reentrant issue when using edje_object_signal_emit.
 
 Edje 1.2.0
 

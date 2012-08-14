@@ -728,12 +728,19 @@ struct _Edje_Pack_Element
    unsigned short   colspan, rowspan;
 };
 
+typedef enum {
+  EDJE_PART_LIMIT_UNKNOWN = 0,
+  EDJE_PART_LIMIT_BELOW,
+  EDJE_PART_LIMIT_ZERO,
+  EDJE_PART_LIMIT_OVER
+} Edje_Part_Limit_State;
+
 struct _Edje_Part_Limit
 {
    int part;
 
-   signed char width; /* -1, 0 or 1 */
-   signed char height; /* -1, 0, or 1 */
+   Edje_Part_Limit_State width; /* -1, 0 or 1 */
+   Edje_Part_Limit_State height; /* -1, 0, or 1 */
 };
 
 /*----------*/
@@ -1221,6 +1228,7 @@ struct _Edje_Calc_Params
 	 union {
 	    struct {
 	       int           l, r, t, b; // 16
+               FLOAT_T       border_scale_by;
 	    } image; // 16
 	 } spec; // 16
       } common; // 40
@@ -1894,6 +1902,7 @@ void _edje_cache_file_unref(Edje_File *edf);
 void _edje_embryo_globals_init(Edje *ed);
 
 #define CHKPARAM(n) if (params[0] != (sizeof(Embryo_Cell) * (n))) return -1;
+#define HASNPARAMS(n) (params[0] == (sizeof(Embryo_Cell) * (n)))
 #define GETSTR(str, par) { \
    Embryo_Cell *___cptr; \
    int ___l; \
