@@ -1315,10 +1315,15 @@ _range_del_emit(Edje *ed, Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __
 {
    size_t start, end;
    char *tmp;
-   Edje_Entry_Change_Info *info = calloc(1, sizeof(*info));
-   info->insert = EINA_FALSE;
+   Edje_Entry_Change_Info *info;
+
    start = evas_textblock_cursor_pos_get(en->sel_start);
    end = evas_textblock_cursor_pos_get(en->sel_end);
+   if (start == end)
+      goto noop;
+
+   info = calloc(1, sizeof(*info));
+   info->insert = EINA_FALSE;
    info->change.del.start = start;
    info->change.del.end = end;
 
@@ -1329,6 +1334,7 @@ _range_del_emit(Edje *ed, Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o __
    _edje_emit(ed, "entry,changed", en->rp->part->name);
    _edje_emit_full(ed, "entry,changed,user", en->rp->part->name, info,
                    _free_entry_change_info);
+noop:
    _sel_clear(en->cursor, en->rp->object, en);
 }
 
@@ -1543,7 +1549,7 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              evas_textblock_cursor_char_prev(en->cursor);
              evas_textblock_cursor_word_start(en->cursor);
 
-             _sel_extend(en->cursor, rp->object, en);
+             _sel_preextend(en->cursor, rp->object, en);
 
              _range_del_emit(ed, en->cursor, rp->object, en);
           }

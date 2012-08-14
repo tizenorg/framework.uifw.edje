@@ -142,6 +142,7 @@ static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
 static void st_collections_group_parts_part_cursor_mode(void);
 static void st_collections_group_parts_part_multiline(void);
+static void st_collections_group_parts_part_access(void);
 static void st_collections_group_parts_part_dragable_x(void);
 static void st_collections_group_parts_part_dragable_y(void);
 static void st_collections_group_parts_part_dragable_confine(void);
@@ -170,6 +171,7 @@ static void st_collections_group_parts_part_description_inherit(void);
 static void st_collections_group_parts_part_description_source(void);
 static void st_collections_group_parts_part_description_state(void);
 static void st_collections_group_parts_part_description_visible(void);
+static void st_collections_group_parts_part_description_limit(void);
 static void st_collections_group_parts_part_description_align(void);
 static void st_collections_group_parts_part_description_fixed(void);
 static void st_collections_group_parts_part_description_min(void);
@@ -386,6 +388,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.select_mode", st_collections_group_parts_part_select_mode},
      {"collections.group.parts.part.cursor_mode", st_collections_group_parts_part_cursor_mode},
      {"collections.group.parts.part.multiline", st_collections_group_parts_part_multiline},
+     {"collections.group.parts.part.access", st_collections_group_parts_part_access},
      {"collections.group.parts.part.image", st_images_image}, /* dup */
      {"collections.group.parts.part.set.name", st_images_set_name},
      {"collections.group.parts.part.set.image.image", st_images_set_image_image},
@@ -433,6 +436,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.source", st_collections_group_parts_part_description_source},
      {"collections.group.parts.part.description.state", st_collections_group_parts_part_description_state},
      {"collections.group.parts.part.description.visible", st_collections_group_parts_part_description_visible},
+     {"collections.group.parts.part.description.limit", st_collections_group_parts_part_description_limit},
      {"collections.group.parts.part.description.align", st_collections_group_parts_part_description_align},
      {"collections.group.parts.part.description.fixed", st_collections_group_parts_part_description_fixed},
      {"collections.group.parts.part.description.min", st_collections_group_parts_part_description_min},
@@ -2253,7 +2257,6 @@ st_collections_group_inherit(void)
    Edje_Pack_Element_Parser *pitem;
    Edje_Part_Description_Common *ed, *ed2;
    Edje_List_Foreach_Data fdata;
-   Edje_String *es;
    Eina_List *l;
    char *parent_name;
    unsigned int i, j;
@@ -2286,21 +2289,46 @@ st_collections_group_inherit(void)
 
    if (pc2->data)
      {
-        char *key;
+        char *key, *data;
 
         memset(&fdata, 0, sizeof(Edje_List_Foreach_Data));
         eina_hash_foreach(pc2->data,
                      _edje_data_item_list_foreach, &fdata);
 
-        if (!pc->data)
-          pc->data = eina_hash_string_small_new(free);
-
-
+        if (!pc->data) pc->data = eina_hash_string_small_new(free);
         EINA_LIST_FREE(fdata.list, key)
           {
-             es = mem_alloc(SZ(Edje_String));
-             es = (Edje_String *)eina_hash_find(pc2->data, key);
-             eina_hash_direct_add(pc->data, key, es);
+             data = eina_hash_find(pc2->data, key);
+             eina_hash_direct_add(pc->data, key, data);
+          }
+     }
+
+   if (pc2->alias)
+     {
+        char *key, *alias;
+
+        memset(&fdata, 0, sizeof(Edje_List_Foreach_Data));
+        eina_hash_foreach(pc2->alias,
+                     _edje_data_item_list_foreach, &fdata);
+        if (!pc->alias) pc->alias = eina_hash_string_small_new(free);
+        EINA_LIST_FREE(fdata.list, key)
+          {
+             alias = eina_hash_find(pc2->alias, key);
+             eina_hash_direct_add(pc->alias, key, alias);
+          }
+     }
+   if (pc2->aliased)
+     {
+        char *key, *aliased;
+
+        memset(&fdata, 0, sizeof(Edje_List_Foreach_Data));
+        eina_hash_foreach(pc2->aliased,
+                          _edje_data_item_list_foreach, &fdata);
+        if (!pc->aliased) pc->aliased = eina_hash_string_small_new(free);
+        EINA_LIST_FREE(fdata.list, key)
+          {
+             aliased = eina_hash_find(pc2->aliased, key);
+             eina_hash_direct_add(pc->aliased, key, aliased);
           }
      }
 
@@ -2340,6 +2368,7 @@ st_collections_group_inherit(void)
         ep->select_mode = ep2->select_mode;
         ep->cursor_mode = ep2->cursor_mode;
         ep->multiline = ep2->multiline;
+        ep->access = ep2->access;
         ep->dragable.x = ep2->dragable.x;
         ep->dragable.step_x = ep2->dragable.step_x;
         ep->dragable.count_x = ep2->dragable.count_x;
@@ -2932,6 +2961,7 @@ ob_collections_group_parts_part(void)
    ep->pointer_mode = EVAS_OBJECT_POINTER_MODE_AUTOGRAB;
    ep->precise_is_inside = 0;
    ep->use_alternate_font_metrics = 0;
+   ep->access = 0;
    ep->clip_to_id = -1;
    ep->dragable.confine_id = -1;
    ep->dragable.event_id = -1;
@@ -3617,6 +3647,25 @@ st_collections_group_parts_part_multiline(void)
 
 /**
     @page edcref
+    @property
+        access 
+    @parameters
+        [1 or 0]
+    @effect
+        Specifies whether the part will use accessibility feature (1),
+        or not (0). It's set to 0 by default.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_access(void)
+{
+   check_arg_count(1);
+
+   current_part->access = parse_bool(0);
+}
+
+/**
+    @page edcref
     @block
         dragable
     @context
@@ -4210,6 +4259,7 @@ ob_collections_group_parts_part_description(void)
      }
 
    ed->visible = 1;
+   ed->limit = 0;
    ed->align.x = FROM_DOUBLE(0.5);
    ed->align.y = FROM_DOUBLE(0.5);
    ed->min.w = 0;
@@ -4622,6 +4672,43 @@ st_collections_group_parts_part_description_visible(void)
      }
 
    current_desc->visible = parse_bool(0);
+}
+/**
+    @page edcref
+    @property
+        limit
+    @parameters
+        [NONE, WIDTH, HEIGHT or BOTH]
+    @effect
+	Emit a signal when the part size change from zero or to a zero size
+	('limit,width,over', 'limit,width,zero'). By default no signal are
+	emitted.
+    @endproperty
+    @since 1.7.0
+*/
+static void
+st_collections_group_parts_part_description_limit(void)
+{
+   check_arg_count(1);
+
+   current_desc->limit = parse_enum(0,
+				    "NONE", 0,
+				    "WIDTH", 1,
+				    "HEIGHT", 2,
+				    "BOTH", 3);
+
+   if (current_desc->limit)
+     {
+        Edje_Part_Collection *pc;
+        int count;
+
+        pc = eina_list_data_get(eina_list_last(edje_collections));
+        count = pc->limits.parts_count++;
+        pc->limits.parts = realloc(pc->limits.parts,
+                                   pc->limits.parts_count * sizeof (Edje_Part_Limit));
+        data_queue_part_lookup(pc, current_part->name,
+                               &(pc->limits.parts[count].part));
+     }
 }
 
 /**

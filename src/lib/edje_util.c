@@ -95,14 +95,14 @@ _edje_user_definition_free(Edje_User_Defined *eud)
 	rp->swallowed_object = NULL;
 	rp->swallow_params.min.w = 0;
 	rp->swallow_params.min.h = 0;
-	rp->swallow_params.max.w = 0; 
-	rp->swallow_params.max.h = 0;     
+	rp->swallow_params.max.w = 0;
+	rp->swallow_params.max.h = 0;
 	rp->edje->dirty = 1;
-	rp->edje->recalc_call = 1;        
+	rp->edje->recalc_call = 1;
 #ifdef EDJE_CALC_CACHE
-	rp->invalidate = 1;  
+	rp->invalidate = 1;
 #endif
-	_edje_recalc(rp->edje);
+	_edje_recalc_do(rp->edje);
 	break;
       case EDJE_USER_BOX_PACK:
 	child = eud->u.box.child;
@@ -2523,7 +2523,6 @@ edje_object_part_swallow(Evas_Object *obj, const char *part, Evas_Object *obj_sw
    Edje *ed;
    Edje_Real_Part *rp;
    Edje_User_Defined *eud = NULL;
-   Eina_List *l;
 
    ed = _edje_fetch(obj);
    if ((!ed) || (!part)) return EINA_FALSE;
@@ -2537,20 +2536,6 @@ edje_object_part_swallow(Evas_Object *obj, const char *part, Evas_Object *obj_sw
    // XXX: but until it's found, leave this here.
    // XXX: by Sachiel, January 21th 2009, 19:30 UTC
    _edje_recalc_do(ed);
-
-   EINA_LIST_FOREACH(ed->user_defined, l, eud)
-     if (eud->type == EDJE_USER_SWALLOW && !strcmp(part, eud->part))
-       {
-          ed->user_defined = eina_list_remove_list(ed->user_defined, l);
-          if (!obj_swallow)
-            {
-               _edje_user_definition_free(eud);
-               l = NULL;
-               eud = NULL;
-               break;
-            }
-          break;
-       }
 
    rp = evas_object_data_get(obj_swallow, "\377 edje.swallowing_part");
    if (rp)
@@ -2890,7 +2875,7 @@ edje_object_part_unswallow(Evas_Object *obj, Evas_Object *obj_swallow)
                     if (eud->type == EDJE_USER_SWALLOW && eud->u.swallow.child == obj_swallow)
                       {
                          _edje_user_definition_free(eud);
-                         break;
+                         return ;
                       }
                }
           }
@@ -3907,6 +3892,27 @@ edje_object_part_box_remove_all(Evas_Object *obj, const char *part, Eina_Bool cl
             }
      }
    return r;
+}
+
+EAPI Eina_List *
+edje_object_access_part_list_get(const Evas_Object *obj)
+{
+   Edje *ed;
+   Eina_List *access_parts = NULL;
+
+   ed = _edje_fetch(obj);
+   if ((!ed)) return NULL;
+
+   unsigned int i;
+   for (i = 0; i < ed->table_parts_size; i++)
+     {
+        Edje_Real_Part *rp;
+        rp = ed->table_parts[i];
+        if (rp->part->access)
+          access_parts = eina_list_append(access_parts, rp->part->name);
+     }
+
+   return access_parts;
 }
 
 static void
@@ -5074,7 +5080,7 @@ _edje_real_part_swallow_hints_update(Edje_Real_Part *rp)
 	  }
 	rp->swallow_params.aspect.w = aw;
 	rp->swallow_params.aspect.h = ah;
-	evas_object_data_set(rp->swallowed_object, "\377 edje.swallowing_part", rp);
+        evas_object_data_set(rp->swallowed_object, "\377 edje.swallowing_part", rp);
      }
 
 #ifdef EDJE_CALC_CACHE
@@ -5104,8 +5110,7 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
      {
         if (rp->swallowed_object != obj_swallow)
           {
-             _edje_real_part_swallow_clear(rp);
-             rp->swallowed_object = NULL;
+             edje_object_part_unswallow(rp->edje->obj, rp->swallowed_object);
           }
         else
           {
@@ -5129,7 +5134,7 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
    else evas_object_clip_set(rp->swallowed_object, rp->edje->base.clipper);
    evas_object_stack_above(rp->swallowed_object, rp->object);
    evas_object_event_callback_add(rp->swallowed_object,
-                                  EVAS_CALLBACK_FREE,
+                                  EVAS_CALLBACK_DEL,
 				  _edje_object_part_swallow_free_cb,
 				  rp);
    evas_object_event_callback_add(rp->swallowed_object,
@@ -5167,7 +5172,7 @@ _edje_real_part_swallow_clear(Edje_Real_Part *rp)
 {
    evas_object_smart_member_del(rp->swallowed_object);
    evas_object_event_callback_del_full(rp->swallowed_object,
-                                       EVAS_CALLBACK_FREE,
+                                       EVAS_CALLBACK_DEL,
                                        _edje_object_part_swallow_free_cb,
                                        rp);
    evas_object_event_callback_del_full(rp->swallowed_object,
@@ -5179,6 +5184,7 @@ _edje_real_part_swallow_clear(Edje_Real_Part *rp)
    if (rp->part->mouse_events)
      _edje_callbacks_del(rp->swallowed_object, rp->edje);
    _edje_callbacks_focus_del(rp->swallowed_object, rp->edje);
+   rp->swallowed_object = NULL;
 }
 
 static void
