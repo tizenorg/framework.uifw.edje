@@ -290,10 +290,10 @@ check_part(Edje_Part_Collection *pc, Edje_Part *ep, Eet_File *ef)
      check_packed_items(pc, ep, ef);
 
    /* FIXME: When mask are supported remove this check */
-   if (ep->clip_to_id != -1 &&
+/*   if (ep->clip_to_id != -1 &&
        pc->parts[ep->clip_to_id]->type != EDJE_PART_TYPE_RECTANGLE)
      error_and_abort(ef, "Collection %i: clip_to point to a non RECT part '%s' !",
-                     pc->id, pc->parts[ep->clip_to_id]->name);
+                     pc->id, pc->parts[ep->clip_to_id]->name);*/
 }
 
 static void
