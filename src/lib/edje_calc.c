@@ -2968,10 +2968,8 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
              // create map and populate with part geometry
 	     if (!map) map = evas_map_new(4);
              evas_map_util_points_populate_from_object(map, ep->object);
-             if (ep->part->type == EDJE_PART_TYPE_IMAGE ||
-                 ((ep->part->type == EDJE_PART_TYPE_SWALLOW) &&
-                  (!strcmp(evas_object_type_get(mo), "image")))
-                )
+//TEMPORARY: revert this code temporarly. will be fix soon.
+             if (ep->part->type == EDJE_PART_TYPE_IMAGE)
                {
                   int iw = 1, ih = 1;
 
