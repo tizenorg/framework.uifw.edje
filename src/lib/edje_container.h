@@ -1,7 +1,3 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include "edje_private.h"
 
 
@@ -37,7 +33,7 @@ typedef struct _Smart_Data_Colinfo Smart_Data_Colinfo;
 struct _Smart_Data
 {
    Evas_Coord     x, y, w, h;
-   Evas_List     *children;
+   Eina_List     *children;
    Evas_Object   *smart_obj;
    int            cols, rows;
 

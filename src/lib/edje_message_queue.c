@@ -1,35 +1,45 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include "edje_private.h"
 
-static Ecore_Job *job = NULL;
-static Ecore_Timer *job_loss_timer = NULL;
+static void _edje_object_message_popornot_send(Evas_Object *obj, Edje_Message_Type type, int id, void *msg, Eina_Bool prop);
 
-static Evas_List *msgq = NULL;
-static Evas_List *tmp_msgq = NULL;
+static int _injob = 0;
+static Ecore_Job *_job = NULL;
+static Ecore_Timer *_job_loss_timer = NULL;
 
-EAPI void
-edje_object_message_send(Evas_Object *obj, Edje_Message_Type type, int id, void *msg)
+static Eina_List *msgq = NULL;
+static Eina_List *tmp_msgq = NULL;
+static int tmp_msgq_processing = 0;
+static int tmp_msgq_restart = 0;
+
+/*============================================================================*
+ *                                   API                                      *
+ *============================================================================*/
+
+static void
+_edje_object_message_popornot_send(Evas_Object *obj, Edje_Message_Type type, int id, void *msg, Eina_Bool prop)
 {
    Edje *ed;
-   int i;
+   Eina_List *l;
+   Evas_Object *o;
 
    ed = _edje_fetch(obj);
    if (!ed) return;
-   _edje_message_send(ed, EDJE_QUEUE_SCRIPT, type, id, msg);
-
-   for (i = 0; i < ed->table_parts_size; i++)
+   _edje_message_propornot_send(ed, EDJE_QUEUE_SCRIPT, type, id, msg, prop);
+   EINA_LIST_FOREACH(ed->subobjs, l, o)
      {
-	Edje_Real_Part *rp = ed->table_parts[i];
-	if ((rp->part->type == EDJE_PART_TYPE_GROUP) && (rp->swallowed_object))
-	  edje_object_message_send(rp->swallowed_object, type, id, msg);
+        _edje_object_message_popornot_send(o, type, id, msg, EINA_TRUE);
      }
 }
 
 EAPI void
-edje_object_message_handler_set(Evas_Object *obj, void (*func) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg), void *data)
+edje_object_message_send(Evas_Object *obj, Edje_Message_Type type, int id, void *msg)
+{
+   _edje_object_message_popornot_send(obj, type, id, msg, EINA_FALSE);
+}
+
+
+EAPI void
+edje_object_message_handler_set(Evas_Object *obj, Edje_Message_Handler_Cb func, void *data)
 {
    Edje *ed;
 
@@ -41,31 +51,34 @@ edje_object_message_handler_set(Evas_Object *obj, void (*func) (void *data, Evas
 EAPI void
 edje_object_message_signal_process(Evas_Object *obj)
 {
-   Evas_List *l, *tmpq = NULL;
+   Eina_List *l, *ln, *tmpq = NULL;
    Edje *ed;
+   Edje *lookup_ed;
+   Eina_List *lg;
+   Edje_Message *em;
+   Eina_List *groups = NULL;
+   int gotos = 0;
 
    ed = _edje_fetch(obj);
    if (!ed) return;
 
-   for (l = msgq; l; l = l->next)
-     {
-	Edje_Message *em;
+   groups = ed->groups;
 
-	em = l->data;
-	if (em->edje == ed)
-	  tmpq = evas_list_append(tmpq, em);
+   EINA_LIST_FOREACH_SAFE(msgq, l, ln, em)
+     {
+        EINA_LIST_FOREACH(groups, lg, lookup_ed)
+          if (em->edje == lookup_ed)
+            {
+               tmpq = eina_list_append(tmpq, em);
+               msgq = eina_list_remove_list(msgq, l);
+               break;
+            }
      }
-   /* now remove them from the old queue */
-   for (l = tmpq; l; l = l->next)
-     msgq = evas_list_remove(msgq, l->data);
    /* a temporary message queue */
    if (tmp_msgq)
      {
-	while (tmpq)
-	  {
-	     tmp_msgq = evas_list_append(tmp_msgq, tmpq->data);
-	     tmpq = evas_list_remove_list(tmpq, tmpq);
-	  }
+        EINA_LIST_FREE(tmpq, em)
+          tmp_msgq = eina_list_append(tmp_msgq, em);
      }
    else
      {
@@ -73,16 +86,54 @@ edje_object_message_signal_process(Evas_Object *obj)
 	tmpq = NULL;
      }
 
-   while (tmp_msgq)
+   tmp_msgq_processing++;
+again:
+   EINA_LIST_FOREACH_SAFE(tmp_msgq, l, ln, em)
      {
-	Edje_Message *em;
-
-	em = tmp_msgq->data;
-	tmp_msgq = evas_list_remove_list(tmp_msgq, tmp_msgq);
-	em->edje->message.num--;
-	_edje_message_process(em);
-	_edje_message_free(em);
+        EINA_LIST_FOREACH(groups, lg, lookup_ed)
+          if (em->edje == lookup_ed)
+            break;
+        if (em->edje != lookup_ed) continue;
+	tmp_msgq = eina_list_remove_list(tmp_msgq, l);
+        if (!lookup_ed->delete_me)
+          {
+             lookup_ed->processing_messages++;
+             _edje_message_process(em);
+             _edje_message_free(em);
+             lookup_ed->processing_messages--;
+          }
+        else
+           _edje_message_free(em);
+        if (lookup_ed->processing_messages == 0)
+          {
+             if (lookup_ed->delete_me) _edje_del(lookup_ed);
+          }
+        // if some child callback in _edje_message_process called
+        // edje_object_message_signal_process() or
+        // edje_message_signal_process() then those will mark the restart
+        // flag when they finish - it mabsicammyt means tmp_msgq and
+        // any item in it has potentially become invalid - so that means l
+        // and ln could be rogue pointers, so start again from the beginning
+        // and skip anything that is not this object and process only what is.
+        // to avoid self-feeding loops allow a max of 1024 loops.
+        if (tmp_msgq_restart)
+          {
+             tmp_msgq_restart = 0;
+             gotos++;
+             if (gotos < 1024) goto again;
+             else
+               {
+                  WRN("Edje is in a self-feeding message loop (> 1024 gotos needed in a row)");
+                  goto end;
+               }
+          }
      }
+end:
+   tmp_msgq_processing--;
+   if (tmp_msgq_processing == 0)
+      tmp_msgq_restart = 0;
+   else
+      tmp_msgq_restart = 1;
 }
 
 EAPI void
@@ -91,30 +142,36 @@ edje_message_signal_process(void)
    _edje_message_queue_process();
 }
 
-static int
-_edje_dummy_timer(void *data)
+
+static Eina_Bool
+_edje_dummy_timer(void *data __UNUSED__)
 {
-   return 0;
+   return ECORE_CALLBACK_CANCEL;
 }
 
 static void
-_edje_job(void *data)
+_edje_job(void *data __UNUSED__)
 {
-   if (job_loss_timer)
+   if (_job_loss_timer)
      {
-	ecore_timer_del(job_loss_timer);
-	job_loss_timer = NULL;
+	ecore_timer_del(_job_loss_timer);
+	_job_loss_timer = NULL;
      }
+   _job = NULL;
+   _injob++;
    _edje_message_queue_process();
-   job = NULL;
+   _injob--;
 }
 
-static int
-_edje_job_loss_timer(void *data)
+static Eina_Bool
+_edje_job_loss_timer(void *data __UNUSED__)
 {
-   job_loss_timer = NULL;
-   if (job) job = NULL;
-   return 0;
+   _job_loss_timer = NULL;
+   if (!_job)
+     {
+        _job = ecore_job_add(_edje_job, NULL);
+     }
+   return ECORE_CALLBACK_CANCEL;
 }
 
 void
@@ -126,17 +183,32 @@ void
 _edje_message_shutdown(void)
 {
    _edje_message_queue_clear();
-   if (job_loss_timer)
-     ecore_timer_del(job_loss_timer);
-   job = NULL;
-   job_loss_timer = NULL;
+   if (_job_loss_timer)
+     {
+        ecore_timer_del(_job_loss_timer);
+        _job_loss_timer = NULL;
+     }
+   if (_job)
+     {
+        ecore_job_del(_job);
+        _job = NULL;
+     }
 }
 
 void
 _edje_message_cb_set(Edje *ed, void (*func) (void *data, Evas_Object *obj, Edje_Message_Type type, int id, void *msg), void *data)
 {
+   Eina_List *l;
+   Evas_Object *o;
+
    ed->message.func = func;
    ed->message.data = data;
+   EINA_LIST_FOREACH(ed->subobjs, l, o)
+     {
+        Edje *edj2 = _edje_fetch(o);
+        if (!edj2) continue;
+        _edje_message_cb_set(edj2, func, data);
+     }
 }
 
 Edje_Message *
@@ -245,8 +317,16 @@ _edje_message_free(Edje_Message *em)
 		  Edje_Message_Signal *emsg;
 
 		  emsg = (Edje_Message_Signal *)em->msg;
-		  if (emsg->sig) evas_stringshare_del(emsg->sig);
-		  if (emsg->src) evas_stringshare_del(emsg->src);
+		  if (emsg->sig) eina_stringshare_del(emsg->sig);
+		  if (emsg->src) eina_stringshare_del(emsg->src);
+                  if (emsg->data && (--(emsg->data->ref) == 0))
+                    {
+                       if (emsg->data->free_func)
+                         {
+                            emsg->data->free_func(emsg->data->data);
+                         }
+                       free(emsg->data);
+                    }
 		  free(emsg);
 	       }
 	     break;
@@ -269,21 +349,38 @@ _edje_message_free(Edje_Message *em)
 }
 
 void
-_edje_message_send(Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, void *emsg)
+_edje_message_propornot_send(Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, void *emsg, Eina_Bool prop)
 {
    /* FIXME: check all malloc & strdup fails and gracefully unroll and exit */
    Edje_Message *em;
    int i;
    unsigned char *msg = NULL;
 
-   if (!job)
-     {
-	job = ecore_job_add(_edje_job, NULL);
-	if (job_loss_timer) ecore_timer_del(job_loss_timer);
-	job_loss_timer = ecore_timer_add(0.05, _edje_job_loss_timer, NULL);
-     }
    em = _edje_message_new(ed, queue, type, id);
    if (!em) return;
+   em->propagated = prop;
+   if (_job)
+     {
+        ecore_job_del(_job);
+        _job = NULL;
+     }
+   if (_injob > 0)
+     {
+        if (!_job_loss_timer)
+          _job_loss_timer = ecore_timer_add(0.001, _edje_job_loss_timer, NULL);
+     }
+   else
+     {
+        if (!_job)
+          {
+             _job = ecore_job_add(_edje_job, NULL);
+          }
+        if (_job_loss_timer)
+          {
+             ecore_timer_del(_job_loss_timer);
+             _job_loss_timer = NULL;
+          }
+     }
    switch (em->type)
      {
       case EDJE_MESSAGE_NONE:
@@ -294,8 +391,13 @@ _edje_message_send(Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, v
 
 	     emsg2 = (Edje_Message_Signal *)emsg;
 	     emsg3 = calloc(1, sizeof(Edje_Message_Signal));
-	     if (emsg2->sig) emsg3->sig = evas_stringshare_add(emsg2->sig);
-	     if (emsg2->src) emsg3->src = evas_stringshare_add(emsg2->src);
+	     if (emsg2->sig) emsg3->sig = eina_stringshare_add(emsg2->sig);
+	     if (emsg2->src) emsg3->src = eina_stringshare_add(emsg2->src);
+	     if (emsg2->data)
+               {
+                  emsg3->data = emsg2->data;
+                  emsg3->data->ref++;
+               }
 	     msg = (unsigned char *)emsg3;
 	  }
 	break;
@@ -304,6 +406,7 @@ _edje_message_send(Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, v
 	     Edje_Message_String *emsg2, *emsg3;
 
 	     emsg2 = (Edje_Message_String *)emsg;
+
 	     emsg3 = malloc(sizeof(Edje_Message_String));
 	     emsg3->str = strdup(emsg2->str);
 	     msg = (unsigned char *)emsg3;
@@ -418,7 +521,13 @@ _edje_message_send(Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, v
      }
 
    em->msg = msg;
-   msgq = evas_list_append(msgq, em);
+   msgq = eina_list_append(msgq, em);
+}
+
+void
+_edje_message_send(Edje *ed, Edje_Queue queue, Edje_Message_Type type, int id, void *emsg)
+{
+   _edje_message_propornot_send(ed, queue, type, id, emsg, EINA_FALSE);
 }
 
 void
@@ -541,13 +650,16 @@ _edje_message_process(Edje_Message *em)
 {
    Embryo_Function fn;
    void *pdata;
-
+   int ret;
+   
    /* signals are only handled one way */
    if (em->type == EDJE_MESSAGE_SIGNAL)
      {
 	_edje_emit_handle(em->edje,
 			  ((Edje_Message_Signal *)em->msg)->sig,
-			  ((Edje_Message_Signal *)em->msg)->src);
+			  ((Edje_Message_Signal *)em->msg)->src,
+			  ((Edje_Message_Signal *)em->msg)->data,
+			  em->propagated);
 	return;
      }
    /* if this has been queued up for the app then just call the callback */
@@ -559,10 +671,15 @@ _edje_message_process(Edje_Message *em)
 	return;
      }
    /* now this message is destined for the script message handler fn */
-   if (!((em->edje->collection) && (em->edje->collection->script))) return;
-   if (_edje_script_only(em->edje))
+   if (!(em->edje->collection)) return;
+   if ((em->edje->collection->script) && _edje_script_only (em->edje))
      {
 	_edje_script_only_message(em->edje, em);
+	return;
+     }
+   if (em->edje->L)
+     {
+	_edje_lua_script_only_message(em->edje, em);
 	return;
      }
    fn = embryo_program_function_find(em->edje->collection->script, "message");
@@ -577,7 +694,32 @@ _edje_message_process(Edje_Message *em)
    pdata = embryo_program_data_get(em->edje->collection->script);
    embryo_program_data_set(em->edje->collection->script, em->edje);
    embryo_program_max_cycle_run_set(em->edje->collection->script, 5000000);
-   embryo_program_run(em->edje->collection->script, fn);
+   ret = embryo_program_run(em->edje->collection->script, fn);
+   if (ret == EMBRYO_PROGRAM_FAIL)
+     {
+        ERR("ERROR with embryo script. "
+            "OBJECT NAME: '%s', "
+            "OBJECT FILE: '%s', "
+            "ENTRY POINT: '%s', "
+            "ERROR: '%s'",
+            em->edje->collection->part,
+            em->edje->file->path,
+            "message",
+            embryo_error_string_get(embryo_program_error_get(em->edje->collection->script)));
+     }
+   else if (ret == EMBRYO_PROGRAM_TOOLONG)
+     {
+        ERR("ERROR with embryo script. "
+            "OBJECT NAME: '%s', "
+            "OBJECT FILE: '%s', "
+            "ENTRY POINT: '%s', "
+            "ERROR: 'Script exceeded maximum allowed cycle count of %i'",
+            em->edje->collection->part,
+            em->edje->file->path,
+            "message",
+            embryo_program_max_cycle_run_get(em->edje->collection->script));
+     }
+   
    embryo_program_data_set(em->edje->collection->script, pdata);
    embryo_program_vm_pop(em->edje->collection->script);
 }
@@ -587,7 +729,7 @@ _edje_message_queue_process(void)
 {
    int i;
 
-   if (msgq == NULL) return;
+   if (!msgq) return;
 
    /* allow the message queue to feed itself up to 8 times before forcing */
    /* us to go back to normal processing and let a 0 timeout deal with it */
@@ -598,8 +740,8 @@ _edje_message_queue_process(void)
 	  {
 	     while (msgq)
 	       {
-		  tmp_msgq = evas_list_append(tmp_msgq, msgq->data);
-		  msgq = evas_list_remove_list(msgq, msgq);
+		  tmp_msgq = eina_list_append(tmp_msgq, msgq->data);
+		  msgq = eina_list_remove_list(msgq, msgq);
 	       }
 	  }
 	else
@@ -608,6 +750,7 @@ _edje_message_queue_process(void)
 	     msgq = NULL;
 	  }
 
+        tmp_msgq_processing++;
 	while (tmp_msgq)
 	  {
 	     Edje_Message *em;
@@ -615,7 +758,7 @@ _edje_message_queue_process(void)
 
 	     em = tmp_msgq->data;
 	     ed = em->edje;
-	     tmp_msgq = evas_list_remove_list(tmp_msgq, tmp_msgq);
+	     tmp_msgq = eina_list_remove_list(tmp_msgq, tmp_msgq);
 	     em->edje->message.num--;
 	     if (!ed->delete_me)
 	       {
@@ -631,12 +774,29 @@ _edje_message_queue_process(void)
 		  if (ed->delete_me) _edje_del(ed);
 	       }
 	  }
+        tmp_msgq_processing--;
+        if (tmp_msgq_processing == 0)
+           tmp_msgq_restart = 0;
+        else
+           tmp_msgq_restart = 1;
      }
 
    /* if the message queue filled again set a timer to expire in 0.0 sec */
    /* to get the idle enterer to be run again */
    if (msgq)
      {
+        static int self_feed_debug = -1;
+        
+        if (self_feed_debug == -1)
+          {
+             const char *s = getenv("EDJE_SELF_FEED_DEBUG");
+             if (s) self_feed_debug = atoi(s);
+             else self_feed_debug = 0;
+          }
+        if (self_feed_debug)
+          {
+             WRN("Edje is in a self-feeding message loop (> 8 loops needed)");
+          }
 	ecore_timer_add(0.0, _edje_dummy_timer, NULL);
      }
 }
@@ -649,7 +809,7 @@ _edje_message_queue_clear(void)
 	Edje_Message *em;
 
 	em = msgq->data;
-	msgq = evas_list_remove_list(msgq, msgq);
+	msgq = eina_list_remove_list(msgq, msgq);
 	em->edje->message.num--;
 	_edje_message_free(em);
      }
@@ -658,7 +818,7 @@ _edje_message_queue_clear(void)
 	Edje_Message *em;
 
 	em = tmp_msgq->data;
-	tmp_msgq = evas_list_remove_list(tmp_msgq, tmp_msgq);
+	tmp_msgq = eina_list_remove_list(tmp_msgq, tmp_msgq);
 	em->edje->message.num--;
 	_edje_message_free(em);
      }
@@ -667,21 +827,21 @@ _edje_message_queue_clear(void)
 void
 _edje_message_del(Edje *ed)
 {
-   Evas_List *l;
+   Eina_List *l;
 
    if (ed->message.num <= 0) return;
    /* delete any messages on the main queue for this edje object */
    for (l = msgq; l; )
      {
 	Edje_Message *em;
-	Evas_List *lp;
+	Eina_List *lp;
 
-	em = l->data;
+	em = eina_list_data_get(l);
 	lp = l;
-	l = l->next;
+	l = eina_list_next(l);
 	if (em->edje == ed)
 	  {
-	     msgq = evas_list_remove_list(msgq, lp);
+	     msgq = eina_list_remove_list(msgq, lp);
 	     em->edje->message.num--;
 	     _edje_message_free(em);
 	  }
@@ -691,14 +851,14 @@ _edje_message_del(Edje *ed)
    for (l = tmp_msgq; l; )
      {
 	Edje_Message *em;
-	Evas_List *lp;
+	Eina_List *lp;
 
-	em = l->data;
+	em = eina_list_data_get(l);
 	lp = l;
-	l = l->next;
+	l = eina_list_next(l);
 	if (em->edje == ed)
 	  {
-	     tmp_msgq = evas_list_remove_list(tmp_msgq, lp);
+	     tmp_msgq = eina_list_remove_list(tmp_msgq, lp);
 	     em->edje->message.num--;
 	     _edje_message_free(em);
 	  }

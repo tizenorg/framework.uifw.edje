@@ -1,7 +1,3 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include "edje_private.h"
 #include "edje_container.h"
 
@@ -10,8 +6,9 @@
 static void
 _edje_container_relayout(Smart_Data *sd)
 {
-   Evas_List *l;
+   Eina_List *l;
    Evas_Coord x, y, w, h, sw;
+   Edje_Item *ei;
 
    if (sd->freeze > 0) return;
    if (!sd->need_layout) return;
@@ -25,11 +22,8 @@ _edje_container_relayout(Smart_Data *sd)
    w = 0;
    h = 0;
 
-   for (l = sd->children; l; l = l->next)
+   EINA_LIST_FOREACH(sd->children, l, ei)
      {
-	Edje_Item *ei;
-
-	ei = l->data;
 	if (sd->homogenous) h = sd->min_row_h;
 
 	ei->y = y;
@@ -44,7 +38,8 @@ _edje_container_relayout(Smart_Data *sd)
 static void
 _edje_container_recalc(Smart_Data *sd)
 {
-   Evas_List *l;
+   Eina_List *l;
+   Edje_Item *ei;
    int any_max_h = 0, any_max_w = 0;
    int i;
 
@@ -80,11 +75,8 @@ _edje_container_recalc(Smart_Data *sd)
    else if ((sd->max_w >= 0) && (sd->w < sd->max_w))
      sd->w = sd->max_w;
 
-   for (l = sd->children; l; l = l->next)
+   EINA_LIST_FOREACH(sd->children, l, ei)
      {
-	Edje_Item *ei;
-
-	ei = l->data;
 	if (ei->minh > sd->min_row_h)
 	  sd->min_row_h = ei->minh;
 	if (sd->max_row_h >= 0)
@@ -115,7 +107,7 @@ _edje_container_recalc(Smart_Data *sd)
      }
    if (sd->homogenous)
      {
-	sd->min_h = evas_list_count(sd->children) * sd->min_row_h;
+	sd->min_h = eina_list_count(sd->children) * sd->min_row_h;
      }
 
    sd->changed = 0;
@@ -165,13 +157,53 @@ _edje_item_recalc(Edje_Item *ei)
 	  ((Smart_Data *)(ei->sd))->colinfo[i].maxw = ei->cells[i].maxw;
      }
 
-   ei->recalc = 0;
+   ei->recalc = EINA_FALSE;
 
    _edje_container_recalc(ei->sd);
 }
 
 
 /*****************************/
+/**
+ * @endcond
+ */
+
+/*============================================================================*
+ *                                 Global                                     *
+ *============================================================================*/
+
+/*============================================================================*
+ *                                   API                                      *
+ *============================================================================*/
+
+/**
+ * @addtogroup Edje_container_Group Container
+ *
+ * @brief These functions provides an abstraction layer between the application
+ * code and the interface, while allowing extremely flexible dynamic layouts
+ * and animations.
+ *
+ * For more information, you can look at the @ref tutorial_list_page.
+ *
+ * @{
+ */
+
+/**
+ * @brief Create an edje item.
+ *
+ * @param cl The edje item of type Edje_Item_Class.
+ * @param data The edje item data.
+ *
+ * @return The new edje item created.
+ *
+ * This function creates an new edje item. The edje item data can be
+ * retrieved with edje_item_data_get().
+ *
+ * @see edje_item_del()
+ * @see edje_item_data_set()
+ * @see edje_item_data_get()
+ *
+ */
 
 Edje_Item *
 edje_item_add(Edje_Item_Class *cl, void *data)
@@ -185,6 +217,19 @@ edje_item_add(Edje_Item_Class *cl, void *data)
 
    return ei;
 }
+
+/**
+ * @brief Delete an edje item.
+ *
+ * @param ei The edje item to be deleted.
+ *
+ * This function deletes the edje item from memory.
+ *
+ * @see edje_item_add()
+ * @see edje_item_data_set()
+ * @see edje_item_data_get()
+ *
+ */
 
 void
 edje_item_del(Edje_Item *ei)
@@ -201,6 +246,16 @@ edje_item_del(Edje_Item *ei)
    _edje_container_recalc(sd);
 }
 
+/**
+ * @brief Return the smart object of the edje item.
+ *
+ * @param ei The edje item which the smart object of type Evas_Object is get
+ * from.
+ *
+ * This function returns the smart object in the edje item.
+ *
+ */
+
 Evas_Object *
 edje_item_container_get(Edje_Item *ei)
 {
@@ -208,13 +263,40 @@ edje_item_container_get(Edje_Item *ei)
    return ((Smart_Data *)(ei->sd))->smart_obj;
 }
 
-/* an arbitary data pointer to use to track other data */
+/* an arbitrary data pointer to use to track other data */
+/**
+ * @brief Set the edje item data.
+ *
+ * @param ei The edje item of type Edje_Item_Class.
+ * @param data The edje item data.
+ *
+ * This function set the data of the edje item. The edje item data can be
+ * retrieved with edje_item_data_get().
+ *
+ * @see edje_item_add()
+ * @see edje_item_del()
+ * @see edje_item_data_get()
+ *
+ */
 
 void
 edje_item_data_set(Edje_Item *ei, void *data)
 {
    ei->data = data;
 }
+
+/**
+ * @brief Get the data of the edje item.
+ *
+ * @param ei The edje item of type Edje_Item_Class.
+ *
+ * This function get the data of the edje item set by edje_item_data_set().
+ *
+ * @see edje_item_data_set()
+ * @see edje_item_add()
+ * @see edje_item_del()
+ *
+ */
 
 void *
 edje_item_data_get(Edje_Item *ei)
@@ -223,6 +305,7 @@ edje_item_data_get(Edje_Item *ei)
 }
 
 /* this object covers the entire item */
+
 void
 edje_item_overlay_object_set(Edje_Item *ei, Evas_Object *obj)
 {
@@ -234,6 +317,8 @@ edje_item_overlay_object_set(Edje_Item *ei, Evas_Object *obj)
    if (ei->sd)
      evas_object_smart_member_add(((Smart_Data *)(ei->sd))->smart_obj, obj);
 }
+
+
 
 Evas_Object *
 edje_item_overlay_object_get(Edje_Item *ei)
@@ -334,7 +419,7 @@ edje_item_column_size_set(Edje_Item *ei, int col, Evas_Coord minw, Evas_Coord ma
    ei->cells[col].maxh = maxh;
    ei->cells[col].minw = minw;
    ei->cells[col].maxw = maxw;
-   ei->recalc = 1;
+   ei->recalc = EINA_TRUE;
    if (ei->sd)
      {
 	((Smart_Data *)(ei->sd))->changed = 1;
@@ -451,10 +536,10 @@ edje_container_item_append(Evas_Object *obj, Edje_Item *ei)
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return;
-   sd->children = evas_list_append(sd->children, ei);
+   sd->children = eina_list_append(sd->children, ei);
    sd->changed = 1;
    sd->change_child_list = 1;
-   sd->rows = evas_list_count(sd->children);
+   sd->rows = eina_list_count(sd->children);
    _edje_container_recalc(sd);
 }
 
@@ -465,10 +550,10 @@ edje_container_item_prepend(Evas_Object *obj, Edje_Item *ei)
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return;
-   sd->children = evas_list_prepend(sd->children, ei);
+   sd->children = eina_list_prepend(sd->children, ei);
    sd->changed = 1;
    sd->change_child_list = 1;
-   sd->rows = evas_list_count(sd->children);
+   sd->rows = eina_list_count(sd->children);
    _edje_container_recalc(sd);
 }
 
@@ -479,10 +564,10 @@ edje_container_item_append_relative(Evas_Object *obj, Edje_Item *ei, Edje_Item *
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return;
-   sd->children = evas_list_append_relative(sd->children, ei, rel);
+   sd->children = eina_list_append_relative(sd->children, ei, rel);
    sd->changed = 1;
    sd->change_child_list = 1;
-   sd->rows = evas_list_count(sd->children);
+   sd->rows = eina_list_count(sd->children);
    _edje_container_recalc(sd);
 }
 
@@ -493,10 +578,10 @@ edje_container_item_prepend_relative(Evas_Object *obj, Edje_Item *ei, Edje_Item 
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return;
-   sd->children = evas_list_prepend_relative(sd->children, ei, rel);
+   sd->children = eina_list_prepend_relative(sd->children, ei, rel);
    sd->changed = 1;
    sd->change_child_list = 1;
-   sd->rows = evas_list_count(sd->children);
+   sd->rows = eina_list_count(sd->children);
    _edje_container_recalc(sd);
 }
 
@@ -508,14 +593,14 @@ edje_container_item_insert(Evas_Object *obj, Edje_Item *ei, int n)
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return;
-   rel = evas_list_nth(sd->children, n);
+   rel = eina_list_nth(sd->children, n);
    if (!rel)
-     sd->children = evas_list_append(sd->children, ei);
+     sd->children = eina_list_append(sd->children, ei);
    else
-     sd->children = evas_list_append_relative(sd->children, ei, rel);
+     sd->children = eina_list_append_relative(sd->children, ei, rel);
    sd->changed = 1;
    sd->change_child_list = 1;
-   sd->rows = evas_list_count(sd->children);
+   sd->rows = eina_list_count(sd->children);
    _edje_container_recalc(sd);
 }
 
@@ -526,10 +611,10 @@ edje_container_item_remove(Evas_Object *obj, Edje_Item *ei)
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return;
-   sd->children = evas_list_remove(sd->children, ei);
+   sd->children = eina_list_remove(sd->children, ei);
    sd->changed = 1;
    sd->change_child_list = 1;
-   sd->rows = evas_list_count(sd->children);
+   sd->rows = eina_list_count(sd->children);
    _edje_container_recalc(sd);
 }
 
@@ -640,7 +725,7 @@ edje_container_count_get(Evas_Object *obj)
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return 0;
-   return evas_list_count(sd->children);
+   return eina_list_count(sd->children);
 }
 
 Edje_Item *
@@ -651,7 +736,7 @@ edje_container_item_first_get(Evas_Object *obj)
    sd = evas_object_smart_data_get(obj);
    if (!sd) return NULL;
    if (!sd->children) return NULL;
-   return sd->children->data;
+   return eina_list_data_get(sd->children);
 }
 
 Edje_Item *
@@ -662,7 +747,7 @@ edje_container_item_last_get(Evas_Object *obj)
    sd = evas_object_smart_data_get(obj);
    if (!sd) return NULL;
    if (!sd->children) return NULL;
-   return evas_list_last(sd->children)->data;
+   return0 eina_list_data_get(eina_list_last(sd->children));
 }
 
 Edje_Item *
@@ -672,7 +757,7 @@ edje_container_item_nth_get(Evas_Object *obj, int n)
 
    sd = evas_object_smart_data_get(obj);
    if (!sd) return NULL;
-   return evas_list_nth(sd->children, n);
+   return eina_list_nth(sd->children, n);
 }
 
 void
@@ -765,6 +850,8 @@ _smart_init(void)
 	       _smart_color_set,
 	       _smart_clip_set,
 	       _smart_clip_unset,
+	       NULL,
+	       NULL,
 	       NULL
 	  };
         smart = evas_smart_class_new(&sc);
