@@ -1,41 +1,3 @@
-/* ************************** */
-/* This is for script-only objects */
-/* ************************** */
-
-native e_obj_del(obj);
-
-native e_obj_rect_add();
-
-native e_obj_show(obj);
-native e_obj_hide(obj);
-native e_obj_move(obj, x, y);
-native e_obj_resize(obj, w, h);
-native e_obj_geometry_set(obj, x, y, w, h);
-native e_obj_geometry_get(obj, &x, &y, &w, &h);
-native e_obj_color_set(obj, r, g, b, a);
-native e_obj_color_get(obj, &r, &g, &b, &a);
-
-/* threw this in for debug... but need it */
-native e_signal_emit(sig[], src[]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ************************** */
-/* The below is for non-script-only objects. these calls will not work for */
-/* script-only objects. above are for script-only. perhaps this will be */
-/* deprecated sometime? or merged to the above partly? */
-/* ************************** */
-
 /* Edje exported calls */
 
 /************************************************/
@@ -121,6 +83,7 @@ native       cancel_anim(id);
  * run_program(PROGRAM:"program_name");
  */
 native       emit             (sig[], src[]);
+native       get_part_id      (part[]);
 native       set_state        (part_id, state[], Float:state_val);
 native       get_state        (part_id, dst[], maxlen, &Float:val);
 native       set_tween_state  (part_id, Float:tween, state1[], Float:state1_val, state2[], Float:state2_val);
@@ -150,6 +113,19 @@ native       stop_programs_on (part_id);
 native       set_min_size     (Float:w, Float:h);
 native       set_max_size     (Float:w, Float:h);
 native       part_swallow     (part_id, GROUP:str[]);
+
+native       external_param_get_int(id, param_name[]);
+native       external_param_set_int(id, param_name[], value);
+native Float:external_param_get_float(id, param_name[]);
+native       external_param_set_float(id, param_name[], Float:value);
+native       external_param_get_strlen(id, param_name[]);
+native       external_param_get_str(id, param_name[], value[], value_maxlen);
+native       external_param_set_str(id, param_name[], value[]);
+native       external_param_get_choice_len(id, param_name[]);
+native       external_param_get_choice(id, param_name[], value[], value_maxlen);
+native       external_param_set_choice(id, param_name[], value[]);
+native       external_param_get_bool(id, param_name[]);
+native       external_param_set_bool(id, param_name[], value);
 
 enum Msg_Type
 {
@@ -221,8 +197,23 @@ enum State_Param
 	STATE_TEXT_MIN = 28,
 	STATE_TEXT_MAX = 29,
 	STATE_TEXT_ALIGN = 30,
-	STATE_VISIBLE = 31
+	STATE_VISIBLE = 31,
+	STATE_MAP_ON = 32,
+	STATE_MAP_PERSP = 33,
+	STATE_MAP_LIGHT = 34,
+	STATE_MAP_ROT_CENTER = 35,
+	STATE_MAP_ROT_X = 36,
+	STATE_MAP_ROT_Y = 37,
+	STATE_MAP_ROT_Z = 38,
+	STATE_MAP_BACK_CULL = 39,
+	STATE_MAP_PERSP_ON = 40,
+	STATE_PERSP_ZPLANE = 41,
+	STATE_PERSP_FOCAL = 42
 };
 
 native set_state_val(part_id, State_Param:p, ...);
 native get_state_val(part_id, State_Param:p, ...);
+
+/* Multisense */
+native       play_sample      (sample_name[], Float:speed);
+native       play_tone        (tone_name[], Float:duration);
