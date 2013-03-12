@@ -1,0 +1,1358 @@
+edje (1.2.0+svn.70401slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.2.0+svn.70401slp2+build01
+
+ -- Tae-Hwan Kim <the81.kim@samsung.com>  Mon, 23 Apr 2012 15:12:50 +0900
+
+edje (1.2.0+svn.70223slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.2.0+svn.70223slp2+build01
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Wed, 18 Apr 2012 18:10:08 +0900
+
+edje (1.2.0+svn.69975slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.2.0+svn.69975slp2+build01
+
+ -- Jiyoun Park <jy0703.park@samsung.com>  Fri, 13 Apr 2012 18:31:59 +0900
+
+edje (1.2.0+svn.69917slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.2.0+svn.69917slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Fri, 06 Apr 2012 18:18:35 +0900
+
+edje (1.1.0+svn.69574slp2+build04) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69574slp2+build04
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 05 Apr 2012 14:36:41 +0900
+
+edje (1.1.0+svn.69574slp2+build03) unstable; urgency=low
+
+  * Fix Number keypad issue
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69574slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 30 Mar 2012 15:46:22 +0900
+
+edje (1.1.0+svn.69574slp2+build02) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69574slp2+build02
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 29 Mar 2012 11:46:05 +0900
+
+edje (1.1.0+svn.69574slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69574slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Wed, 28 Mar 2012 14:29:53 +0900
+
+edje (1.1.0+svn.69356slp2+build02) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69356slp2+build02
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Sun, 18 Mar 2012 14:04:14 +0900
+
+edje (1.1.0+svn.69356slp2+build01) unstable; urgency=low
+
+  * EFL migration
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69356slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Fri, 16 Mar 2012 21:50:41 +0900
+
+edje (1.1.0+svn.69011slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.69011slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Sat, 10 Mar 2012 13:51:26 +0900
+
+edje (1.1.0+svn.68847slp2+build02) unstable; urgency=low
+
+  * 69011
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.68847slp2+build02
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Sat, 10 Mar 2012 13:21:16 +0900
+
+edje (1.1.0+svn.68847slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.68847slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Wed, 07 Mar 2012 16:45:26 +0900
+
+edje (1.1.0+svn.68385slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.68385slp2+build01
+
+ -- Jeonghyun Yun <jh0506.yun@samsung.com>  Fri, 02 Mar 2012 06:33:21 -0500
+
+edje (1.1.0+svn.67705slp2+build04) unstable; urgency=low
+
+  * Package upload
+  * Important Changes
+       [edje_entry] fix hiding handler problem in memo application
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build04
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 28 Feb 2012 15:02:12 +0900
+
+edje (1.1.0+svn.67705slp2+build03) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build03
+
+ -- ChunEon Park <chuneon.park@samsung.com>  Mon, 20 Feb 2012 20:22:19 +0900
+
+edje (1.1.0+svn.67705slp2+build02) unstable; urgency=low
+
+  * Add APIs for controlling input panel
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 20 Feb 2012 09:31:40 +0900
+
+edje (1.1.0+svn.67705slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] Add edje_object_markup_filter_callback_add. merge with 67724
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.67705slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 15 Feb 2012 19:02:01 +0900
+
+edje (1.1.0+svn.66979slp2+build03) unstable; urgency=low
+
+  * Use synchronous ecore_imf callback API
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 31 Jan 2012 13:29:47 +0900
+
+edje (1.1.0+svn.66979slp2+build02) unstable; urgency=low
+
+  * remove evas obj hide at edje_object_part_unswallow
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build02
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Tue, 17 Jan 2012 18:24:11 +0900
+
+edje (1.1.0+svn.66979slp2+build01) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.66979slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Mon, 16 Jan 2012 18:37:01 +0900
+
+edje (1.1.0+svn.65864slp2+build02) unstable; urgency=low
+
+  * delete some autoperiod, autocaptial setting APIs
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65864slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 08 Dec 2011 15:04:02 +0900
+
+edje (1.1.0+svn.65864slp2+build01) unstable; urgency=low
+
+  * Package Upload for migration
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65864slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Thu, 08 Dec 2011 13:53:42 +0900
+
+edje (1.1.0+svn.65305slp2+build07) unstable; urgency=low
+
+  * Package Upload
+  * Git: git-server:slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build07
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 07 Dec 2011 12:39:40 +0900
+
+edje (1.1.0+svn.65305slp2+build06) unstable; urgency=low
+
+  * Deprecate some unused APIs
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 06 Dec 2011 19:40:52 +0900
+
+edje (1.1.0+svn.65305slp2+build05) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build05
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Mon, 21 Nov 2011 18:11:27 +0900
+
+edje (1.1.0+svn.65305slp2+build04) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] added copy paste disabled set function and fixed bug in selection handlers
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build04
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Mon, 21 Nov 2011 17:39:33 +0900
+
+edje (1.1.0+svn.65305slp2+build02) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] preedit tag should not be shown : fixed
+       [edje_entry]        [edje_entry] preedit tag should not be shown : fixed , < could not be inserted when password mode
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.1.0+svn.65305slp2+build02
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Thu, 17 Nov 2011 16:58:56 +0900
+
+edje (1.1.0+svn.65305slp2+build01) unstable; urgency=low
+
+  * Merge with upstream @65305
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 17 Nov 2011 09:36:27 +0900
+
+edje (1.0.0.001+svn.64969slp2+build03) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] fixed bug in detecting selection handler position
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.64969slp2+build03
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Mon, 14 Nov 2011 17:26:14 +0900
+
+edje (1.0.0.001+svn.64969slp2+build02) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] improved text selection handlers
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.64969slp2+build02
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 11 Nov 2011 20:14:01 +0900
+
+edje (1.0.0.001+svn.64969slp2+build01) unstable; urgency=low
+
+  * Merge with upstream @64969
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 10 Nov 2011 14:19:25 +0900
+
+edje (1.0.0.001+svn.64675slp2+build01) unstable; urgency=low
+
+  * Merge with upstream @64675
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 03 Nov 2011 15:50:34 +0900
+
+edje (1.0.0.001+svn.63811slp2+build06) unstable; urgency=low
+
+  * Add input_panel_enable_set/get and autocapital_type_set/get APIs
+  * Fix group inheritance bugs
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 28 Oct 2011 11:02:36 +0900
+
+edje (1.0.0.001+svn.63811slp2+build05) unstable; urgency=low
+
+  * Package Upload for sync between arm and i386
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build05
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 19 Oct 2011 14:19:27 +0900
+
+edje (1.0.0.001+svn.63811slp2+build04) unstable; urgency=low
+
+  * Fix dependencies for edje_cc
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build04
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 06 Oct 2011 17:06:38 +0900
+
+edje (1.0.0.001+svn.63811slp2+build03) unstable; urgency=low
+
+  * Fix crash in edje_cc
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build03
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 06 Oct 2011 16:56:12 +0900
+
+edje (1.0.0.001+svn.63811slp2+build02) unstable; urgency=low
+
+  * Fix dependencies for dev package
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build02
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 06 Oct 2011 16:00:32 +0900
+
+edje (1.0.0.001+svn.63811slp2+build01) unstable; urgency=low
+
+  * Merge with upstream
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.63811slp2+build01
+
+ -- Mike McCormack <mj.mccormack@samsung.com>  Thu, 06 Oct 2011 09:48:47 +0900
+
+edje (1.0.0.001+svn.62640slp2+build07) unstable; urgency=low
+
+  * Add new APIs getting the size of selection block in entry.
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build07
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 04 Oct 2011 17:41:59 +0900
+
+edje (1.0.0.001+svn.62640slp2+build06) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] fixed bug in text selection handlers
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build06
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 23 Sep 2011 16:16:07 +0900
+
+edje (1.0.0.001+svn.62640slp2+build05) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] fixed bug in text selection handlers
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build05
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 21 Sep 2011 14:51:49 +0900
+
+edje (1.0.0.001+svn.62640slp2+build04) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] fixed bug in selecting word and added exceptional handlers
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build04
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Tue, 20 Sep 2011 09:07:10 +0900
+
+edje (1.0.0.001+svn.62640slp2+build03) unstable; urgency=low
+
+  * Package Upload
+  * Important Changes
+       [edje_entry] revert about anchors - merged with r63192
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build03
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Wed, 14 Sep 2011 10:47:46 +0900
+
+edje (1.0.0.001+svn.62640slp2+build02) unstable; urgency=low
+
+  * [entry] update cursor location when the position of entry is changed 
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 06 Sep 2011 14:49:21 +0900
+
+edje (1.0.0.001+svn.62640slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r62640
+  * Important Changes
+       [Migration upstream r62640]
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.62640slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Fri, 02 Sep 2011 18:44:21 +0900
+
+edje (1.0.0.001+svn.60299slp2+build07) unstable; urgency=low
+
+  * [entry] update cursor location
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build07
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 01 Aug 2011 11:08:43 +0900
+
+edje (1.0.0.001+svn.60299slp2+build06) unstable; urgency=low
+
+  * move autocapital, autoperiod function to immodule
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 25 Jul 2011 12:54:38 +0900
+
+edje (1.0.0.001+svn.60299slp2+build05) unstable; urgency=low
+
+  * Package Upload
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build05
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Mon, 11 Jul 2011 16:49:09 +0900
+
+edje (1.0.0.001+svn.60299slp2+build04) unstable; urgency=low
+
+  * move IME control code to immodule
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build04
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 28 Jun 2011 17:12:07 +0900
+
+edje (1.0.0.001+svn.60299slp2+build03) unstable; urgency=low
+
+  * [entry] don't remove the previous tag of preedit tag
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Sat, 25 Jun 2011 09:55:34 +0900
+
+edje (1.0.0.001+svn.60299slp2+build02) unstable; urgency=low
+
+  * Package Upload : epp added
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build02
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Fri, 24 Jun 2011 19:24:43 +0900
+
+edje (1.0.0.001+svn.60299slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r60299
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.60299slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Fri, 24 Jun 2011 18:10:21 +0900
+
+edje (1.0.0.001+svn.58214slp2+build09) unstable; urgency=low
+
+  * [entry] bug fix : keyboard doesn't appear when multibutton entry has focus again
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build09
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 14 Jun 2011 14:43:12 +0900
+
+edje (1.0.0.001+svn.58214slp2+build08) unstable; urgency=low
+
+  * Added use of freeze+thaw. Upstream merge with r59730.
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build08
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 02 Jun 2011 11:23:22 +0900
+
+edje (1.0.0.001+svn.58214slp2+build07) unstable; urgency=low
+
+  * Added use of freeze+thaw for improvement. Upstream merge with
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build07
+    r59730.
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 02 Jun 2011 11:19:58 +0900
+
+edje (1.0.0.001+svn.58214slp2+build06) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build06
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 19 May 2011 21:54:00 +0900
+
+edje (1.0.0.001+svn.58214slp2+build05) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build05
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 19 May 2011 15:21:03 +0900
+
+edje (1.0.0.001+svn.58214slp2+build04) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build04
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Mon, 11 Apr 2011 16:09:21 +0900
+
+edje (1.0.0.001+svn.58214slp2+build03) unstable; urgency=low
+
+  * Package Upload
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build03
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Mon, 11 Apr 2011 11:05:54 +0900
+
+edje (1.0.0.001+svn.58214slp2+build02) unstable; urgency=low
+
+  * [entry] remove need_commit. It makes side effect
+  * [entry] check whether input panel can be hidden when hide request is
+  called
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build02
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 06 Apr 2011 10:06:41 +0900
+
+edje (1.0.0.001+svn.58214slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r58214
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58214slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 05 Apr 2011 15:55:20 +0900
+
+edje (1.0.0.001+svn.58064slp2+build02) unstable; urgency=low
+
+  * Rollback
+  * Git: slp-scm.sec.samsung.net:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58064slp2+build02
+
+ -- Shinwoo Kim <cinoo.kim@samsung.com>  Wed, 30 Mar 2011 00:15:43 +0900
+
+edje (1.0.0.001+svn.58064slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r58064
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.58064slp2+build01
+
+ -- Shinwoo Kim <cinoo.kim@samsung.com>  Tue, 29 Mar 2011 18:55:45 +0900
+
+edje (1.0.0.001+svn.57412slp2+build07) unstable; urgency=low
+
+  * Upload Package
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build07
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Wed, 16 Mar 2011 10:50:53 +0900
+
+edje (1.0.0.001+svn.57412slp2+build06) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r57412
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build06
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 09 Mar 2011 11:29:57 +0900
+
+edje (1.0.0.001+svn.57412slp2+build05) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r57412
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build05
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 09 Mar 2011 11:15:11 +0900
+
+edje (1.0.0.001+svn.57412slp2+build04) unstable; urgency=low
+
+  * Package Uplaod : Rollback
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build04
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 08 Mar 2011 14:08:04 +0900
+
+edje (1.0.0.001+svn.57412slp2+build03) unstable; urgency=low
+
+  * Package Uplaod : Rollback
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build03
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 08 Mar 2011 12:46:16 +0900
+
+edje (1.0.0.001+svn.57412slp2+build02) unstable; urgency=low
+
+  * Package Upload : rollback
+  * Git: 165.213.180.234:/slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build02
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 08 Mar 2011 11:13:37 +0900
+
+edje (1.0.0.001+svn.57412slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r57412
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.57412slp2+build01
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Mon, 07 Mar 2011 17:28:25 +0900
+
+edje (1.0.0.001+svn.56184slp2+build08) unstable; urgency=low
+
+  * [entry] fixed bug in removing longpress timer
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build08
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 24 Feb 2011 17:28:51 +0900
+
+edje (1.0.0.001+svn.56184slp2+build07) unstable; urgency=low
+
+  * debian/changelog
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Thu, 24 Feb 2011 17:28:41 +0900
+
+edje (1.0.0.001+svn.56184slp2+build06) unstable; urgency=low
+
+  * version up
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build06
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Thu, 10 Feb 2011 11:09:14 +0900
+
+edje (1.0.0.001+svn.56184slp2+build05) unstable; urgency=low
+
+  * version up
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build05
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Thu, 10 Feb 2011 11:04:56 +0900
+
+edje (1.0.0.001+svn.56184slp2+build04) unstable; urgency=low
+
+  * Repackaging
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build04
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 10 Feb 2011 10:42:56 +0900
+
+edje (1.0.0.001+svn.56184slp2+build03) unstable; urgency=low
+
+  * [entry] fixed bug in text selection
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build03
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 10 Feb 2011 10:11:00 +0900
+
+edje (1.0.0.001+svn.56184slp2+build02) unstable; urgency=low
+
+  * [entry] fixed bug in select, select all at the last character
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build02
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Mon, 31 Jan 2011 08:18:00 +0900
+
+edje (1.0.0.001+svn.56184slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r56184
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.56184slp2+build01
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Thu, 27 Jan 2011 12:23:23 +0900
+
+edje (1.0.0.001+svn.55979slp2+build04) unstable; urgency=low
+
+  * repackage due to upload error
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55979slp2+build04
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55979slp2+build04
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Thu, 20 Jan 2011 08:45:57 +0900
+
+edje (1.0.0.001+svn.55979slp2+build03) unstable; urgency=low
+
+  * repackage due to upload error
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55979slp2+build03
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 20 Jan 2011 01:24:00 +0900
+
+edje (1.0.0.001+svn.55979slp2+build02) unstable; urgency=low
+
+  * [entry] added match list feature and fixed double click word selection bug
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55979slp2+build02
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 19 Jan 2011 22:52:00 +0900
+
+edje (1.0.0.001+svn.55979slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r55979
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55979slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 19 Jan 2011 16:19:44 +0900
+
+edje (1.0.0.001+svn.55556slp2+build07) unstable; urgency=low
+
+  * [entry] password - last-char-show is added 
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build07
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Wed, 12 Jan 2011 10:20:46 +0900
+
+edje (1.0.0.001+svn.55556slp2+build06) unstable; urgency=low
+
+  * [entry] fix flickering
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 06 Jan 2011 15:19:12 +0900
+
+edje (1.0.0.001+svn.55556slp2+build05) unstable; urgency=low
+
+  * [entry] call ecore_imf_context_reset in _edje_entry_text_markup_set
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build05
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 06 Jan 2011 11:06:29 +0900
+
+edje (1.0.0.001+svn.55556slp2+build03) unstable; urgency=low
+
+  * [entry] bug fix autoperiod
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 05 Jan 2011 09:26:07 +0900
+
+edje (1.0.0.001+svn.55556slp2+build02) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r55556
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build02 
+
+ -- Myoungwoon Kim <myoungwoon.kim@samsung.com>  Tue, 04 Jan 2011 08:51:55 +0900
+
+edje (1.0.0.001+svn.55556slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r55556
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Mon, 03 Jan 2011 21:21:52 +0900
+
+edje (1.0.0.001+svn.55556slp2+build01) unstable; urgency=low
+
+  * [SVN EFL Migration] edje in SLP is merged with SVN r55556
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55556slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 22 Dec 2010 20:07:23 +0900
+
+edje (1.0.0.001+svn.55379slp2+build01) unstable; urgency=low
+
+  * [SVN's EFL Migration] edje in SLP is merged with SVN r55379.
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55379slp2+build01
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Tue, 14 Dec 2010 17:53:11 +0900
+
+edje (1.0.0.001+svn.55073slp2+build02) unstable; urgency=low
+
+  * [SVN's EFL Migration] edje in SLP is merged with SVN r55379.
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55073slp2+build02
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Tue, 14 Dec 2010 15:00:01 +0900
+
+edje (1.0.0.001+svn.55073slp2+build01) unstable; urgency=low
+
+  * [SVN 55073 Merge]
+  * Update to SVN Revision 55073.
+  * Git: 165.213.180.234:slp/pkgs/e/edje
+  * Tag: edje_1.0.0.001+svn.55073slp2+build01
+
+ -- Myoungwoon Kim <myoungwoon.kim@samsung.com>  Tue, 07 Dec 2010 18:19:36 +0900
+
+edje (1.0.0.001+svn.51480slp2+build34) unstable; urgency=low
+
+  * Repackaging.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build34
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Thu, 02 Dec 2010 15:00:18 +0900
+
+edje (1.0.0.001+svn.51480slp2+build33) unstable; urgency=low
+
+  * Package Upload due to EFL merge.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build33
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Fri, 26 Nov 2010 15:47:03 +0900
+
+edje (1.0.0.001+svn.51480slp2+build32) unstable; urgency=low
+
+  * [entry] bug fix about commit position
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build32
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 24 Nov 2010 17:35:37 +0900
+
+edje (1.0.0.001+svn.51480slp2+build31) unstable; urgency=low
+
+  * Bug fix : password problem
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build31
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 23 Nov 2010 10:40:17 +0900
+
+edje (1.0.0.001+svn.51480slp2+build30) unstable; urgency=low
+
+  * Add preedit tag
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build30 
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Mon, 22 Nov 2010 20:45:42 +0900
+
+edje (1.0.0.001+svn.51480slp2+build29) unstable; urgency=low
+
+  * fixing multibyte char ellipsis bug
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build29
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Thu, 18 Nov 2010 17:08:11 +0900
+
+edje (1.0.0.001+svn.51480slp2+build28) unstable; urgency=low
+
+  * version up
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build28
+
+ -- Hyoyoung Chang <hyoyoung.chang@samsung.com>  Wed, 17 Nov 2010 20:30:09 +0900
+
+edje (1.0.0.001+svn.51480slp2+build27) unstable; urgency=low
+
+  * [entry] bug fix : last preedit string is inserted twice on focus-out
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build27
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 16 Nov 2010 19:26:55 +0900
+
+edje (1.0.0.001+svn.51480slp2+build26) unstable; urgency=low
+
+  * [debian/control] add the dependency libmpfr-0, libgmp-0 for i386
+    build edje.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build26
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Fri, 12 Nov 2010 09:26:34 +0900
+
+edje (1.0.0.001+svn.51480slp2+build25) unstable; urgency=low
+
+  * [entry] bug fix : delete first character in preediting
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build25  
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 09 Nov 2010 20:13:36 +0900
+
+edje (1.0.0.001+svn.51480slp2+build24) unstable; urgency=low
+
+  * [entry] bug fix : commit -> preedit_changed
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build24
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 04 Nov 2010 17:52:48 +0900
+
+edje (1.0.0.001+svn.51480slp2+build23) unstable; urgency=low
+
+  * [entry] modify preedit_changed_cb
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build23
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 04 Nov 2010 10:43:36 +0900
+
+edje (1.0.0.001+svn.51480slp2+build22) unstable; urgency=low
+
+  * [entry] modify autoperiod policy
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build22
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 02 Nov 2010 08:48:06 +0900
+
+edje (1.0.0.001+svn.51480slp2+build21) unstable; urgency=low
+
+  * [entry] process the key events of keypad 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build21
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 26 Oct 2010 14:13:50 +0900
+
+edje (1.0.0.001+svn.51480slp2+build20) unstable; urgency=low
+
+  * [entry] changed the size of handler detection area
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build20
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 22 Oct 2010 15:45:00 +0900
+
+edje (1.0.0.001+svn.51480slp2+build19) unstable; urgency=low
+
+  * [entry] added copy paste feature - 2 handler selection
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build19
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 20 Oct 2010 23:00:00 +0900
+
+edje (1.0.0.001+svn.51480slp2+build18) unstable; urgency=low
+
+  * repackaging because of e-mail address violation 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build18
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 19 Oct 2010 19:43:27 +0900
+
+edje (1.0.0.001+svn.51480slp2+build17) unstable; urgency=low
+
+  * repackaging for fixin bug of password tag 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build17
+
+ -- WooHyun Jung <wh0705.jung@samsung.com>  Tue, 19 Oct 2010 19:24:49 +0900
+
+edje (1.0.0.001+svn.51480slp2+build16) unstable; urgency=low
+
+  * check whether autoperiod, autocapital is allowed or not
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build16
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 13 Oct 2010 20:12:50 +0900
+
+edje (1.0.0.001+svn.51480slp2+build14) unstable; urgency=low
+
+  * [Last Character password feature]
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build14
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Wed, 13 Oct 2010 16:42:50 +0900
+
+edje (1.0.0.001+svn.51480slp2+build13) unstable; urgency=low
+
+  * [entry] reset composition when entry loses focus.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build13
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 08 Oct 2010 15:59:35 +0900
+
+edje (1.0.0.001+svn.51480slp2+build12) unstable; urgency=low
+
+  * [entry] Bug fix about calling input_panel_hide more than one.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build12
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 06 Oct 2010 10:57:24 +0900
+
+edje (1.0.0.001+svn.51480slp2+build11) unstable; urgency=low
+
+  * [entry] Added double click word selection feature
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build11
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Wed, 29 Sep 2010 01:16:00 +0900
+
+edje (1.0.0.001+svn.51480slp2+build10) unstable; urgency=low
+
+  * [entry] Add feature related to the cancel of autocapital
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build10
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 28 Sep 2010 21:08:29 +0900
+
+edje (1.0.0.001+svn.51480slp2+build09) unstable; urgency=low
+
+  * repackaging. 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build09
+
+ -- ChunEon Park <chuneon.park@samsung.com>  Fri, 24 Sep 2010 19:53:54 +0900
+
+edje (1.0.0.001+svn.51480slp2+build08) unstable; urgency=low
+
+  * repackaging for entry password 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build08
+
+ -- ChunEon Park <chuneon.park@samsung.com>  Mon, 20 Sep 2010 20:49:45 +0900
+
+edje (1.0.0.001+svn.51480slp2+build07) unstable; urgency=low
+
+  * Fix bug about autocapitalization 
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build07
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 20 Sep 2010 13:28:38 +0900
+
+edje (1.0.0.001+svn.51480slp2+build06) unstable; urgency=low
+
+  * Support autoperiod, autocapital.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build06
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 20 Sep 2010 10:57:26 +0900
+
+edje (1.0.0.001+svn.51480slp2+build05) unstable; urgency=low
+
+  * Support autoperiod, autocapital.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build05
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 17 Sep 2010 16:43:56 +0900
+
+edje (1.0.0.001+svn.51480slp2+build03) unstable; urgency=low
+
+  * hide keypad when object is destroyed.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build03
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Sat, 11 Sep 2010 00:09:48 +0900
+
+edje (1.0.0.001+svn.51480slp2+build02) unstable; urgency=low
+
+  * add lua dependency
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Fri, 10 Sep 2010 21:36:55 +0900
+
+edje (1.0.0.001+svn.51480slp2+build01) unstable; urgency=low
+
+  * efl 1.0 alpha upgrade
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_1.0.0.001+svn.51480slp2+build01
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 31 Aug 2010 22:48:41 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build15) unstable; urgency=low
+
+  * Show preedit area.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build15
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 30 Aug 2010 10:36:54 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build14) unstable; urgency=low
+
+  * Bug fix : ecore_timer_del problem.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build14
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 25 Aug 2010 09:30:26 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build13) unstable; urgency=low
+
+  * Remove selection area when character is inserted.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build13
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 11 Aug 2010 20:11:06 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build12) unstable; urgency=low
+
+  * Entry crash issue is solved.
+  * Git: 165.213.180.234:/git/slp/pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build12
+
+ -- Juyung Seo <juyung.seo@samsung.com>  Wed, 21 Jul 2010 14:25:59 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build11) unstable; urgency=low
+
+  * Add edje_object_part_text_input_panel_enabled_get 
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build11
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 09 Jul 2010 19:57:42 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build10) unstable; urgency=low
+
+  * Bug fix related to timer issue 
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build10
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Fri, 09 Jul 2010 16:00:30 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build09) unstable; urgency=low
+
+  * Add APIs related to input panel
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build09
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Thu, 08 Jul 2010 17:36:04 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build08) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build08
+
+ -- ChunEon Park <chuneon.park@samsung.com>  Wed, 07 Jul 2010 16:47:28 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build07) unstable; urgency=low
+
+  * add lua dependency
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build07
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Fri, 18 Jun 2010 09:24:30 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build06) unstable; urgency=low
+
+  * Changed Lua package as a dependent package.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build06
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 17 Jun 2010 18:06:18 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build05) unstable; urgency=low
+
+  * Package version changes.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build05
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Fri, 11 Jun 2010 18:54:09 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build04) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build04
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 10 Jun 2010 21:09:28 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build03) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build03
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 10 Jun 2010 21:04:12 +0900
+
+edje (0.9.92.060+svn.49543slp2+3build02) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3build02
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  목, 10  6월 2010 21:00:51 +0900
+
+edje (0.9.92.060+svn.49543slp2+3) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+3
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.com>  Thu, 10 Jun 2010 20:46:54 +0900
+
+edje (0.9.92.060+svn.49543slp2+2) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+2
+
+ -- Daniel Juyung Seo <juyung.seo@samsung.net>  Thu, 10 Jun 2010 20:46:08 +0900
+
+edje (0.9.92.060+svn.49543slp2+1) unstable; urgency=low
+
+  * Packaging.
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL-pkgs/edje
+  * Tag: edje_0.9.92.060+svn.49543slp2+1
+
+ -- Daniel Juyung Seo <juyung.seo@smasung.net>  Thu, 10 Jun 2010 20:45:22 +0900
+
+edje (0.9.92.060+svn.49543slp2+0) unstable; urgency=low
+
+  * Update opensource EFL from SVN
+  * SVN revision: 49543 (Total EFL revision: 49550)
+  * Tag: 0.9.92.060+svn.49543slp2+0
+
+ -- Daniel Juyung Seo <juyung.seo@smasung.net>  Thu, 10 Jun 2010 15:50:38 +0900
+
+edje (0.9.92.060+svn20100304slp2+7) unstable; urgency=low
+
+  * Repackage due to tag
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+7
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 16 Apr 2010 11:33:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+6) unstable; urgency=low
+
+  * Repackage due to tag
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+6
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 15 Apr 2010 20:15:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+5) unstable; urgency=low
+
+  * Bug fix - entry cursor problem
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+5
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Thu, 15 Apr 2010 19:55:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+4) unstable; urgency=low
+
+  * Support autocapitalization
+  * Git: 165.213.180.234:/git/slp2.0/slp2.0-pkgs/EFL
+  * Tag: edje_0.9.92.060+svn20100304slp2+4
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Wed, 14 Apr 2010 17:44:46 +0900
+
+edje (0.9.92.060+svn20100304slp2+3) unstable; urgency=low
+
+  * rollback - edje_entry - remove <br> related bug fix
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Sat, 27 Mar 2010 18:32:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+2) unstable; urgency=low
+
+  * rollback - edje_entry - remove cursor movement bug fix
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 26 Mar 2010 22:52:00 +0900
+
+edje (0.9.92.060+svn20100304slp2+1) unstable; urgency=low
+
+  * bug fixed - edje_entry - cursor movement
+
+ -- Myungjae Lee <mjae.lee@samsung.com>  Fri, 26 Mar 2010 08:26:00 +0900
+
+edje (0.9.92.060+svn20100304slp2) unstable; urgency=low
+
+  * change package version
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Thu, 25 Mar 2010 15:50:05 +0900
+
+edje (0.9.92.060+svn20100304-1) unstable; urgency=low
+
+  * EFL_update_revision_46864
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 10 Mar 2010 16:06:37 +0900
+
+edje (0.9.92.060+svn20100203-6) unstable; urgency=low
+
+  * bug fixed - edje_entry - CANVAS focus in/out 
+
+ -- wonguk Jeong <wonguk.jeong@samsung.com>  Fri, 19 Feb 2010 17:19:37 +0900
+
+edje (0.9.92.060+svn20100203-5) unstable; urgency=low
+
+  * repack
+
+ -- sangho park <sangho.g.park@samsung.com>  Mon, 08 Feb 2010 22:27:44 +0900
+
+edje (0.9.92.060+svn20100203-4) unstable; urgency=low
+
+  * add broken dependency in libedje-bin
+
+ -- Wonguk Jeong <wonguk.jeong@samsung.com>  Mon, 08 Feb 2010 20:12:29 +0900
+
+edje (0.9.92.060+svn20100203-3) unstable; urgency=low
+
+  * edje_entry patch for supporting to switch window
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Mon, 08 Feb 2010 13:37:37 +0900
+
+edje (0.9.92.060+svn20100203-2) unstable; urgency=low
+
+  * repack
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Thu, 04 Feb 2010 20:29:57 +0900
+
+edje (0.9.92.060+svn20100203-1) unstable; urgency=low
+
+  * EFL_update_revision_45828
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 03 Feb 2010 16:39:22 +0900
+
+edje (0.9.92.060+svn20100119-1) unstable; urgency=low
+
+  * EFL_update_revision_45322
+
+ -- Jihoon Kim <jihoon48.kim@samsung.com>  Tue, 19 Jan 2010 20:44:49 +0900
+
+edje (0.9.92.060+svn20100111-5) unstable; urgency=low
+
+  * change control
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 12 Jan 2010 19:10:39 +0900
+
+edje (0.9.92.060+svn20100111-4) unstable; urgency=low
+
+  * reupload EFL i686
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 12 Jan 2010 17:35:40 +0900
+
+edje (0.9.92.060+svn20100111-3) unstable; urgency=low
+
+  * remove mpfr gmp
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 12 Jan 2010 00:22:19 +0900
+
+edje (0.9.92.060+svn20100111-2) unstable; urgency=low
+
+  * reupload EFL
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Mon, 11 Jan 2010 22:17:03 +0900
+
+edje (0.9.92.060+svn20100111-1) unstable; urgency=low
+
+  * update EFL revision 45026
+
+ -- Jongwoo Chae <jongwoo.chae@samsung.com>  Mon, 11 Jan 2010 13:28:06 +0900
+
+edje (0.9.92.060+svn20091229-4) unstable; urgency=low
+
+  * To build i386... No source code changed.
+
+ -- Jongwoo Chae <jongwoo.chae@samsung.com>  Thu, 07 Jan 2010 22:03:40 +0900
+
+edje (0.9.92.060+svn20091229-3) unstable; urgency=low
+
+  * add build dep (lua)
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 30 Dec 2009 19:43:16 +0900
+
+edje (0.9.92.060+svn20091229-2) unstable; urgency=low
+
+  * add depends (lua)
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Wed, 30 Dec 2009 15:48:41 +0900
+
+edje (0.9.92.060+svn20091229-1) unstable; urgency=low
+
+  * update EFL
+
+ -- Jaehwan Kim <jae.hwan.kim@samsung.com>  Tue, 29 Dec 2009 14:27:05 +0900
+
+edje (0.9.92.060+svn20091112-4) unstable; urgency=low
+
+  * modify architecture value from all to any 
+
+ -- Youmin Ha <youmin.ha@samsung.com>  Fri, 27 Nov 2009 15:37:25 +0900
+
+edje (0.9.92.060+svn20091112-3) unstable; urgency=low
+
+  * add dependency to lua for edje-bin
+
+ -- Youmin Ha <youmin.ha@samsung.com>  Tue, 24 Nov 2009 15:20:12 +0900
+
+edje (0.9.92.060+svn20091112-2) unstable; urgency=low
+
+  * svn stable version
+
+ -- Sangho Park <sangho.g.park@samsung.com>  Thu, 19 Nov 2009 19:05:31 +0900
+
+edje (0.9.92.060+svn20091112-1) unstable; urgency=low
+
+  * Updated version
+
+ -- Sangho Park <sangho.g.park@samsung.com>  Fri, 13 Nov 2009 09:01:11 +0900
+
+edje (0.9.92.060+svnYYYYMMDD-1) unstable; urgency=low
+
+  * Updated version
+
+ -- quaker <quaker66@gmail.com>  Thu, 22 Apr 2009 18:18:23 +0100
+
+edje (0.9.9.050+svnYYYYMMDD-1) unstable; urgency=low
+
+  * Clean up changelog
+
+ -- quaker <quaker66@gmail.com>  Tue, 21 Apr 2009 19:15:44 +0100

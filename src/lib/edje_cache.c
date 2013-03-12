@@ -1,12 +1,9 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include "edje_private.h"
 
-static Evas_Hash   *_edje_file_hash = NULL;
+
+static Eina_Hash   *_edje_file_hash = NULL;
 static int          _edje_file_cache_size = 16;
-static Evas_List   *_edje_file_cache = NULL;
+static Eina_List   *_edje_file_cache = NULL;
 
 static int          _edje_collection_cache_size = 16;
 
@@ -14,88 +11,176 @@ static Edje_Part_Collection *
 _edje_file_coll_open(Edje_File *edf, const char *coll)
 {
    Edje_Part_Collection *edc = NULL;
-   Evas_List *l = NULL;
+   Edje_Part_Collection_Directory_Entry *ce;
    int id = -1, size = 0;
+   Eina_List *l;
    char buf[256];
+   char *buffer;
    void *data;
 
-   for (l = edf->collection_dir->entries; l; l = l->next)
-     {
-	Edje_Part_Collection_Directory_Entry *ce;
+   ce = eina_hash_find(edf->collection, coll);
+   if (!ce) return NULL;
 
-	ce = l->data;
-	if ((ce->entry) && (!strcmp(ce->entry, coll)))
+   if (ce->ref)
+     {
+	ce->ref->references++;
+	return ce->ref;
+     }
+
+   EINA_LIST_FOREACH(edf->collection_cache, l, edc)
+     {
+	if (!strcmp(edc->part, coll))
 	  {
-	     id = ce->id;
-	     break;
+	     edc->references = 1;
+	     ce->ref = edc;
+
+	     edf->collection_cache = eina_list_remove_list(edf->collection_cache, l);
+	     return ce->ref;
 	  }
      }
+
+   id = ce->id;
    if (id < 0) return NULL;
 
-   snprintf(buf, sizeof(buf), "collections/%i", id);
+#define INIT_EMP(Tp, Sz, Ce)                                           \
+   buffer = alloca(strlen(ce->entry) + strlen(#Tp) + 2);               \
+   sprintf(buffer, "%s/%s", ce->entry, #Tp);                           \
+   Ce->mp.Tp = eina_mempool_add("one_big", buffer, NULL, sizeof (Sz), Ce->count.Tp); \
+   _emp_##Tp = Ce->mp.Tp;
+
+#define INIT_EMP_BOTH(Tp, Sz, Ce)                                       \
+   INIT_EMP(Tp, Sz, Ce)                                                 \
+   Ce->mp_rtl.Tp = eina_mempool_add("one_big", buffer, NULL,            \
+         sizeof (Sz), Ce->count.Tp);
+
+   INIT_EMP_BOTH(RECTANGLE, Edje_Part_Description_Common, ce);
+   INIT_EMP_BOTH(TEXT, Edje_Part_Description_Text, ce);
+   INIT_EMP_BOTH(IMAGE, Edje_Part_Description_Image, ce);
+   INIT_EMP_BOTH(PROXY, Edje_Part_Description_Proxy, ce);
+   INIT_EMP_BOTH(SWALLOW, Edje_Part_Description_Common, ce);
+   INIT_EMP_BOTH(TEXTBLOCK, Edje_Part_Description_Text, ce);
+   INIT_EMP_BOTH(GROUP, Edje_Part_Description_Common, ce);
+   INIT_EMP_BOTH(BOX, Edje_Part_Description_Box, ce);
+   INIT_EMP_BOTH(TABLE, Edje_Part_Description_Table, ce);
+   INIT_EMP_BOTH(EXTERNAL, Edje_Part_Description_External, ce);
+   INIT_EMP_BOTH(SPACER, Edje_Part_Description_Common, ce);
+   INIT_EMP(part, Edje_Part, ce);
+
+   snprintf(buf, sizeof(buf), "edje/collections/%i", id);
    edc = eet_data_read(edf->ef, _edje_edd_edje_part_collection, buf);
    if (!edc) return NULL;
 
-   snprintf(buf, sizeof(buf), "scripts/%i", id);
+   edc->references = 1;
+   edc->part = ce->entry;
+
+   /* For Edje file build with Edje 1.0 */
+   if (edf->version <= 3 && edf->minor <= 1)
+     {
+        /* This will preserve previous rendering */
+        unsigned int i;
+
+	/* people expect signal to not be broadcasted */
+	edc->broadcast_signal = EINA_FALSE;
+
+	/* people expect text.align to be 0.0 0.0 */
+        for (i = 0; i < edc->parts_count; ++i)
+          {
+             if (edc->parts[i]->type == EDJE_PART_TYPE_TEXTBLOCK)
+               {
+                  Edje_Part_Description_Text *text;
+                  unsigned int j;
+
+                  text = (Edje_Part_Description_Text*) edc->parts[i]->default_desc;
+                  text->text.align.x = TO_DOUBLE(0.0);
+                  text->text.align.y = TO_DOUBLE(0.0);
+
+                  for (j = 0; j < edc->parts[i]->other.desc_count; ++j)
+                    {
+                       text =  (Edje_Part_Description_Text*) edc->parts[i]->other.desc[j];
+                       text->text.align.x = TO_DOUBLE(0.0);
+                       text->text.align.y = TO_DOUBLE(0.0);
+                    }
+               }
+          }
+     }
+
+   snprintf(buf, sizeof(buf), "edje/scripts/embryo/compiled/%i", id);
    data = eet_read(edf->ef, buf, &size);
 
    if (data)
      {
 	edc->script = embryo_program_new(data, size);
+	_edje_embryo_script_init(edc);
 	free(data);
      }
 
-   edc->part = evas_stringshare_add(coll);
-   edc->references = 1;
-   edf->collection_hash = evas_hash_add(edf->collection_hash, coll, edc);
+   snprintf(buf, sizeof(buf), "edje/scripts/lua/%i", id);
+   data = eet_read(edf->ef, buf, &size);
+
+   if (data)
+     {
+        _edje_lua2_script_load(edc, data, size);
+	free(data);
+     }
+
+   ce->ref = edc;
+
    return edc;
 }
 
-static int
-_edje_font_hash(Edje_File *edf)
+#ifdef HAVE_EIO
+static Eina_Bool
+_edje_file_warn(void *data)
 {
-   int	count = 0;
+   Edje_File *edf = data;
+   Eina_List *l, *ll;
+   Edje *ed;
 
-   if (edf->font_dir)
+   edf->references++;
+
+   EINA_LIST_FOREACH(edf->edjes, l, ed)
+     _edje_ref(ed);
+
+   EINA_LIST_FOREACH(edf->edjes, l, ed)
      {
-	Evas_List *l;
-	for (l = edf->font_dir->entries; l; l = evas_list_next(l))
-	  {
-	     Edje_Font_Directory_Entry  *fnt;
-	     int                         length;
-	     char                       *tmp;
-
-	     fnt = l->data;
-	     length = strlen(fnt->entry) + 7;
-	     tmp = alloca(length);
-
-	     snprintf(tmp, length, "fonts/%s", fnt->entry);
-	     fnt->path = evas_stringshare_add(tmp);
-             if (edf->free_strings)
-               evas_stringshare_del(fnt->entry);
-	     fnt->entry = fnt->path + 6;
-	     edf->font_hash = evas_hash_direct_add(edf->font_hash, fnt->entry, fnt);
-
-	     count++;
-	  }
+        _edje_emit(ed, "edje,change,file", "edje");
      }
-   return count;
+
+   EINA_LIST_FOREACH_SAFE(edf->edjes, l, ll, ed)
+     _edje_unref(ed);
+
+   edf->references--;
+
+   edf->timeout = NULL;
+   return EINA_FALSE;
 }
 
-static Edje_File *
-_edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret)
+static Eina_Bool
+_edje_file_change(void *data, int ev_type __UNUSED__, void *event)
 {
+   Edje_File *edf = data;
+   Eio_Monitor_Event *ev = event;
+
+   if (ev->monitor == edf->monitor)
+     {
+        if (edf->timeout) ecore_timer_del(edf->timeout);
+        edf->timeout = ecore_timer_add(0.5, _edje_file_warn, edf);
+     }
+   return ECORE_CALLBACK_PASS_ON;
+}
+#endif
+
+static Edje_File *
+_edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret, time_t mtime)
+{
+   Edje_Color_Class *cc;
    Edje_File *edf;
+   Eina_List *l;
    Edje_Part_Collection *edc;
    Eet_File *ef;
-   Evas_List *l;
-   struct stat st;
-
-   if (stat(file, &st) != 0)
-     {
-	*error_ret = EDJE_LOAD_ERROR_DOES_NOT_EXIST;
-	return NULL;
-     }
+#ifdef HAVE_EIO
+   Ecore_Event_Handler *ev;
+#endif
 
    ef = eet_open(file, EET_FILE_MODE_READ);
    if (!ef)
@@ -103,7 +188,7 @@ _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Co
 	*error_ret = EDJE_LOAD_ERROR_UNKNOWN_FORMAT;
 	return NULL;
      }
-   edf = eet_data_read(ef, _edje_edd_edje_file, "edje_file");
+   edf = eet_data_read(ef, _edje_edd_edje_file, "edje/file");
    if (!edf)
      {
 	*error_ret = EDJE_LOAD_ERROR_CORRUPT_FILE;
@@ -111,9 +196,19 @@ _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Co
 	return NULL;
      }
 
-   edf->free_strings = eet_dictionary_get(ef) ? 0 : 1;
-
    edf->ef = ef;
+   edf->mtime = mtime;
+#ifdef HAVE_EIO
+   edf->monitor = eio_monitor_add(file);
+   ev = ecore_event_handler_add(EIO_MONITOR_FILE_DELETED, _edje_file_change, edf);
+   edf->handlers = eina_list_append(edf->handlers, ev);
+   ev = ecore_event_handler_add(EIO_MONITOR_FILE_MODIFIED, _edje_file_change, edf);
+   edf->handlers = eina_list_append(edf->handlers, ev);
+   ev = ecore_event_handler_add(EIO_MONITOR_FILE_CREATED, _edje_file_change, edf);
+   edf->handlers = eina_list_append(edf->handlers, ev);
+   ev = ecore_event_handler_add(EIO_MONITOR_SELF_DELETED, _edje_file_change, edf);
+   edf->handlers = eina_list_append(edf->handlers, ev);
+#endif
 
    if (edf->version != EDJE_FILE_VERSION)
      {
@@ -121,25 +216,27 @@ _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Co
 	_edje_file_free(edf);
 	return NULL;
      }
-   if (!edf->collection_dir)
+   if (!edf->collection)
      {
 	*error_ret = EDJE_LOAD_ERROR_CORRUPT_FILE;
 	_edje_file_free(edf);
 	return NULL;
      }
 
-   edf->path = evas_stringshare_add(file);
+   if (edf->minor > EDJE_FILE_MINOR)
+     {
+	WRN("`%s` may use feature from a newer edje and could not show up as expected.", file);
+     }
+
+   edf->path = eina_stringshare_add(file);
    edf->references = 1;
 
+   /* This should be done at edje generation time */
    _edje_textblock_style_parse_and_fix(edf);
-
-   for (l = edf->data; l; l = evas_list_remove(l, l->data))
-     {
-	Edje_Data *di = l->data;
-	edf->data_cache = evas_hash_add(edf->data_cache, evas_stringshare_add(di->key), di->value);
-	free(di);
-     }
-   edf->data = NULL;
+   edf->color_hash = eina_hash_string_small_new(NULL);
+   EINA_LIST_FOREACH(edf->color_classes, l, cc)
+     if (cc->name)
+       eina_hash_direct_add(edf->color_hash, cc->name, cc);
 
    if (coll)
      {
@@ -151,144 +248,198 @@ _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Co
 	if (edc_ret) *edc_ret = edc;
      }
 
-   edf->font_hash = NULL;
-
-   _edje_font_hash(edf);
-
    return edf;
 }
 
+static void
+_edje_file_dangling(Edje_File *edf)
+{
+   if (edf->dangling) return;
+   edf->dangling = EINA_TRUE;
+
+   eina_hash_del(_edje_file_hash, edf->path, edf);
+   if (!eina_hash_population(_edje_file_hash))
+     {
+       eina_hash_free(_edje_file_hash);
+       _edje_file_hash = NULL;
+     }
+}
+
 Edje_File *
-_edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret)
+_edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret, Edje *ed)
 {
    Edje_File *edf;
-   Evas_List *l, *hist;
+   Eina_List *l, *hist;
    Edje_Part_Collection *edc;
+   Edje_Part *ep;
+   struct stat st;
 
-   edf = evas_hash_find(_edje_file_hash, file);
+   if (stat(file, &st) != 0)
+      return NULL;
+
+   if (!_edje_file_hash)
+     {
+	_edje_file_hash = eina_hash_string_small_new(NULL);
+	goto find_list;
+     }
+
+   edf = eina_hash_find(_edje_file_hash, file);
    if (edf)
      {
+	if (edf->mtime != st.st_mtime)
+	  {
+	     _edje_file_dangling(edf);
+	     goto open_new;
+	  }
+
 	edf->references++;
+	goto open;
      }
-   else
+
+find_list:
+   EINA_LIST_FOREACH(_edje_file_cache, l, edf)
      {
-	for (l = _edje_file_cache; l; l = l->next)
+	if (!strcmp(edf->path, file))
 	  {
-	     edf = l->data;
-	     if (!strcmp(edf->path, file))
+	     if (edf->mtime != st.st_mtime)
 	       {
-		  edf->references = 1;
-		  _edje_file_cache = evas_list_remove_list(_edje_file_cache, l);
-		  _edje_file_hash = evas_hash_add(_edje_file_hash, file, edf);
-		  break;
+		  _edje_file_cache = eina_list_remove_list(_edje_file_cache, l);
+		  _edje_file_free(edf);
+		  goto open_new;
 	       }
-	     edf = NULL;
+
+	     edf->references = 1;
+	     _edje_file_cache = eina_list_remove_list(_edje_file_cache, l);
+	     eina_hash_add(_edje_file_hash, file, edf);
+	     goto open;
 	  }
      }
+
+open_new:
+   if (!_edje_file_hash)
+      _edje_file_hash = eina_hash_string_small_new(NULL);
+
+   edf = _edje_file_open(file, coll, error_ret, edc_ret, st.st_mtime);
    if (!edf)
-     {
-	edf = _edje_file_open(file, coll, error_ret, edc_ret);
-	if (!edf) return NULL;
-	_edje_file_hash = evas_hash_add(_edje_file_hash, file, edf);
-	return edf;
-     }
+      return NULL;
 
-   if (!coll) return edf;
+#ifdef HAVE_EIO
+   if (ed) edf->edjes = eina_list_append(edf->edjes, ed);
+#else
+   (void) ed;
+#endif
 
-   edc = evas_hash_find(edf->collection_hash, coll);
-   if (edc)
-     {
-	edc->references++;
-     }
-   else
-     {
-	for (l = edf->collection_cache; l; l = l->next)
-	  {
-	     edc = l->data;
-	     if (!strcmp(edc->part, coll))
-	       {
-		  edc->references = 1;
-		  edf->collection_cache = evas_list_remove_list(edf->collection_cache, l);
-		  edf->collection_hash = evas_hash_add(edf->collection_hash, coll, edc);
-		  break;
-	       }
-	     edc = NULL;
-	  }
-     }
+   eina_hash_add(_edje_file_hash, file, edf);
+   return edf;
+
+open:
+   if (!coll)
+      return edf;
+
+   edc = _edje_file_coll_open(edf, coll);
    if (!edc)
      {
-	edc = _edje_file_coll_open(edf, coll);
-	if (!edc)
+	*error_ret = EDJE_LOAD_ERROR_UNKNOWN_COLLECTION;
+     }
+   else
+     {
+	if (!edc->checked)
 	  {
-	     *error_ret = EDJE_LOAD_ERROR_UNKNOWN_COLLECTION;
-	  }
-	else
-	  {
-	     for (l = edc->parts; l; l = l->next)
+	     unsigned int j;
+
+	     for (j = 0; j < edc->parts_count; ++j)
 	       {
-		  Edje_Part *ep, *ep2;
+		  Edje_Part *ep2;
+
+		  ep = edc->parts[j];
 
 		  /* Register any color classes in this parts descriptions. */
-		  ep = l->data;
 		  hist = NULL;
-		  hist = evas_list_append(hist, ep);
+		  hist = eina_list_append(hist, ep);
 		  ep2 = ep;
 		  while (ep2->dragable.confine_id >= 0)
 		    {
-		       ep2 = evas_list_nth(edc->parts, ep2->dragable.confine_id);
-		       if (evas_list_find(hist, ep2))
+		       if (ep2->dragable.confine_id >= (int) edc->parts_count)
 			 {
-			    printf("EDJE ERROR: confine_to loops. invalidating loop.\n");
+			    ERR("confine_to above limit. invalidating it.");
 			    ep2->dragable.confine_id = -1;
 			    break;
 			 }
-		       hist = evas_list_append(hist, ep2);
+
+		       ep2 = edc->parts[ep2->dragable.confine_id];
+		       if (eina_list_data_find(hist, ep2))
+			 {
+			    ERR("confine_to loops. invalidating loop.");
+			    ep2->dragable.confine_id = -1;
+			    break;
+			 }
+		       hist = eina_list_append(hist, ep2);
 		    }
-		  evas_list_free(hist);
+		  eina_list_free(hist);
 		  hist = NULL;
-		  hist = evas_list_append(hist, ep);
+		  hist = eina_list_append(hist, ep);
 		  ep2 = ep;
-		  while (ep2->dragable.events_id >= 0)
+		  while (ep2->dragable.event_id >= 0)
 		    {
 		       Edje_Part* prev;
 
+		       if (ep2->dragable.event_id >= (int) edc->parts_count)
+			 {
+			    ERR("event_id above limit. invalidating it.");
+			    ep2->dragable.event_id = -1;
+			    break;
+			 }
 		       prev = ep2;
 
-		       ep2 = evas_list_nth(edc->parts, ep2->dragable.events_id);
+		       ep2 = edc->parts[ep2->dragable.event_id];
 		       if (!ep2->dragable.x && !ep2->dragable.y)
 			 {
-			    prev->dragable.events_id = -1;
+			    prev->dragable.event_id = -1;
 			    break;
 			 }
 
-		       if (evas_list_find(hist, ep2))
+		       if (eina_list_data_find(hist, ep2))
 			 {
-			    printf("EDJE ERROR: events_to loops. invalidating loop.\n");
-			    ep2->dragable.events_id = -1;
+			    ERR("events_to loops. invalidating loop.");
+			    ep2->dragable.event_id = -1;
 			    break;
 			 }
-		       hist = evas_list_append(hist, ep2);
+		       hist = eina_list_append(hist, ep2);
 		    }
-		  evas_list_free(hist);
+		  eina_list_free(hist);
 		  hist = NULL;
-		  hist = evas_list_append(hist, ep);
+		  hist = eina_list_append(hist, ep);
 		  ep2 = ep;
 		  while (ep2->clip_to_id >= 0)
 		    {
-		       ep2 = evas_list_nth(edc->parts, ep2->clip_to_id);
-		       if (evas_list_find(hist, ep2))
+		       if (ep2->clip_to_id >= (int) edc->parts_count)
 			 {
-			    printf("EDJE ERROR: clip_to loops. invalidating loop.\n");
+			    ERR("clip_to_id above limit. invalidating it.");
 			    ep2->clip_to_id = -1;
 			    break;
 			 }
-		       hist = evas_list_append(hist, ep2);
+
+		       ep2 = edc->parts[ep2->clip_to_id];
+		       if (eina_list_data_find(hist, ep2))
+			 {
+			    ERR("clip_to loops. invalidating loop.");
+			    ep2->clip_to_id = -1;
+			    break;
+			 }
+		       hist = eina_list_append(hist, ep2);
 		    }
-		  evas_list_free(hist);
+		  eina_list_free(hist);
 		  hist = NULL;
 	       }
+	    edc->checked = 1;
 	  }
      }
+#ifdef HAVE_EIO
+   if (edc && ed) edf->edjes = eina_list_append(edf->edjes, ed);
+#else
+   (void) ed;
+#endif
+
    if (edc_ret) *edc_ret = edc;
 
    return edf;
@@ -297,17 +448,17 @@ _edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, E
 void
 _edje_cache_coll_clean(Edje_File *edf)
 {
-   int count;
-
-   count = evas_list_count(edf->collection_cache);
-   while ((edf->collection_cache) && (count > _edje_collection_cache_size))
+   while ((edf->collection_cache) &&
+	  (eina_list_count(edf->collection_cache) > (unsigned int) _edje_collection_cache_size))
      {
+	Edje_Part_Collection_Directory_Entry *ce;
 	Edje_Part_Collection *edc;
 
-	edc = evas_list_last(edf->collection_cache)->data;
-	edf->collection_cache = evas_list_remove_list(edf->collection_cache, evas_list_last(edf->collection_cache));
-	_edje_collection_free(edf, edc);
-	count = evas_list_count(edf->collection_cache);
+	edc = eina_list_data_get(eina_list_last(edf->collection_cache));
+	edf->collection_cache = eina_list_remove_list(edf->collection_cache, eina_list_last(edf->collection_cache));
+
+	ce = eina_hash_find(edf->collection, edc->part);
+	_edje_collection_free(edf, edc, ce);
      }
 }
 
@@ -316,22 +467,49 @@ _edje_cache_coll_flush(Edje_File *edf)
 {
    while (edf->collection_cache)
      {
+	Edje_Part_Collection_Directory_Entry *ce;
 	Edje_Part_Collection *edc;
+	Eina_List *last;
 
-	edc = evas_list_last(edf->collection_cache)->data;
-	edf->collection_cache = evas_list_remove_list(edf->collection_cache, evas_list_last(edf->collection_cache));
-	_edje_collection_free(edf, edc);
+	last = eina_list_last(edf->collection_cache);
+	edc = eina_list_data_get(last);
+	edf->collection_cache = eina_list_remove_list(edf->collection_cache,
+						      last);
+
+	ce = eina_hash_find(edf->collection, edc->part);
+	_edje_collection_free(edf, edc, ce);
      }
 }
 
 void
 _edje_cache_coll_unref(Edje_File *edf, Edje_Part_Collection *edc)
 {
+   Edje_Part_Collection_Directory_Entry *ce;
+
    edc->references--;
    if (edc->references != 0) return;
-   edf->collection_hash = evas_hash_del(edf->collection_hash, edc->part, edc);
-   edf->collection_cache = evas_list_prepend(edf->collection_cache, edc);
-   _edje_cache_coll_clean(edf);
+
+   ce = eina_hash_find(edf->collection, edc->part);
+   if (!ce)
+     {
+	ERR("Something is wrong with reference count of '%s'.", edc->part);
+     }
+   else if (ce->ref)
+     {
+	ce->ref = NULL;
+
+	if (edf->dangling)
+	  {
+	     /* No need to keep the collection around if the file is dangling */
+	     _edje_collection_free(edf, edc, ce);
+	     _edje_cache_coll_flush(edf);
+	  }
+	else
+	  {
+	     edf->collection_cache = eina_list_prepend(edf->collection_cache, edc);
+	     _edje_cache_coll_clean(edf);
+	  }
+     }
 }
 
 static void
@@ -339,15 +517,17 @@ _edje_cache_file_clean(void)
 {
    int count;
 
-   count = evas_list_count(_edje_file_cache);
+   count = eina_list_count(_edje_file_cache);
    while ((_edje_file_cache) && (count > _edje_file_cache_size))
      {
+	Eina_List *last;
 	Edje_File *edf;
 
-	edf = evas_list_last(_edje_file_cache)->data;
-	_edje_file_cache = evas_list_remove_list(_edje_file_cache, evas_list_last(_edje_file_cache));
+	last = eina_list_last(_edje_file_cache);
+	edf = eina_list_data_get(last);
+	_edje_file_cache = eina_list_remove_list(_edje_file_cache, last);
 	_edje_file_free(edf);
-	count = evas_list_count(_edje_file_cache);
+	count = eina_list_count(_edje_file_cache);
      }
 }
 
@@ -356,8 +536,20 @@ _edje_cache_file_unref(Edje_File *edf)
 {
    edf->references--;
    if (edf->references != 0) return;
-   _edje_file_hash = evas_hash_del(_edje_file_hash, edf->path, edf);
-   _edje_file_cache = evas_list_prepend(_edje_file_cache, edf);
+
+   if (edf->dangling)
+     {
+	_edje_file_free(edf);
+	return;
+     }
+
+   eina_hash_del(_edje_file_hash, edf->path, edf);
+   if (!eina_hash_population(_edje_file_hash))
+     {
+       eina_hash_free(_edje_file_hash);
+       _edje_file_hash = NULL;
+     }
+   _edje_file_cache = eina_list_prepend(_edje_file_cache, edf);
    _edje_cache_file_clean();
 }
 
@@ -368,8 +560,13 @@ _edje_file_cache_shutdown(void)
 }
 
 
+/*============================================================================*
+ *                                 Global                                     *
+ *============================================================================*/
 
-
+/*============================================================================*
+ *                                   API                                      *
+ *============================================================================*/
 
 
 EAPI void
@@ -380,11 +577,13 @@ edje_file_cache_set(int count)
    _edje_cache_file_clean();
 }
 
+
 EAPI int
 edje_file_cache_get(void)
 {
    return _edje_file_cache_size;
 }
+
 
 EAPI void
 edje_file_cache_flush(void)
@@ -397,22 +596,20 @@ edje_file_cache_flush(void)
    _edje_file_cache_size = ps;
 }
 
+
 EAPI void
 edje_collection_cache_set(int count)
 {
-   Evas_List *l;
+   Eina_List *l;
+   Edje_File *edf;
 
    if (count < 0) count = 0;
    _edje_collection_cache_size = count;
-   for (l = _edje_file_cache; l; l = l->next)
-     {
-	Edje_File *edf;
-
-	edf = l->data;
-	_edje_cache_coll_clean(edf);
-     }
+   EINA_LIST_FOREACH(_edje_file_cache, l, edf)
+     _edje_cache_coll_clean(edf);
    /* FIXME: freach in file hash too! */
 }
+
 
 EAPI int
 edje_collection_cache_get(void)
@@ -420,21 +617,18 @@ edje_collection_cache_get(void)
    return _edje_collection_cache_size;
 }
 
+
 EAPI void
 edje_collection_cache_flush(void)
 {
    int ps;
-   Evas_List *l;
+   Eina_List *l;
+   Edje_File *edf;
 
    ps = _edje_collection_cache_size;
    _edje_collection_cache_size = 0;
-   for (l = _edje_file_cache; l; l = l->next)
-     {
-	Edje_File *edf;
-
-	edf = l->data;
-	_edje_cache_coll_flush(edf);
-     }
+   EINA_LIST_FOREACH(_edje_file_cache, l, edf)
+     _edje_cache_coll_flush(edf);
    /* FIXME: freach in file hash too! */
    _edje_collection_cache_size = ps;
 }

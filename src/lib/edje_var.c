@@ -1,16 +1,12 @@
-/*
- * vim:ts=8:sw=3:sts=8:noexpandtab:cino=>5n-3f0^-2{2
- */
-
 #include "edje_private.h"
 
-static int _edje_var_timer_cb(void *data);
-static int _edje_var_anim_cb(void *data);
+static Eina_Bool _edje_var_timer_cb(void *data);
+static Eina_Bool _edje_var_anim_cb(void *data);
 
 static Ecore_Animator *_edje_animator = NULL;
-static Evas_List   *_edje_anim_list = NULL;
+static Eina_List   *_edje_anim_list = NULL;
 
-static int
+static Eina_Bool
 _edje_var_timer_cb(void *data)
 {
    Edje_Var_Timer *et;
@@ -18,64 +14,86 @@ _edje_var_timer_cb(void *data)
    Embryo_Function fn;
 
    et = data;
-   if (!et) return 0;
+   if (!et) return ECORE_CALLBACK_CANCEL;
    ed = et->edje;
 //      _edje_embryo_script_reset(ed);
    embryo_program_vm_push(ed->collection->script);
    _edje_embryo_globals_init(ed);
    embryo_parameter_cell_push(ed->collection->script, (Embryo_Cell)et->val);
-   ed->var_pool->timers = evas_list_remove(ed->var_pool->timers, et);
+   ed->var_pool->timers = eina_list_remove(ed->var_pool->timers, et);
    fn = et->func;
    free(et);
      {
 	void *pdata;
+        int ret;
 
 	pdata = embryo_program_data_get(ed->collection->script);
 	embryo_program_data_set(ed->collection->script, ed);
         embryo_program_max_cycle_run_set(ed->collection->script, 5000000);
-	embryo_program_run(ed->collection->script, fn);
+        ret = embryo_program_run(ed->collection->script, fn);
+        if (ret == EMBRYO_PROGRAM_FAIL)
+          {
+             ERR("ERROR with embryo script (timer callback). "
+                 "OBJECT NAME: '%s', "
+                 "OBJECT FILE: '%s', "
+                 "ERROR: '%s'",
+                 ed->collection->part,
+                 ed->file->path,
+                 embryo_error_string_get(embryo_program_error_get(ed->collection->script)));
+          }
+        else if (ret == EMBRYO_PROGRAM_TOOLONG)
+          {
+             ERR("ERROR with embryo script (timer callback). "
+                 "OBJECT NAME: '%s', "
+                 "OBJECT FILE: '%s', "
+                 "ERROR: 'Script exceeded maximum allowed cycle count of %i'",
+                 ed->collection->part,
+                 ed->file->path,
+                 embryo_program_max_cycle_run_get(ed->collection->script));
+          }
 	embryo_program_data_set(ed->collection->script, pdata);
 	embryo_program_vm_pop(ed->collection->script);
 	_edje_recalc(ed);
      }
-   return 0;
+   return ECORE_CALLBACK_CANCEL;
 }
 
-static int
-_edje_var_anim_cb(void *data)
+static Eina_Bool
+_edje_var_anim_cb(void *data __UNUSED__)
 {
-   Evas_List *l, *tl = NULL;
+   Eina_List *l, *tl = NULL;
    double t;
+   const void *tmp;
 
-   t = ecore_time_get();
-   for (l = _edje_anim_list; l; l = l->next)
-     tl = evas_list_append(tl, l->data);
+   t = ecore_loop_time_get();
+   EINA_LIST_FOREACH(_edje_anim_list, l, tmp)
+     tl = eina_list_append(tl, tmp);
    while (tl)
      {
 	Edje *ed;
-	Evas_List *tl2;
+	Eina_List *tl2;
+	Edje_Var_Animator *ea;
 
-	ed = tl->data;
+	ed = eina_list_data_get(tl);
 	_edje_ref(ed);
 	_edje_block(ed);
 	_edje_freeze(ed);
-	tl = evas_list_remove(tl, ed);
+	tl = eina_list_remove(tl, ed);
 	if (!ed->var_pool) continue;
 	tl2 = NULL;
-	for (l = ed->var_pool->animators; l; l = l->next)
-	  tl2 = evas_list_append(tl2, l->data);
+	EINA_LIST_FOREACH(ed->var_pool->animators, l, tmp)
+	  tl2 = eina_list_append(tl2, tmp);
 	ed->var_pool->walking_list++;
 	while (tl2)
 	  {
-	     Edje_Var_Animator *ea;
-
-	     ea = tl2->data;
+	     ea = eina_list_data_get(tl2);
 	     if ((ed->var_pool) && (!ea->delete_me))
 	       {
 		  if ((!ed->paused) && (!ed->delete_me))
 		    {
 		       Embryo_Function fn;
 		       float v;
+                       int ret;
 
 		       v = (t - ea->start)  / ea->len;
 		       if (v > 1.0) v= 1.0;
@@ -91,7 +109,27 @@ _edje_var_anim_cb(void *data)
 			    pdata = embryo_program_data_get(ed->collection->script);
 			    embryo_program_data_set(ed->collection->script, ed);
 			    embryo_program_max_cycle_run_set(ed->collection->script, 5000000);
-			    embryo_program_run(ed->collection->script, fn);
+                            ret = embryo_program_run(ed->collection->script, fn);
+                            if (ret == EMBRYO_PROGRAM_FAIL)
+                              {
+                                 ERR("ERROR with embryo script (anim callback). "
+                                     "OBJECT NAME: '%s', "
+                                     "OBJECT FILE: '%s', "
+                                     "ERROR: '%s'",
+                                     ed->collection->part,
+                                     ed->file->path,
+                                     embryo_error_string_get(embryo_program_error_get(ed->collection->script)));
+                              }
+                            else if (ret == EMBRYO_PROGRAM_TOOLONG)
+                              {
+                                 ERR("ERROR with embryo script (anim callback). "
+                                     "OBJECT NAME: '%s', "
+                                     "OBJECT FILE: '%s', "
+                                     "ERROR: 'Script exceeded maximum allowed cycle count of %i'",
+                                     ed->collection->part,
+                                     ed->file->path,
+                                     embryo_program_max_cycle_run_get(ed->collection->script));
+                              }
 			    embryo_program_data_set(ed->collection->script, pdata);
 			    embryo_program_vm_pop(ed->collection->script);
 			    _edje_recalc(ed);
@@ -99,30 +137,27 @@ _edje_var_anim_cb(void *data)
 		       if (v == 1.0) ea->delete_me = 1;
 		    }
 	       }
-	     tl2 = evas_list_remove(tl2, ea);
+	     tl2 = eina_list_remove(tl2, ea);
 	     if (ed->block_break)
 	       {
-		  evas_list_free(tl2);
+		  eina_list_free(tl2);
 		  break;
 	       }
 	  }
 	ed->var_pool->walking_list--;
-	for (l = ed->var_pool->animators; l;)
+	EINA_LIST_FOREACH(ed->var_pool->animators, l, ea)
 	  {
-	     Edje_Var_Animator *ea;
-
-	     ea = l->data;
 	     if (ea->delete_me)
 	       {
-		  l = l->next;
-		  ed->var_pool->animators = evas_list_remove(ed->var_pool->animators, ea);
+		 l = eina_list_next(l);
+		  ed->var_pool->animators = eina_list_remove(ed->var_pool->animators, ea);
 		  free(ea);
 	       }
 	     else
-	       l = l->next;
+	       l = eina_list_next(l);
 	  }
 	if (!ed->var_pool->animators)
-	  _edje_anim_list = evas_list_remove(_edje_anim_list, ed);
+	  _edje_anim_list = eina_list_remove(_edje_anim_list, ed);
 	_edje_unblock(ed);
 	_edje_thaw(ed);
 	_edje_unref(ed);
@@ -195,8 +230,8 @@ _edje_var_shutdown(Edje *ed)
 	       {
 		  while (ed->var_pool->vars[i].data.l.v)
 		    {
-		       _edje_var_free(ed->var_pool->vars[i].data.l.v->data);
-		       ed->var_pool->vars[i].data.l.v = evas_list_remove_list(ed->var_pool->vars[i].data.l.v, ed->var_pool->vars[i].data.l.v);
+		       _edje_var_free(eina_list_data_get(ed->var_pool->vars[i].data.l.v));
+		       ed->var_pool->vars[i].data.l.v = eina_list_remove_list(ed->var_pool->vars[i].data.l.v, ed->var_pool->vars[i].data.l.v);
 		    }
 	       }
 	  }
@@ -206,14 +241,14 @@ _edje_var_shutdown(Edje *ed)
      {
 	Edje_Var_Timer *et;
 
-	et = ed->var_pool->timers->data;
+	et = eina_list_data_get(ed->var_pool->timers);
 	ecore_timer_del(et->timer);
 	free(et);
-	ed->var_pool->timers = evas_list_remove(ed->var_pool->timers, et);
+	ed->var_pool->timers = eina_list_remove(ed->var_pool->timers, et);
      }
    if (ed->var_pool->animators)
      {
-	_edje_anim_list = evas_list_remove(_edje_anim_list, ed);
+	_edje_anim_list = eina_list_remove(_edje_anim_list, ed);
 	if (!_edje_anim_list)
 	  {
 	     if (_edje_animator)
@@ -227,9 +262,9 @@ _edje_var_shutdown(Edje *ed)
      {
 	Edje_Var_Animator *ea;
 
-	ea = ed->var_pool->animators->data;
+	ea = eina_list_data_get(ed->var_pool->animators);
 	free(ea);
-	ed->var_pool->animators = evas_list_remove(ed->var_pool->animators, ea);
+	ed->var_pool->animators = eina_list_remove(ed->var_pool->animators, ea);
      }
    free(ed->var_pool);
    ed->var_pool = NULL;
@@ -252,7 +287,7 @@ _edje_var_string_id_get(Edje *ed, const char *string)
 }
 
 int
-_edje_var_var_int_get(Edje *ed, Edje_Var *var)
+_edje_var_var_int_get(Edje *ed __UNUSED__, Edje_Var *var)
 {
    /* auto-cast */
    if (var->type == EDJE_VAR_STRING)
@@ -289,7 +324,7 @@ _edje_var_var_int_get(Edje *ed, Edje_Var *var)
 }
 
 void
-_edje_var_var_int_set(Edje *ed, Edje_Var *var, int v)
+_edje_var_var_int_set(Edje *ed __UNUSED__, Edje_Var *var, int v)
 {
    /* auto-cast */
    if (var->type == EDJE_VAR_STRING)
@@ -321,7 +356,7 @@ _edje_var_var_int_set(Edje *ed, Edje_Var *var, int v)
 }
 
 double
-_edje_var_var_float_get(Edje *ed, Edje_Var *var)
+_edje_var_var_float_get(Edje *ed __UNUSED__, Edje_Var *var)
 {
    /* auto-cast */
    if (var->type == EDJE_VAR_STRING)
@@ -358,7 +393,7 @@ _edje_var_var_float_get(Edje *ed, Edje_Var *var)
 }
 
 void
-_edje_var_var_float_set(Edje *ed, Edje_Var *var, double v)
+_edje_var_var_float_set(Edje *ed __UNUSED__, Edje_Var *var, double v)
 {
    /* auto-cast */
    if (var->type == EDJE_VAR_STRING)
@@ -391,7 +426,7 @@ _edje_var_var_float_set(Edje *ed, Edje_Var *var, double v)
 }
 
 const char *
-_edje_var_var_str_get(Edje *ed, Edje_Var *var)
+_edje_var_var_str_get(Edje *ed __UNUSED__, Edje_Var *var)
 {
    /* auto-cast */
    if (var->type == EDJE_VAR_INT)
@@ -427,7 +462,7 @@ _edje_var_var_str_get(Edje *ed, Edje_Var *var)
 }
 
 void
-_edje_var_var_str_set(Edje *ed, Edje_Var *var, const char *str)
+_edje_var_var_str_set(Edje *ed __UNUSED__, Edje_Var *var, const char *str)
 {
    /* auto-cast */
    if (var->type == EDJE_VAR_STRING)
@@ -532,7 +567,7 @@ _edje_var_list_var_append(Edje *ed, int id, Edje_Var *var)
    id -= EDJE_VAR_MAGIC_BASE;
    if ((id < 0) || (id >= ed->var_pool->size)) return;
    if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return;
-   ed->var_pool->vars[id].data.l.v = evas_list_append(ed->var_pool->vars[id].data.l.v, var);
+   ed->var_pool->vars[id].data.l.v = eina_list_append(ed->var_pool->vars[id].data.l.v, var);
 }
 
 void
@@ -543,7 +578,7 @@ _edje_var_list_var_prepend(Edje *ed, int id, Edje_Var *var)
    id -= EDJE_VAR_MAGIC_BASE;
    if ((id < 0) || (id >= ed->var_pool->size)) return;
    if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return;
-   ed->var_pool->vars[id].data.l.v = evas_list_prepend(ed->var_pool->vars[id].data.l.v, var);
+   ed->var_pool->vars[id].data.l.v = eina_list_prepend(ed->var_pool->vars[id].data.l.v, var);
 }
 
 void
@@ -554,7 +589,7 @@ _edje_var_list_var_append_relative(Edje *ed, int id, Edje_Var *var, Edje_Var *re
    id -= EDJE_VAR_MAGIC_BASE;
    if ((id < 0) || (id >= ed->var_pool->size)) return;
    if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return;
-   ed->var_pool->vars[id].data.l.v = evas_list_append_relative(ed->var_pool->vars[id].data.l.v, var, relative);
+   ed->var_pool->vars[id].data.l.v = eina_list_append_relative(ed->var_pool->vars[id].data.l.v, var, relative);
 }
 
 void
@@ -565,7 +600,7 @@ _edje_var_list_var_prepend_relative(Edje *ed, int id, Edje_Var *var, Edje_Var *r
    id -= EDJE_VAR_MAGIC_BASE;
    if ((id < 0) || (id >= ed->var_pool->size)) return;
    if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return;
-   ed->var_pool->vars[id].data.l.v = evas_list_prepend_relative(ed->var_pool->vars[id].data.l.v, var, relative);
+   ed->var_pool->vars[id].data.l.v = eina_list_prepend_relative(ed->var_pool->vars[id].data.l.v, var, relative);
 }
 
 Edje_Var *
@@ -576,7 +611,7 @@ _edje_var_list_nth(Edje *ed, int id, int n)
    id -= EDJE_VAR_MAGIC_BASE;
    if ((id < 0) || (id >= ed->var_pool->size)) return NULL;
    if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return NULL;
-   return evas_list_nth(ed->var_pool->vars[id].data.l.v, n);
+   return eina_list_nth(ed->var_pool->vars[id].data.l.v, n);
 }
 
 int
@@ -589,7 +624,7 @@ _edje_var_list_count_get(Edje *ed, int id)
    if (ed->var_pool->vars[id].type == EDJE_VAR_NONE)
      ed->var_pool->vars[id].type = EDJE_VAR_LIST;
    else if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return 0;
-   return evas_list_count(ed->var_pool->vars[id].data.l.v);
+   return eina_list_count(ed->var_pool->vars[id].data.l.v);
 }
 
 void
@@ -603,13 +638,13 @@ _edje_var_list_remove_nth(Edje *ed, int id, int n)
      ed->var_pool->vars[id].type = EDJE_VAR_LIST;
    else if (ed->var_pool->vars[id].type != EDJE_VAR_LIST) return;
      {
-	Evas_List *nth;
+	Eina_List *nth;
 
-	nth = evas_list_nth_list(ed->var_pool->vars[id].data.l.v, n);
+	nth = eina_list_nth_list(ed->var_pool->vars[id].data.l.v, n);
 	if (nth)
 	  {
-	     _edje_var_free(nth->data);
-	     ed->var_pool->vars[id].data.l.v = evas_list_remove_list(ed->var_pool->vars[id].data.l.v, nth);
+	     _edje_var_free(eina_list_data_get(nth));
+	     ed->var_pool->vars[id].data.l.v = eina_list_remove_list(ed->var_pool->vars[id].data.l.v, nth);
 	  }
      }
 }
@@ -956,23 +991,20 @@ _edje_var_timer_add(Edje *ed, double in, const char *fname, int val)
 	free(et);
 	return 0;
      }
-   ed->var_pool->timers = evas_list_prepend(ed->var_pool->timers, et);
+   ed->var_pool->timers = eina_list_prepend(ed->var_pool->timers, et);
    return et->id;
 }
 
 static Edje_Var_Timer *
 _edje_var_timer_find(Edje *ed, int id)
 {
-   Evas_List *l;
+   Eina_List *l;
+   Edje_Var_Timer *et;
 
    if (!ed->var_pool) return NULL;
 
-   for (l = ed->var_pool->timers; l; l = l->next)
-     {
-	Edje_Var_Timer *et = l->data;
-
-	if (et->id == id) return et;
-     }
+   EINA_LIST_FOREACH(ed->var_pool->timers, l, et)
+     if (et->id == id) return et;
 
    return NULL;
 }
@@ -985,7 +1017,7 @@ _edje_var_timer_del(Edje *ed, int id)
    et = _edje_var_timer_find(ed, id);
    if (!et) return;
 
-   ed->var_pool->timers = evas_list_remove(ed->var_pool->timers, et);
+   ed->var_pool->timers = eina_list_remove(ed->var_pool->timers, et);
    ecore_timer_del(et->timer);
    free(et);
 }
@@ -1002,14 +1034,15 @@ _edje_var_anim_add(Edje *ed, double len, const char *fname, int val)
    if (fn == EMBRYO_FUNCTION_NONE) return 0;
    ea = calloc(1, sizeof(Edje_Var_Animator));
    if (!ea) return 0;
-   ea->start = ecore_time_get();
+   ea->start = ecore_loop_time_get();
    ea->len = len;
    ea->id = ++ed->var_pool->id_count;
    ea->edje = ed;
    ea->func = fn;
    ea->val = val;
-   _edje_anim_list = evas_list_append(_edje_anim_list, ed);
-   ed->var_pool->animators = evas_list_prepend(ed->var_pool->animators, ea);
+   if (!ed->var_pool->animators)
+     _edje_anim_list = eina_list_append(_edje_anim_list, ed);
+   ed->var_pool->animators = eina_list_prepend(ed->var_pool->animators, ea);
    if (!_edje_animator)
      _edje_animator = ecore_animator_add(_edje_var_anim_cb, NULL);
    return ea->id;
@@ -1018,16 +1051,13 @@ _edje_var_anim_add(Edje *ed, double len, const char *fname, int val)
 static Edje_Var_Animator *
 _edje_var_anim_find(Edje *ed, int id)
 {
-   Evas_List *l;
+   Eina_List *l;
+   Edje_Var_Animator *ea;
 
    if (!ed->var_pool) return NULL;
 
-   for (l = ed->var_pool->animators; l; l = l->next)
-     {
-	Edje_Var_Animator *ea = l->data;
-
-	if (ea->id == id) return ea;
-     }
+   EINA_LIST_FOREACH(ed->var_pool->animators, l, ea)
+     if (ea->id == id) return ea;
 
    return NULL;
 }
@@ -1046,12 +1076,12 @@ _edje_var_anim_del(Edje *ed, int id)
 	return;
      }
 
-   ed->var_pool->animators = evas_list_remove(ed->var_pool->animators, ea);
+   ed->var_pool->animators = eina_list_remove(ed->var_pool->animators, ea);
    free(ea);
 
    if (ed->var_pool->animators) return;
 
-   _edje_anim_list = evas_list_remove(_edje_anim_list, ed);
+   _edje_anim_list = eina_list_remove(_edje_anim_list, ed);
    if (!_edje_anim_list)
      {
 	if (_edje_animator)
