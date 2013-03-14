@@ -158,6 +158,11 @@ static void st_collections_group_parts_part_source3(void);
 static void st_collections_group_parts_part_source4(void);
 static void st_collections_group_parts_part_source5(void);
 static void st_collections_group_parts_part_source6(void);
+static void st_collections_group_parts_part_source7(void);
+static void st_collections_group_parts_part_source8(void);
+static void st_collections_group_parts_part_source9(void);
+static void st_collections_group_parts_part_source10(void);
+static void st_collections_group_parts_part_source11(void);
 static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
 static void st_collections_group_parts_part_cursor_mode(void);
@@ -402,6 +407,11 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.source4", st_collections_group_parts_part_source4},
      {"collections.group.parts.part.source5", st_collections_group_parts_part_source5},
      {"collections.group.parts.part.source6", st_collections_group_parts_part_source6},
+     {"collections.group.parts.part.source7", st_collections_group_parts_part_source7},
+     {"collections.group.parts.part.source8", st_collections_group_parts_part_source8},
+     {"collections.group.parts.part.source9", st_collections_group_parts_part_source9},
+     {"collections.group.parts.part.source10", st_collections_group_parts_part_source10},
+     {"collections.group.parts.part.source11", st_collections_group_parts_part_source11},
      {"collections.group.parts.part.dragable.x", st_collections_group_parts_part_dragable_x},
      {"collections.group.parts.part.dragable.y", st_collections_group_parts_part_dragable_y},
      {"collections.group.parts.part.dragable.confine", st_collections_group_parts_part_dragable_confine},
@@ -2421,6 +2431,11 @@ st_collections_group_inherit(void)
         ep->source4 = STRDUP(ep2->source4);
         ep->source5 = STRDUP(ep2->source5);
         ep->source6 = STRDUP(ep2->source6);
+        ep->source7 = STRDUP(ep2->source7);
+        ep->source8 = STRDUP(ep2->source8);
+        ep->source9 = STRDUP(ep2->source9);
+        ep->source10 = STRDUP(ep2->source10);
+        ep->source11 = STRDUP(ep2->source11);
 
         data_queue_copied_part_lookup(pc, &(ep2->clip_to_id), &(ep->clip_to_id));
 
@@ -3599,6 +3614,112 @@ st_collections_group_parts_part_source6(void)
    current_part->source6 = parse_str(0);
    data_queue_group_lookup(current_part->source6, current_part);
 }
+
+/**
+    @page edcref
+    @property
+        source7
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for start selection handler display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source7(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source7 = parse_str(0);
+   data_queue_group_lookup(current_part->source7, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source8
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for end selection handler display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source8(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source8 = parse_str(0);
+   data_queue_group_lookup(current_part->source8, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source9
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for cursor handler display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source9(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source9 = parse_str(0);
+   data_queue_group_lookup(current_part->source9, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source10
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for start edge of selection display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source10(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source10 = parse_str(0);
+   data_queue_group_lookup(current_part->source10, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source11
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for end edge of selection display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source11(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source11 = parse_str(0);
+   data_queue_group_lookup(current_part->source11, current_part);
+}
+
 
 /**
     @page edcref

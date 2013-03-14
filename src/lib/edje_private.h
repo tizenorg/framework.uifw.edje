@@ -856,7 +856,7 @@ struct _Edje_Part
 
    Edje_Part_Description_List    other; /* other possible descriptors */
 
-   const char           *source, *source2, *source3, *source4, *source5, *source6;
+   const char           *source, *source2, *source3, *source4, *source5, *source6, *source7, *source8, *source9, *source10, *source11;
    int                    id; /* its id number */
    int                    clip_to_id; /* the part id to clip this one to */
    Edje_Part_Dragable     dragable;
@@ -2089,8 +2089,12 @@ Eina_Bool _edje_entry_input_panel_return_key_disabled_get(Edje_Real_Part *rp);
 
 ///////////////////////////// TIZEN ONLY : START /////////////////////////////////////////////////////////////////////////////
 Eina_Bool _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
-void _edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj);
-
+void _edje_entry_layout_region_set(Edje_Real_Part *rp, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h);
+void _edje_entry_viewport_region_set(Edje_Real_Part *rp, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h);
+void _edje_entry_selection_handler_geometry_get(Edje_Real_Part *rp, Edje_Selection_Handler type, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
+Eina_Bool _edje_entry_select_word(Edje_Real_Part *rp);
+Eina_Bool _edje_entry_cursor_handler_disabled_get(Edje_Real_Part *rp);
+void _edje_entry_cursor_handler_disabled_set(Edje_Real_Part *rp, Eina_Bool disabled);
 /* Currently, this is only for freezing and thawing the cursor's movement while style change.(130129) */
 void _edje_entry_freeze(Edje_Real_Part *rp);
 void _edje_entry_thaw(Edje_Real_Part *rp);

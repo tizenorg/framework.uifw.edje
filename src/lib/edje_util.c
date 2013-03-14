@@ -1602,6 +1602,24 @@ edje_object_part_text_select_all(const Evas_Object *obj, const char *part)
 }
 
 EAPI void
+edje_object_part_text_select_word(const Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     {
+        _edje_entry_select_word(rp);
+        _edje_emit(rp->edje, "selection,end", rp->part->name);
+     }
+}
+
+
+EAPI void
 edje_object_part_text_insert(Evas_Object *obj, const char *part, const char *text)
 {
    Edje *ed;
@@ -1709,21 +1727,6 @@ edje_object_part_text_item_geometry_get(const Evas_Object *obj, const char *part
 }
 
 EAPI void
-edje_object_part_text_copy_paste_disabled_set(const Evas_Object *obj, const char *part, Eina_Bool disabled)
-{
-   Edje *ed;
-   Edje_Real_Part *rp;
-
-   ed = _edje_fetch(obj);
-   if ((!ed) || (!part)) return;
-   rp = _edje_real_part_recursive_get(ed, (char *)part);
-   if (!rp) return;
-   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
-     _edje_entry_copy_paste_disabled_set(rp, disabled);
-   return;
-}
-
-EAPI void
 edje_object_part_text_viewport_region_set(const Evas_Object *obj, const char *part, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h)
 {
    Edje *ed;
@@ -1751,6 +1754,49 @@ edje_object_part_text_layout_region_set(const Evas_Object *obj, const char *part
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
      _edje_entry_layout_region_set(rp, x, y, w, h);
    return;
+}
+
+EAPI Eina_Bool
+edje_object_part_text_selection_handler_geometry_get(const Evas_Object *obj, const char *part, Edje_Selection_Handler type, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return EINA_FALSE;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return EINA_FALSE;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+      _edje_entry_selection_handler_geometry_get(rp, type, x, y, w, h);
+   return EINA_TRUE;
+}
+
+EAPI Eina_Bool
+edje_object_part_text_cursor_handler_disabled_get(const Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return EINA_FALSE;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return EINA_FALSE;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+      return _edje_entry_cursor_handler_disabled_get(rp);
+}
+
+EAPI void
+edje_object_part_text_cursor_handler_disabled_set(Evas_Object *obj, const char *part, Eina_Bool disabled)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, (char *)part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+      _edje_entry_cursor_handler_disabled_set(rp, disabled);
 }
 
 EAPI void

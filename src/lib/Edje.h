@@ -2919,6 +2919,16 @@ EAPI void             edje_object_part_text_select_none             (const Evas_
 EAPI void             edje_object_part_text_select_all              (const Evas_Object *obj, const char *part);
 
 /**
+ * @brief Set the selection to be word pointed by current cursor.
+ *
+ * @param obj A valid Evas_Object handle
+ * @param part The part name
+ *
+ * This function selects the word pointed by cursor of the object of the part.
+ */
+EAPI void             edje_object_part_text_select_word              (const Evas_Object *obj, const char *part);
+
+/**
  * @brief Enables selection if the entry is an EXPLICIT selection mode
  * type.
  *
@@ -3574,6 +3584,12 @@ EAPI void             edje_object_part_text_input_panel_return_key_disabled_set(
 EAPI Eina_Bool        edje_object_part_text_input_panel_return_key_disabled_get(const Evas_Object *obj, const char *part);
 
 // TIZEN ONLY - START
+typedef enum _Edje_Selection_Handler
+{
+   EDJE_SELECTION_HANDLER_START,
+   EDJE_SELECTION_HANDLER_END,
+} Edje_Selection_Handler;
+
 /**
  * @brief Set the viewport region of the text.
  *
@@ -3603,12 +3619,35 @@ EAPI void             edje_object_part_text_viewport_region_set     (const Evas_
 EAPI void             edje_object_part_text_layout_region_set     (const Evas_Object *obj, const char *part, Evas_Coord x, Evas_Coord y, Evas_Coord w, Evas_Coord h);
 
 /**
- * @brief Set whether entry uses copy paste feature or not.
+ * @brief Get geometry of selection handler.
  *
- * @param disabled If SET, disable double click word selection
- * @param part The part name
+ * @param obj A valid object handle
+ * @param part edje part
+ * @param type type of handler (start, end)
+ * @param x A pointer to a variable where to set the handler's x
+ * @param y A pointer to a variable where to set the handler's y
+ * @param w A pointer to a variable where to set the handler's width
+ * @param h A pointer to a variable where to set the handler's height
  */
-EAPI void             edje_object_part_text_copy_paste_disabled_set     (const Evas_Object *obj, const char *part, Eina_Bool disabled);
+EAPI Eina_Bool        edje_object_part_text_selection_handler_geometry_get  (const Evas_Object *obj, const char *part, Edje_Selection_Handler type, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
+
+/**
+ * @brief Get whether cursor handler is disabled or not.
+ *
+ * @param obj A valid object handle
+ * @param part edje part
+ * @return EINA_TRUE if cursor handler is disabled, otherwise EINA_FALSE
+ */
+EAPI Eina_Bool        edje_object_part_text_cursor_handler_disabled_get  (const Evas_Object *obj, const char *part);
+
+/**
+ * @brief Set whether cursor handler is disabled or not.
+ *
+ * @param obj A valid object handle
+ * @param part edje part
+ * @param EINA_TRUE to disable cursor handler, otherwise EINA_FALSE
+ */
+EAPI void        edje_object_part_text_cursor_handler_disabled_set  (Evas_Object *obj, const char *part, Eina_Bool disabled);
 // TIZEN ONLY - END
 
 /**
