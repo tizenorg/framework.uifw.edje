@@ -1151,6 +1151,26 @@ _edje_part_recalc_single_step(Edje_Part_Description_Common *desc,
      }
 }
 
+static double
+_edje_part_recalc_single_textblock_scale_range_adjust(Edje_Part_Description_Text *chosen_desc, double base_scale, double scale)
+{
+   double size, min, max;
+
+   if (chosen_desc->text.size == 0)
+      return scale;
+
+   min = base_scale * chosen_desc->text.size_range_min;
+   max = chosen_desc->text.size_range_max * base_scale;
+   size = chosen_desc->text.size * scale;
+
+   if ((size > max) && (max > 0))
+      scale = max / (double) chosen_desc->text.size;
+   else if (size < min)
+      scale = min / (double) chosen_desc->text.size;
+
+   return scale;
+}
+
 static void
 _edje_part_recalc_single_textblock(FLOAT_T sc,
                                    Edje *ed,
@@ -1210,6 +1230,79 @@ _edje_part_recalc_single_textblock(FLOAT_T sc,
         if (ep->part->scale)
           evas_object_scale_set(ep->object, TO_DOUBLE(sc));
 
+        if ((chosen_desc->text.fit_x) || (chosen_desc->text.fit_y))
+          {
+             double base_s = 1.0;
+             double orig_s;
+             double s = base_s;
+
+             if (ep->part->scale) s = TO_DOUBLE(sc);
+             if (ep->part->scale) base_s = TO_DOUBLE(sc);
+             evas_object_scale_set(ep->object, base_s);
+             evas_object_textblock_size_native_get(ep->object, &tw, &th);
+
+             orig_s = base_s;
+             /* Now make it bigger so calculations will be more accurate
+              * and less influenced by hinting... */
+               {
+                  orig_s = _edje_part_recalc_single_textblock_scale_range_adjust(chosen_desc, base_s, orig_s * params->w / (double) tw);
+                  evas_object_scale_set(ep->object, orig_s);
+                  evas_object_textblock_size_native_get(ep->object, &tw, &th);
+               }
+             if (chosen_desc->text.fit_x)
+               {
+                  if (tw > 0)
+                    {
+                       s = _edje_part_recalc_single_textblock_scale_range_adjust(chosen_desc, base_s, orig_s * params->w / tw);
+                       evas_object_scale_set(ep->object, s);
+                       evas_object_textblock_size_native_get(ep->object, NULL, NULL);
+                    }
+               }
+             if (chosen_desc->text.fit_y)
+               {
+                  if (th > 0)
+                    {
+                       double tmp_s = _edje_part_recalc_single_textblock_scale_range_adjust(chosen_desc, base_s, orig_s * params->h / (double) th);
+                       /* If we already have X fit, restrict Y to be no bigger
+                        * than what we got with X. */
+                       if (!((chosen_desc->text.fit_x) && (tmp_s > s)))
+                         {
+                            s = tmp_s;
+                         }
+
+                       evas_object_scale_set(ep->object, s);
+                       evas_object_textblock_size_native_get(ep->object, NULL, NULL);
+                    }
+               }
+
+             /* Final tuning, try going down 90% at a time, hoping it'll
+              * actually end up being correct. */
+               {
+                  int i = 5; /* Tries before we give up. */
+                  Evas_Coord fw, fh;
+                  evas_object_textblock_size_native_get(ep->object, &fw, &fh);
+
+                  /* If we are still too big, try reducing the size to
+                   * 95% each try. */
+                  while ((i > 0) &&
+                        ((chosen_desc->text.fit_x && (fw > params->w)) ||
+                         (chosen_desc->text.fit_y && (fh > params->h))))
+                    {
+                       double tmp_s = _edje_part_recalc_single_textblock_scale_range_adjust(chosen_desc, base_s, s * 0.95);
+
+                       /* Break if we are not making any progress. */
+                       if (tmp_s == s)
+                          break;
+                       s = tmp_s;
+
+                       evas_object_scale_set(ep->object, s);
+                       evas_object_textblock_size_native_get(ep->object, &fw, &fh);
+                       i--;
+                    }
+               }
+
+          }
+
         if (stl)
           {
              const char *ptxt;
@@ -1246,16 +1339,17 @@ _edje_part_recalc_single_textblock(FLOAT_T sc,
                                                          &ins_r, &ins_t, &ins_b);
                   mw = ins_l + tw + ins_r;
                   mh = ins_t + th + ins_b;
-                  if (chosen_desc->text.min_x)
+                  if (minw && chosen_desc->text.min_x)
                     {
                        if (mw > *minw) *minw = mw;
                     }
-                  if (chosen_desc->text.min_y)
+                  if (minh && chosen_desc->text.min_y)
                     {
                        if (mh > *minh) *minh = mh;
                     }
                }
           }
+
         if ((chosen_desc->text.max_x) || (chosen_desc->text.max_y))
           {
              int mw = 0, mh = 0;
@@ -1272,45 +1366,18 @@ _edje_part_recalc_single_textblock(FLOAT_T sc,
                                                     &ins_t, &ins_b);
              mw = ins_l + tw + ins_r;
              mh = ins_t + th + ins_b;
-             if (chosen_desc->text.max_x)
+             if (maxw && chosen_desc->text.max_x)
                {
                   if (mw > *maxw) *maxw = mw;
-                  if (*maxw < *minw) *maxw = *minw;
+                  if (minw && (*maxw < *minw)) *maxw = *minw;
                }
-             if (chosen_desc->text.max_y)
+             if (maxh && chosen_desc->text.max_y)
                {
-                  if (mh > *maxw) *maxh = mh;
-                  if (*maxh < *minh) *maxh = *minh;
+                  if (mh > *maxh) *maxh = mh;
+                  if (minh && (*maxh < *minh)) *maxh = *minh;
                }
           }
-        if ((chosen_desc->text.fit_x) || (chosen_desc->text.fit_y))
-          {
-             double s = 1.0;
 
-             if (ep->part->scale) s = TO_DOUBLE(sc);
-             evas_object_scale_set(ep->object, s);
-             evas_object_textblock_size_formatted_get(ep->object, &tw, &th);
-             if (chosen_desc->text.fit_x)
-               {
-                  if ((tw > 0) && (tw > params->w))
-                    {
-                       s = (s * params->w) / (double)tw;
-                       evas_object_scale_set(ep->object, s);
-                       evas_object_textblock_size_formatted_get(ep->object,
-                                                                &tw, &th);
-                    }
-               }
-             if (chosen_desc->text.fit_y)
-               {
-                  if ((th > 0) && (th > params->h))
-                    {
-                       s = (s * params->h) / (double)th;
-                       evas_object_scale_set(ep->object, s);
-                       evas_object_textblock_size_formatted_get(ep->object,
-                                                                &tw, &th);
-                    }
-               }
-          }
         evas_object_textblock_valign_set(ep->object, TO_DOUBLE(chosen_desc->text.align.y));
      }
 }

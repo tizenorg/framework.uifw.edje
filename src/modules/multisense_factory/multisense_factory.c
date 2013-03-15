@@ -60,7 +60,6 @@ multisense_factory_init(Edje_Multisense_Env *env __UNUSED__)
      }
 #ifdef HAVE_LIBREMIX
    remix_set_samplerate(env->remixenv, DEFAULT_SAMPLERATE);
-   remix_set_channels(env->remixenv, REMIX_STEREO);
 #endif
    return EINA_TRUE;
 }

@@ -226,7 +226,7 @@ sound_command_handler(Multisense_Data *msdata)
         base = edje_remix_sample_create(msdata, command.snd_file,
                                         &command.type.sample);
         length = remix_length(msdata->msenv->remixenv, base);
-        remix_flush(msdata->msenv->remixenv, msdata->player);
+        if (remix_flush(msdata->msenv->remixenv, msdata->player) < 0) return;
         break;
       case EDJE_PLAY_TONE:
         base = edje_remix_tone_create(msdata, command.snd_file, &command.type.tone);

@@ -3348,6 +3348,7 @@ EAPI void             edje_object_part_text_imf_context_reset           (const E
  */
 EAPI void              *edje_object_part_text_imf_context_get           (const Evas_Object *obj, const char *part);
 
+// TIZEN ONLY - START
 /**
  * @brief Retrieves the current position of the selection
  *
@@ -3362,6 +3363,7 @@ EAPI void              *edje_object_part_text_imf_context_get           (const E
  * @return EINA_TRUE if part has selection or EINA_FALSE otherwise
  */
 EAPI Eina_Bool        edje_object_part_text_selection_geometry_get     (const Evas_Object *obj, const char *part, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
+// TIZEN ONLY - END
 
 /**
  * @brief Set the layout of the input panel.
@@ -3571,6 +3573,7 @@ EAPI void             edje_object_part_text_input_panel_return_key_disabled_set(
  */
 EAPI Eina_Bool        edje_object_part_text_input_panel_return_key_disabled_get(const Evas_Object *obj, const char *part);
 
+// TIZEN ONLY - START
 /**
  * @brief Set the viewport region of the text.
  *
@@ -3606,6 +3609,7 @@ EAPI void             edje_object_part_text_layout_region_set     (const Evas_Ob
  * @param part The part name
  */
 EAPI void             edje_object_part_text_copy_paste_disabled_set     (const Evas_Object *obj, const char *part, Eina_Bool disabled);
+// TIZEN ONLY - END
 
 /**
  * Add a filter function for newly inserted text.
@@ -4708,9 +4712,15 @@ EAPI void         edje_message_signal_process             (void);
     */
    EAPI const Edje_Perspective *edje_object_perspective_get     (const Evas_Object *obj);
 
-/**
- * @}
- */
+   ///////////////////// TIZEN ONLY(130129) //////////////////////////////////////////////////////////////
+   /* Applications NEVER USE THESE APIs for private purporse.
+      These APIs are for communicating with edje_entry for not moving cursor position meanwhile.  */
+   EAPI void                    edje_object_part_text_freeze    (Evas_Object *obj, const char *part);
+   EAPI void                    edje_object_part_text_thaw      (Evas_Object *obj, const char *part);
+   ///////////////////////////////////////////////////////////////////////////////////////////////////////
+   /**
+    * @}
+    */
 
 #ifdef __cplusplus
 }

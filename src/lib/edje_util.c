@@ -352,6 +352,7 @@ edje_object_scale_set(Evas_Object *obj, double scale)
    Edje *ed, *ged;
    Evas_Object *o;
    Eina_List *l;
+   int i;
 
    ed = _edje_fetch(obj);
    if (!ed) return EINA_FALSE;
@@ -361,6 +362,19 @@ edje_object_scale_set(Evas_Object *obj, double scale)
       ged->scale = ed->scale;
    EINA_LIST_FOREACH(ed->subobjs, l, o)
       edje_object_calc_force(o);
+   for(i = 0; i < ed->table_parts_size; ++i)
+     {
+        Edje_Real_Part *ep;
+        ep = ed->table_parts[i];
+        if ((ep->part->type == EDJE_PART_TYPE_BOX)
+            || (ep->part->type == EDJE_PART_TYPE_TABLE))
+          {
+             Eina_List *l;
+             Evas_Object *o;
+             EINA_LIST_FOREACH(ep->typedata.container->items, l, o)
+                edje_object_scale_set(o, scale);
+          }
+     }
    edje_object_calc_force(obj);
    return EINA_TRUE;
 }
@@ -5190,6 +5204,8 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
 			Evas_Object *obj_swallow,
 			Eina_Bool hints_update)
 {
+   const char *obj_type;
+
    if ((rp->type != EDJE_RP_TYPE_SWALLOW) ||
        (!rp->typedata.swallow)) return;
    if (rp->typedata.swallow->swallowed_object)
@@ -5229,7 +5245,8 @@ _edje_real_part_swallow(Edje_Real_Part *rp,
 				  rp);
 
    //If the map is enabled, uv should be updated when image size is changed.
-   if (!strcmp(evas_object_type_get(rp->typedata.swallow->swallowed_object), "image"))
+   obj_type = evas_object_type_get(rp->typedata.swallow->swallowed_object);
+   if (obj_type && !strcmp(obj_type, "image"))
      evas_object_event_callback_add(obj_swallow, EVAS_CALLBACK_IMAGE_RESIZE,
                                     _edje_object_part_swallow_image_resize_cb,
                                     rp);
@@ -5445,5 +5462,37 @@ _edje_subobj_unregister(Edje *ed, Evas_Object *obj)
    evas_object_event_callback_del_full(obj, EVAS_CALLBACK_DEL,
                                        _cb_subobj_del, ed);
 }
+
+/////////////////////////////////// TIZEN ONLY(130129) ////////////////////////////////////////////////
+EAPI void edje_object_part_text_freeze(Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if ((rp->part->type != EDJE_PART_TYPE_TEXTBLOCK)) return;
+   if (rp->part->entry_mode <= EDJE_ENTRY_EDIT_MODE_NONE) return;
+
+   _edje_entry_freeze(rp);
+}
+
+EAPI void edje_object_part_text_thaw(Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if ((rp->part->type != EDJE_PART_TYPE_TEXTBLOCK)) return;
+   if (rp->part->entry_mode <= EDJE_ENTRY_EDIT_MODE_NONE) return;
+
+   _edje_entry_thaw(rp);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* vim:set ts=8 sw=3 sts=3 expandtab cino=>5n-2f0^-2{2(0W1st0 :*/

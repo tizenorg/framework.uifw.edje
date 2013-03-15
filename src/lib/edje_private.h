@@ -428,7 +428,7 @@ typedef struct _Edje_Markup_Filter_Callback Edje_Markup_Filter_Callback;
 
 #define EDJE_ENTRY_SELECTION_MODE_DEFAULT 0
 #define EDJE_ENTRY_SELECTION_MODE_EXPLICIT 1
-#define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2
+#define EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE 2 // TIZEN ONLY
 
 #define EDJE_ENTRY_CURSOR_MODE_UNDER 0
 #define EDJE_ENTRY_CURSOR_MODE_BEFORE 1
@@ -2052,7 +2052,6 @@ void _edje_entry_user_insert(Edje_Real_Part *rp, const char *text);
 void _edje_entry_select_allow_set(Edje_Real_Part *rp, Eina_Bool allow);
 Eina_Bool _edje_entry_select_allow_get(const Edje_Real_Part *rp);
 void _edje_entry_select_abort(Edje_Real_Part *rp);
-void _edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj);
 void *_edje_entry_imf_context_get(Edje_Real_Part *rp);
 Eina_Bool _edje_entry_cursor_next(Edje_Real_Part *rp, Edje_Cursor cur);
 Eina_Bool _edje_entry_cursor_prev(Edje_Real_Part *rp, Edje_Cursor cur);
@@ -2087,7 +2086,15 @@ void _edje_entry_input_panel_return_key_type_set(Edje_Real_Part *rp, Edje_Input_
 Edje_Input_Panel_Return_Key_Type _edje_entry_input_panel_return_key_type_get(Edje_Real_Part *rp);
 void _edje_entry_input_panel_return_key_disabled_set(Edje_Real_Part *rp, Eina_Bool disabled);
 Eina_Bool _edje_entry_input_panel_return_key_disabled_get(Edje_Real_Part *rp);
+
+///////////////////////////// TIZEN ONLY : START /////////////////////////////////////////////////////////////////////////////
 Eina_Bool _edje_entry_selection_geometry_get(Edje_Real_Part *rp, Evas_Coord *x, Evas_Coord *y, Evas_Coord *w, Evas_Coord *h);
+void _edje_entry_viewport_object_set(Edje_Real_Part *rp, Evas_Object *obj);
+
+/* Currently, this is only for freezing and thawing the cursor's movement while style change.(130129) */
+void _edje_entry_freeze(Edje_Real_Part *rp);
+void _edje_entry_thaw(Edje_Real_Part *rp);
+///////////////////////////// TIZEN ONLY : END   /////////////////////////////////////////////////////////////////////////////
 
 void _edje_external_init();
 void _edje_external_shutdown();
