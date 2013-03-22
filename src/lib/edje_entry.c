@@ -20,7 +20,6 @@ static void _edje_entry_end_handler_mouse_up_cb(void *data, Evas *e, Evas_Object
 static void _edje_entry_cursor_handler_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
 static void _edje_entry_cursor_handler_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
 static void _edje_entry_cursor_handler_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
-static void _edje_entry_changed_cb(void *data, Evas_Object *obj, const char *emission, const char *source);
 // TIZEN ONLY - END
 
 typedef struct _Entry Entry;
@@ -1607,6 +1606,11 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
      return;
    if (!ev->keyname) return;
 
+   // TIZEN ONLY - START
+   if (en->cursor_handler)
+      evas_object_hide(en->cursor_handler);
+   // TIZEN ONLY - END
+
 #ifdef HAVE_ECORE_IMF
    if (en->imf_context)
      {
@@ -2946,24 +2950,6 @@ _edje_entry_cursor_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
 }
 
 static void
-_edje_entry_changed_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
-{
-   Entry *en;
-   Edje_Real_Part *rp = data;
-
-   if (!rp) return;
-   if ((rp->type != EDJE_RP_TYPE_TEXT) ||
-       (!rp->typedata.text)) return;
-   en = rp->typedata.text->entry_data;
-   if(!en) return;
-
-   if (en->cursor_handler)
-     {
-        evas_object_hide(en->cursor_handler);
-     }
-}
-
-static void
 _edje_entry_start_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, void *event_info)
 {
    Evas_Event_Mouse_Down *ev = event_info;
@@ -3315,6 +3301,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    // TIZEN ONLY - START
    //cursor handler
    en->cursor_handler_disabled = EINA_FALSE;
+   en->cursor_handler = NULL;
    if (rp->part->source9)
      {
         en->cursor_handler = edje_object_add(en->rp->edje->base.evas);
@@ -3326,8 +3313,6 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_cursor_handler_mouse_down_cb, en->rp);
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_UP, _edje_entry_cursor_handler_mouse_up_cb, en->rp);
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_cursor_handler_mouse_move_cb, en->rp);
-
-        edje_object_signal_callback_add(rp->edje->obj, "entry,changed", "elm.text", _edje_entry_changed_cb, en->rp);
      }
    // TIZEN ONLY - END
    en->focused = EINA_FALSE;
