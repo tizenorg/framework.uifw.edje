@@ -2549,7 +2549,7 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
      }
    en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
 
-   if (en->cursor_handler && !en->cursor_handler_disabled)
+   if ((en->cursor_handler) && (!en->cursor_handler_disabled) && (!en->have_selection))
       evas_object_show(en->cursor_handler);
    // TIZEN ONLY - END
 
