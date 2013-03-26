@@ -2223,6 +2223,39 @@ edje_object_part_text_input_panel_layout_get(const Evas_Object *obj, const char 
 }
 
 EAPI void
+edje_object_part_text_input_panel_layout_variation_set(Evas_Object *obj, const char *part, int variation)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     {
+        _edje_entry_input_panel_layout_variation_set(rp, variation);
+     }
+}
+
+EAPI int
+edje_object_part_text_input_panel_layout_variation_get(const Evas_Object *obj, const char *part)
+{
+   Edje *ed;
+   Edje_Real_Part *rp;
+
+   ed = _edje_fetch(obj);
+   if ((!ed) || (!part)) return 0;
+   rp = _edje_real_part_recursive_get(ed, part);
+   if (!rp) return 0;
+   if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
+     {
+        return _edje_entry_input_panel_layout_variation_get(rp);
+     }
+   return 0;
+}
+
+EAPI void
 edje_object_part_text_autocapital_type_set(Evas_Object *obj, const char *part, Edje_Text_Autocapital_Type autocapital_type)
 {
    Edje *ed;
