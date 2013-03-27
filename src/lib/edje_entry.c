@@ -1662,7 +1662,9 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _compose_seq_reset(en);
         // dead keys here. Escape for now (should emit these)
         _edje_emit(ed, "entry,key,escape", rp->part->name);
-        ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+        // TIZEN ONLY (20130327) : This code is doing nothing for entry now.
+        //                         And for Tizen "ESC" is used for another purpose.
+        //ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
    else if (!strcmp(ev->keyname, "Up") ||
             (!strcmp(ev->keyname, "KP_Up") && !ev->string))
