@@ -74,6 +74,7 @@ struct _Entry
    Eina_Bool select_mod_end : 1;
    Eina_Bool handler_bypassing: 1; // TIZEN ONLY
    Eina_Bool cursor_handler_disabled: 1; // TIZEN ONLY
+   Eina_Bool cursor_handler_show : 1; // TIZEN ONLY
    Eina_Bool had_sel : 1;
    Eina_Bool input_panel_enable : 1;
    Eina_Bool prediction_allow : 1;
@@ -700,8 +701,11 @@ _sel_extend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
    // TIZEN ONLY - start
-   if (en->cursor_handler)
-      evas_object_hide(en->cursor_handler);
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
    // TIZEN ONLY - end
 }
 
@@ -724,8 +728,11 @@ _sel_preextend(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
      }
    _edje_emit(en->rp->edje, "selection,changed", en->rp->part->name);
    // TIZEN ONLY - start
-   if (en->cursor_handler)
-      evas_object_hide(en->cursor_handler);
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
    // TIZEN ONLY - end
 }
 
@@ -1607,8 +1614,11 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if (!ev->keyname) return;
 
    // TIZEN ONLY - START
-   if (en->cursor_handler)
-      evas_object_hide(en->cursor_handler);
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
    // TIZEN ONLY - END
 
 #ifdef HAVE_ECORE_IMF
@@ -2225,10 +2235,11 @@ _long_press_cb(void *data)
 
    _edje_emit(en->rp->edje, "long,pressed", en->rp->part->name);
 
-   if (en->cursor_handler && !en->cursor_handler_disabled && en->focused)
+   if ((en->cursor_handler) && (!en->cursor_handler_disabled) && (en->focused))
      {
         edje_object_signal_emit(en->cursor_handler, "edje,cursor,handle,show", "edje");
         evas_object_show(en->cursor_handler);
+        en->cursor_handler_show = EINA_TRUE;
      }
    return ECORE_CALLBACK_CANCEL;
 }
@@ -2543,16 +2554,20 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
         en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
         _edje_entry_imf_cursor_info_set(en);
 
-        if (strcmp(_edje_entry_text_get(rp), "") == 0)
+        if ((strcmp(_edje_entry_text_get(rp), "") == 0) && (en->cursor_handler_show))
           {
              evas_object_hide(en->cursor_handler);
+             en->cursor_handler_show = EINA_FALSE;
           }
         return;
      }
    en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
 
    if ((en->cursor_handler) && (!en->cursor_handler_disabled) && (!en->have_selection))
-      evas_object_show(en->cursor_handler);
+     {
+        evas_object_show(en->cursor_handler);
+        en->cursor_handler_show = EINA_TRUE;
+     }
    // TIZEN ONLY - END
 
 #ifdef HAVE_ECORE_IMF
@@ -3316,6 +3331,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_UP, _edje_entry_cursor_handler_mouse_up_cb, en->rp);
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_cursor_handler_mouse_move_cb, en->rp);
      }
+   en->cursor_handler_show = EINA_FALSE;
    // TIZEN ONLY - END
    en->focused = EINA_FALSE;
 
@@ -3524,8 +3540,13 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
         chx = x + xx;
         chy = y + yy + hh;
         evas_object_move(en->cursor_handler, chx, chy);
-        if ((chx < en->viewport_region.x) || (chy < en->viewport_region.y))
-           evas_object_hide(en->cursor_handler);
+        if (((chx < en->viewport_region.x) || (chy < en->viewport_region.y) ||
+             (chx > en->viewport_region.x + en->viewport_region.w) || (chy > en->viewport_region.y + en->viewport_region.h))
+            && (en->cursor_handler_show))
+          {
+             evas_object_hide(en->cursor_handler);
+             en->cursor_handler_show = EINA_FALSE;
+          }
      }
 }
 
@@ -3631,6 +3652,13 @@ _edje_entry_text_markup_insert(Edje_Real_Part *rp, const char *text)
 //   evas_object_textblock_text_markup_prepend(en->cursor, text);
    _text_filter_markup_prepend(en, en->cursor, text);
    _anchors_get(en->cursor, rp->object, en);
+   // TIZEN ONLY - START
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
+   // TIZEN ONLY - END
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name);
 
@@ -4003,6 +4031,13 @@ _edje_entry_user_insert(Edje_Real_Part *rp, const char *text)
    info->change.insert.pos = evas_textblock_cursor_pos_get(en->cursor);
    _text_filter_markup_prepend(en, en->cursor, text);
    _anchors_get(en->cursor, rp->object, en);
+   // TIZEN ONLY - START
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
+   // TIZEN ONLY - END
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
    _edje_emit_full(rp->edje, "entry,changed,user", rp->part->name,
                    info, _free_entry_change_info);
@@ -4977,6 +5012,13 @@ _edje_entry_imf_event_commit_cb(void *data, Ecore_IMF_Context *ctx __UNUSED__, v
 
    _edje_entry_imf_cursor_info_set(en);
    _anchors_get(en->cursor, rp->object, en);
+   // TIZEN ONLY - START
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
+   // TIZEN ONLY - END
    _edje_emit(rp->edje, "entry,changed", rp->part->name);
 
      {
@@ -5028,6 +5070,13 @@ _edje_entry_imf_event_preedit_changed_cb(void *data, Ecore_IMF_Context *ctx __UN
      return;
 
    if (!en->imf_context) return;
+   // TIZEN ONLY - START
+   if (en->cursor_handler_show)
+     {
+        evas_object_hide(en->cursor_handler);
+        en->cursor_handler_show = EINA_FALSE;
+     }
+   // TIZEN ONLY - END
 
    ecore_imf_context_preedit_string_with_attributes_get(en->imf_context,
                                                         &preedit_string,
