@@ -597,7 +597,7 @@ _curs_end(Evas_Textblock_Cursor *c, Evas_Object *o __UNUSED__, Entry *en __UNUSE
    evas_textblock_cursor_paragraph_last(c);
 }
 
-static void
+static Eina_Bool
 _curs_jump_line(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en, int ln)
 {
    Evas_Coord cx, cy;
@@ -613,9 +613,9 @@ _curs_jump_line(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en, int ln)
    _curs_update_from_curs(c, o, en, &cx, &cy);
 
    if (!evas_object_textblock_line_number_geometry_get(o, ln, &lx, &ly, &lw, &lh))
-     return;
+     return EINA_FALSE;
    if (evas_textblock_cursor_char_coord_set(c, cx, ly + (lh / 2)))
-     return;
+     return EINA_FALSE;
    evas_textblock_cursor_line_set(c, ln);
    if (cx < (lx + (lw / 2)))
      {
@@ -629,27 +629,28 @@ _curs_jump_line(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en, int ln)
         else
           _curs_lin_end(c, o, en);
      }
+   return EINA_TRUE;
 }
 
-static void
+static Eina_Bool
 _curs_jump_line_by(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en, int by)
 {
    int ln;
 
    ln = evas_textblock_cursor_line_geometry_get(c, NULL, NULL, NULL, NULL) + by;
-   _curs_jump_line(c, o, en, ln);
+   return _curs_jump_line(c, o, en, ln);
 }
 
-static void
+static Eina_Bool
 _curs_up(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 {
-   _curs_jump_line_by(c, o, en, -1);
+   return _curs_jump_line_by(c, o, en, -1);
 }
 
-static void
+static Eina_Bool
 _curs_down(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en)
 {
-   _curs_jump_line_by(c, o, en, 1);
+   return _curs_jump_line_by(c, o, en, 1);
 }
 
 static void
@@ -1687,13 +1688,13 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                   if (shift) _sel_start(en->cursor, rp->object, en);
                   else _sel_clear(en->cursor, rp->object, en);
                }
-             _curs_up(en->cursor, rp->object, en);
+             if (_curs_up(en->cursor, rp->object, en))
+               ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
              if (en->select_allow)
                {
                   if (shift) _sel_extend(en->cursor, rp->object, en);
                   else _sel_clear(en->cursor, rp->object, en);
                }
-             ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
         _edje_emit(ed, "entry,key,up", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
@@ -1709,13 +1710,13 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
                   if (shift) _sel_start(en->cursor, rp->object, en);
                   else _sel_clear(en->cursor, rp->object, en);
                }
-             _curs_down(en->cursor, rp->object, en);
+             if (_curs_down(en->cursor, rp->object, en))
+               ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
              if (en->select_allow)
                {
                   if (shift) _sel_extend(en->cursor, rp->object, en);
                   else _sel_clear(en->cursor, rp->object, en);
                }
-             ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
           }
         _edje_emit(ed, "entry,key,down", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
@@ -1729,7 +1730,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              if (shift) _sel_start(en->cursor, rp->object, en);
              else _sel_clear(en->cursor, rp->object, en);
           }
-        evas_textblock_cursor_char_prev(en->cursor);
+        if (evas_textblock_cursor_char_prev(en->cursor))
+          ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         /* If control is pressed, go to the start of the word */
         if (control) evas_textblock_cursor_word_start(en->cursor);
         if (en->select_allow)
@@ -1739,7 +1741,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,left", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
-        ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
    else if (!strcmp(ev->keyname, "Right") ||
             (!strcmp(ev->keyname, "KP_Right") && !ev->string))
@@ -1752,7 +1753,8 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         /* If control is pressed, go to the end of the word */
         if (control) evas_textblock_cursor_word_end(en->cursor);
-        evas_textblock_cursor_char_next(en->cursor);
+        if (evas_textblock_cursor_char_next(en->cursor))
+          ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         if (en->select_allow)
           {
              if (shift) _sel_extend(en->cursor, rp->object, en);
@@ -1760,7 +1762,6 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           }
         _edje_emit(ed, "entry,key,right", rp->part->name);
         _edje_emit(rp->edje, "cursor,changed,manual", rp->part->name);
-        ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
      }
    else if (!strcmp(ev->keyname, "BackSpace"))
      {
