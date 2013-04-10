@@ -48,7 +48,7 @@ struct _Entry
    Evas_Coord_Rectangle layout_region; // TIZEN ONLY
    Evas_Coord_Rectangle viewport_region; // TIZEN ONLY
    Evas_Object *cursor_bg;
-   Evas_Object *cursor_fg;
+   Evas_Object *cursor_fg, *cursor_fg2;
    Evas_Object *sel_handler_start; // TIZEN ONLY
    Evas_Object *sel_handler_end; // TIZEN ONLY
    Evas_Object *sel_handler_edge_start; // TIZEN ONLY
@@ -3312,6 +3312,19 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    evas_object_pass_events_set(en->cursor_fg, EINA_TRUE);
    _edje_subobj_register(en->rp->edje, en->cursor_fg);
 
+   /* A proxy to the main cursor. */
+   if (rp->part->cursor_mode == EDJE_ENTRY_CURSOR_MODE_BEFORE)
+     {
+        en->cursor_fg2 = evas_object_image_add(rp->edje->base.evas);
+        evas_object_image_source_set(en->cursor_fg2, en->cursor_fg);
+        evas_object_image_fill_set(en->cursor_fg2, 0, 0, 1, 1);
+        evas_object_smart_member_add(en->cursor_fg2, rp->edje->obj);
+        evas_object_stack_above(en->cursor_fg2, rp->object);
+        evas_object_clip_set(en->cursor_fg2, evas_object_clip_get(rp->object));
+        evas_object_pass_events_set(en->cursor_fg2, EINA_TRUE);
+        _edje_subobj_register(en->rp->edje, en->cursor_fg2);
+     }
+
    // TIZEN ONLY - START
    //cursor handler
    en->cursor_handler_disabled = EINA_FALSE;
@@ -3338,6 +3351,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
      {
         evas_object_show(en->cursor_bg);
         evas_object_show(en->cursor_fg);
+        evas_object_show(en->cursor_fg2);
         en->input_panel_enable = EINA_TRUE;
 
 #ifdef HAVE_ECORE_IMF
@@ -3422,6 +3436,7 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
    // TIZEN ONLY - END
    evas_object_del(en->cursor_bg);
    evas_object_del(en->cursor_fg);
+   evas_object_del(en->cursor_fg2);
 
    // TIZEN ONLY - START
    if (en->sel_handler_start)
@@ -3494,9 +3509,10 @@ _edje_entry_real_part_shutdown(Edje_Real_Part *rp)
 void
 _edje_entry_real_part_configure(Edje_Real_Part *rp)
 {
-   Evas_Coord x, y, w, h, xx, yy, ww, hh;
+   Evas_Coord x, y, w, h, xx, yy, ww, hh, xx2, yy2;
    Entry *en;
    Evas_Textblock_Cursor_Type cur_type;
+   Eina_Bool bidi_cursor = EINA_FALSE;
    
    if ((rp->type != EDJE_RP_TYPE_TEXT) ||
        (!rp->typedata.text)) return;
@@ -3518,7 +3534,9 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
    x = y = w = h = -1;
    xx = yy = ww = hh = -1;
    evas_object_geometry_get(rp->object, &x, &y, &w, &h);
-   evas_textblock_cursor_geometry_get(en->cursor, &xx, &yy, &ww, &hh, NULL, cur_type);
+   /* For split cursor need to assign return value to bidi_cursor.
+    * bidi_cursor = evas_textblock_geometry_bidi_get() */
+   evas_textblock_cursor_geometry_bidi_get(en->cursor, &xx, &yy, &ww, &hh, &xx2, &yy2, NULL, NULL, cur_type);
    if (ww < 1) ww = 1;
    if (hh < 1) hh = 1;
    if (en->cursor_bg)
@@ -3531,6 +3549,24 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
         evas_object_move(en->cursor_fg, x + xx, y + yy);
         evas_object_resize(en->cursor_fg, ww, hh);
      }
+
+   if (en->cursor_fg2)
+     {
+        if (bidi_cursor)
+          {
+             evas_object_image_fill_set(en->cursor_fg2, 0, 0, ww, hh / 2);
+             evas_object_move(en->cursor_fg2, x + xx2, y + yy2 + (hh / 2));
+             evas_object_resize(en->cursor_fg, ww, hh / 2);
+             evas_object_resize(en->cursor_fg2, ww, hh / 2);
+
+             evas_object_show(en->cursor_fg2);
+          }
+        else
+          {
+             evas_object_hide(en->cursor_fg2);
+          }
+     }
+
    if (en->cursor_handler && (!en->cursor_handler_disabled || en->long_press_state == _ENTRY_LONG_PRESSED || en->long_press_state == _ENTRY_LONG_PRESSING))
      {
         Evas_Coord chx, chy;
