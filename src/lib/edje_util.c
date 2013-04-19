@@ -3308,11 +3308,11 @@ edje_object_size_min_restricted_calc(Evas_Object *obj, Evas_Coord *minw, Evas_Co
              if (!has_non_fixed_tb)
                {
                   if (pep)
-                     ERR("file %s, group %s has a non-fixed part '%s'. Adding 'fixed: 1 1;' to source EDC may help. Continuing discarding faulty part.",
-                         ed->path, ed->group, pep->part->name);
+                     ERR("group %s has a non-fixed part '%s'. Adding 'fixed: 1 1;' to source EDC may help. Continuing discarding faulty part.",
+                         ed->group, pep->part->name);
                   else
-                     ERR("file %s, group %s overflowed 4000x4000 with minimum size of %dx%d. Continuing discarding faulty parts.",
-                         ed->path, ed->group, ed->w, ed->h);
+                     ERR("group %s overflowed 4000x4000 with minimum size of %dx%d. Continuing discarding faulty parts.",
+                         ed->group, ed->w, ed->h);
                }
 
 	     if (reset_maxwh)
