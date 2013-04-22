@@ -604,18 +604,15 @@ _curs_jump_line(Evas_Textblock_Cursor *c, Evas_Object *o, Entry *en, int ln)
    Evas_Coord lx, ly, lw, lh;
    int last = _curs_line_last_get(c, o, en);
 
-   if (ln < 0) ln = 0;
-   else
-     {
-        if (ln > last) ln = last;
-     }
+   if (ln < 0) return EINA_FALSE;
+   if (ln > last) return EINA_FALSE;
 
    _curs_update_from_curs(c, o, en, &cx, &cy);
 
    if (!evas_object_textblock_line_number_geometry_get(o, ln, &lx, &ly, &lw, &lh))
      return EINA_FALSE;
    if (evas_textblock_cursor_char_coord_set(c, cx, ly + (lh / 2)))
-     return EINA_FALSE;
+     return EINA_TRUE;
    evas_textblock_cursor_line_set(c, ln);
    if (cx < (lx + (lw / 2)))
      {
@@ -1679,9 +1676,16 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _compose_seq_reset(en);
         if (multiline)
           {
+             if (en->have_selection &&
+                 (evas_textblock_cursor_pos_get(en->sel_start) != evas_textblock_cursor_pos_get(en->sel_end)))
+               ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
              if (en->select_allow)
                {
-                  if (shift) _sel_start(en->cursor, rp->object, en);
+                  if (shift)
+                    {
+                       _sel_start(en->cursor, rp->object, en);
+                       ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+                    }
                   else _sel_clear(en->cursor, rp->object, en);
                }
              if (_curs_up(en->cursor, rp->object, en))
@@ -1701,9 +1705,16 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
         _compose_seq_reset(en);
         if (multiline)
           {
+             if (en->have_selection &&
+                 (evas_textblock_cursor_pos_get(en->sel_start) != evas_textblock_cursor_pos_get(en->sel_end)))
+               ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
              if (en->select_allow)
                {
-                  if (shift) _sel_start(en->cursor, rp->object, en);
+                  if (shift)
+                    {
+                       _sel_start(en->cursor, rp->object, en);
+                       ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+                    }
                   else _sel_clear(en->cursor, rp->object, en);
                }
              if (_curs_down(en->cursor, rp->object, en))
@@ -1721,9 +1732,16 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
             (!strcmp(ev->keyname, "KP_Left") && !ev->string))
      {
         _compose_seq_reset(en);
+        if (en->have_selection &&
+            (evas_textblock_cursor_pos_get(en->sel_start) != evas_textblock_cursor_pos_get(en->sel_end)))
+          ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         if (en->select_allow)
           {
-             if (shift) _sel_start(en->cursor, rp->object, en);
+             if (shift)
+               {
+                  _sel_start(en->cursor, rp->object, en);
+                  ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+               }
              else _sel_clear(en->cursor, rp->object, en);
           }
         if (evas_textblock_cursor_char_prev(en->cursor))
@@ -1742,9 +1760,16 @@ _edje_key_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
             (!strcmp(ev->keyname, "KP_Right") && !ev->string))
      {
         _compose_seq_reset(en);
+        if (en->have_selection &&
+            (evas_textblock_cursor_pos_get(en->sel_start) != evas_textblock_cursor_pos_get(en->sel_end)))
+          ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
         if (en->select_allow)
           {
-             if (shift) _sel_start(en->cursor, rp->object, en);
+             if (shift)
+               {
+                  _sel_start(en->cursor, rp->object, en);
+                  ev->event_flags |= EVAS_EVENT_FLAG_ON_HOLD;
+               }
              else _sel_clear(en->cursor, rp->object, en);
           }
         /* If control is pressed, go to the end of the word */
