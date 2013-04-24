@@ -730,6 +730,7 @@ _edje_program_run(Edje *ed, Edje_Program *pr, Eina_Bool force, const char *ssig,
 
              // _edje_emit(ed, "program,start", pr->name);
              if (_edje_block_break(ed)) goto break_prog;
+             if (!multisense_init) _edje_multisense_init();
              snprintf(fname, sizeof(fname), "_p%i", pr->id);
              _edje_embryo_test_run(ed, fname, ssig, ssrc);
              // _edje_emit(ed, "program,stop", pr->name);
