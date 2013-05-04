@@ -187,6 +187,18 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
 
 err:
    if (eet_vio) free(eet_vio);
+   if (si->path) free(si->path);
+   if (si->sound_id) free(si->sound_id);
+   if (si->snd_info) free(si->snd_info);
+   if (si->vio_data)
+     {
+        if (si->vio_data->data) free(si->vio_data->data);
+        free(si->vio_data);
+     }
+   else
+     {
+        if (sound_data) free(sound_data);
+     }
    remix_set_error(env, REMIX_ERROR_SYSTEM);
    remix_destroy(env, (RemixBase *)sndfile);
    return RemixNone;
@@ -233,7 +245,11 @@ remix_eet_sndfile_destroy(RemixEnv *env, RemixBase *base)
         if (si->efp) eet_close(si->efp);
         if (si->inbuf) free(si->inbuf);
         if (si->outbuf) free(si->outbuf);
-        if (si->vio_data) free(si->vio_data);
+        if (si->vio_data)
+          {
+             if (si->vio_data->data) free(si->vio_data->data);
+             free(si->vio_data);
+          }
         free(si);
       }
    if (base) free (base);
