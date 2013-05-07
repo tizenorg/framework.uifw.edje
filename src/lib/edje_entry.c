@@ -79,6 +79,9 @@ struct _Entry
    Eina_Bool input_panel_enable : 1;
    Eina_Bool prediction_allow : 1;
    Eina_Bool focused : 1; // TIZEN ONLY
+   Eina_Bool vp_updated : 1; // TIZEN ONLY
+   Eina_Bool sh_start_normal_pos : 1; // TIZEN ONLY
+   Eina_Bool sh_end_normal_pos : 1; // TIZEN ONLY
    // TIZEN ONLY(130129) : Currently, for freezing cursor movement.
    Eina_Bool freeze : 1;
    //
@@ -890,6 +893,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                     {
                        Evas_Coord nx, ny, handler_height = 0;
                        Evas_Coord edge_w;
+                       Evas_Coord moving = 0;
                        edje_object_part_geometry_get(en->sel_handler_start, "handle", NULL, NULL, NULL, &handler_height);
 
                        //keep same touch pos when by passing
@@ -909,6 +913,12 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                        evas_object_move(en->sel_handler_edge_start, nx, ny);
                        evas_object_resize(en->sel_handler_edge_start, edge_w, r->h);
 
+                       if (!en->vp_updated && en->sh_start_normal_pos)
+                         {
+                            /* to avoid blinking when moving */
+                            moving = r->h;
+                         }
+
                        evas_object_hide(en->sel_handler_edge_start);
 
                        // if viewport region is not set, show handlers
@@ -926,16 +936,18 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                          {
                             if ((en->viewport_region.w > 0 && en->viewport_region.h > 0) &&
                                 (nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
-                                (ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h)))
+                                (ny + r->h >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h)))
                               {
-                                 if (en->layout_region.w != -1 && en->layout_region.h != -1 &&
-                                     ((ny - handler_height) > en->layout_region.y))
+                                 if ((en->layout_region.w != -1) && (en->layout_region.h != -1) &&
+                                     ((ny - handler_height) > en->layout_region.y) &&
+                                     (ny + moving >= en->viewport_region.y))
                                    {
                                       evas_object_move(en->sel_handler_start, nx, ny);
                                       if (nx <= en->layout_region.x + bh_gap)
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,top,reversed", "elm");
                                       else
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,top", "elm");
+                                      en->sh_start_normal_pos = EINA_TRUE;
                                    }
                                  else
                                    {
@@ -944,6 +956,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,bottom,reversed", "elm");
                                       else
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,bottom", "elm");
+                                      en->sh_start_normal_pos = EINA_FALSE;
                                    }
 
                                  evas_object_show(en->sel_handler_start);
@@ -955,6 +968,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                     {
                        Evas_Coord nx, ny, handler_height = 0;
                        Evas_Coord edge_w;
+                       Evas_Coord moving = 0;
 
                        edje_object_part_geometry_get(en->sel_handler_end, "handle", NULL, NULL, NULL, &handler_height);
 
@@ -976,6 +990,12 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                        evas_object_move(en->sel_handler_edge_end, nx, ny - r->h);
                        evas_object_resize(en->sel_handler_edge_end, edge_w, r->h);
 
+                       if (!en->vp_updated && en->sh_end_normal_pos)
+                         {
+                            /* to avoid blinking when moving */
+                            moving = r->h;
+                         }
+
                        evas_object_hide(en->sel_handler_edge_end);
 
                        // if viewport region is not set, show handlers
@@ -993,16 +1013,18 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                          {
                             if ((en->viewport_region.w > 0 && en->viewport_region.h > 0) &&
                                 (nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
-                                (ny >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h)))
+                                (ny >= en->viewport_region.y) && (ny - r->h <= (en->viewport_region.y + en->viewport_region.h)))
                               {
                                  evas_object_move(en->sel_handler_end, nx, ny - r->h);
                                  if (en->layout_region.w != -1 && en->layout_region.h != -1 &&
-                                     ((ny + handler_height) > (en->layout_region.y + en->layout_region.h)))
+                                     (((ny + handler_height) > (en->layout_region.y + en->layout_region.h))
+                                     || (ny > en->viewport_region.y + en->viewport_region.h + moving)))
                                    {
                                       if (nx >= en->layout_region.w - bh_gap)
                                          edje_object_signal_emit(en->sel_handler_end, "elm,state,top,reversed", "elm");
                                       else
                                          edje_object_signal_emit(en->sel_handler_end, "elm,state,top", "elm");
+                                      en->sh_end_normal_pos = EINA_FALSE;
                                    }
                                  else
                                    {
@@ -1012,6 +1034,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                                          edje_object_signal_emit(en->sel_handler_end, "elm,state,bottom,reversed", "elm");
                                       else
                                          edje_object_signal_emit(en->sel_handler_end, "elm,state,bottom", "elm");
+                                      en->sh_end_normal_pos = EINA_TRUE;
                                    }
 
                                  evas_object_show(en->sel_handler_end);
@@ -1036,6 +1059,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
              range = eina_list_remove_list(range, range);
           }
      }
+   en->vp_updated = EINA_FALSE;
 }
 
 static void
@@ -3300,6 +3324,7 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
    if (!en) return;
    rp->typedata.text->entry_data = en;
    en->rp = rp;
+   en->vp_updated = EINA_FALSE;
 
    evas_object_event_callback_add(rp->object, EVAS_CALLBACK_MOVE, _edje_part_move_cb, rp);
 
@@ -3953,6 +3978,7 @@ _edje_entry_viewport_region_set(Edje_Real_Part *rp, Evas_Coord x, Evas_Coord y, 
    en->viewport_region.y = y;
    en->viewport_region.w = w;
    en->viewport_region.h = h;
+   en->vp_updated = EINA_TRUE;
    _sel_update(en->cursor, rp->object, en);
 }
 
