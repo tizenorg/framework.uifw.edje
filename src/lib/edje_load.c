@@ -793,7 +793,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 	     for (i = 0; i < ed->table_parts_size; i++)
 	       {
 		  rp = ed->table_parts[i];
-		  evas_object_show(rp->object);
+		  if (rp->object) evas_object_show(rp->object);
 		  if (_edje_block_break(ed)) break;
 		  if (rp->drag)
 		    {

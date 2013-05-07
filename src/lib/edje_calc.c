@@ -3223,7 +3223,7 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
                   evas_object_map_enable_set(ep->nested_smart, 0);
                   evas_object_map_set(ep->nested_smart, NULL);
                }
-             else
+             else if (mo)
                {
                   evas_object_map_enable_set(mo, 0);
                   evas_object_map_set(mo, NULL);

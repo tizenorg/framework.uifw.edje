@@ -204,6 +204,7 @@ _edje_smart_move(Evas_Object * obj, Evas_Coord x, Evas_Coord y)
              Edje_Real_Part *ep;
 
              ep = ed->table_parts[i];
+             if (!ep->object) continue;
              if ((ep->type == EDJE_RP_TYPE_TEXT) &&
                  (ep->typedata.text))
                evas_object_move(ep->object, 
