@@ -5076,7 +5076,7 @@ _edje_fetch(const Evas_Object *obj)
 {
    Edje *ed;
 
-   if (!evas_object_smart_type_check(obj, "edje"))
+   if (!obj || !evas_object_smart_type_check(obj, "edje"))
      return NULL;
    ed = evas_object_smart_data_get(obj);
    if ((ed) && (ed->delete_me)) return NULL;
