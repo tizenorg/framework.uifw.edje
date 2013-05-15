@@ -2770,6 +2770,7 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           {
              Evas_Coord flx, fly, flh;
              Evas_Coord cnx, cny;
+             int old_cur_pos;
 
              tc = evas_object_textblock_cursor_new(rp->object);
              evas_textblock_cursor_copy(en->cursor, tc);
@@ -2777,6 +2778,8 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
 
              cx = ev->cur.canvas.x - x;
              cy = ev->cur.canvas.y - y;
+
+             old_cur_pos = evas_textblock_cursor_pos_get(en->cursor);
              evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
 
              /* handle the special cases in which pressed position is above the first line or below the last line  */
@@ -2785,7 +2788,8 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
              if ((cnx == flx) && (cny == fly))
                {
                   /* cursor is in the first line */
-                  evas_textblock_cursor_char_coord_set(en->cursor, cx, fly + flh / 2);
+                  if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, fly + flh / 2))
+                     evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
                }
              else
                {
@@ -2799,10 +2803,13 @@ _edje_part_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
                   if ((cnx == llx) && (cny == lly))
                     {
                        /* cursor is in the last line */
-                       evas_textblock_cursor_char_coord_set(en->cursor, cx, lly + llh / 2);
+                       if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, lly + llh / 2))
+                          evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
                     }
                   evas_textblock_cursor_free(lc);
                }
+             if (evas_textblock_cursor_line_geometry_get(en->cursor, NULL, NULL, NULL, NULL) == -1)
+                evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
 
              if (evas_textblock_cursor_compare(tc, en->cursor))
                {
@@ -2978,6 +2985,7 @@ _edje_entry_cursor_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
    Evas_Coord x, y, tx, ty, tw, th;
    Evas_Coord cx, cy;
    Evas_Coord lh;
+   int old_cur_pos;
 
    if (!rp) return;
    if ((rp->type != EDJE_RP_TYPE_TEXT) ||
@@ -3005,7 +3013,15 @@ _edje_entry_cursor_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Ob
    if (cy <= 0) cy = lh / 2;
    if (cy > th) cy = th - 1;
 
-   evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
+   old_cur_pos = evas_textblock_cursor_pos_get(en->cursor);
+   if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, cy))
+     {
+        evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
+     }
+   else if (evas_textblock_cursor_line_geometry_get(en->cursor, NULL, NULL, NULL, NULL) == -1)
+     {
+        evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
+     }
 
    //_edje_entry_imf_cursor_info_set(en);
    _edje_emit(rp->edje, "cursor,changed", rp->part->name); //to scroll scroller
@@ -3076,6 +3092,7 @@ _edje_entry_start_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Obj
    Evas_Coord lh;
    Evas_Textblock_Cursor_Type cur_type;
    Evas_Coord sx, sy;
+   int old_cur_pos;
 
    if (ev->buttons != 1) return;
 
@@ -3109,8 +3126,15 @@ _edje_entry_start_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Obj
      }
 
    evas_textblock_cursor_geometry_get(en->sel_end, &sx, &sy, NULL, NULL, NULL, cur_type);
-
-   evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
+   old_cur_pos = evas_textblock_cursor_pos_get(en->cursor);
+   if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, cy))
+     {
+        evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
+     }
+   else if (evas_textblock_cursor_line_geometry_get(en->cursor, NULL, NULL, NULL, NULL) == -1)
+     {
+        evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
+     }
 
    // by passing
    if (evas_textblock_cursor_compare(en->cursor, en->sel_end) >= 0)
@@ -3196,6 +3220,7 @@ _edje_entry_end_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
    Evas_Coord cx, cy;
    Evas_Textblock_Cursor_Type cur_type;
    Evas_Coord sx, sy;
+   int old_cur_pos;
 
    if (ev->buttons != 1) return;
 
@@ -3228,7 +3253,15 @@ _edje_entry_end_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
      }
 
    evas_textblock_cursor_geometry_get(en->sel_start, &sx, &sy, NULL, NULL, NULL, cur_type);
-   evas_textblock_cursor_char_coord_set(en->cursor, cx, cy);
+   old_cur_pos = evas_textblock_cursor_pos_get(en->cursor);
+   if (!evas_textblock_cursor_char_coord_set(en->cursor, cx, cy))
+     {
+        evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
+     }
+   else if (evas_textblock_cursor_line_geometry_get(en->cursor, NULL, NULL, NULL, NULL) == -1)
+     {
+        evas_textblock_cursor_pos_set(en->cursor, old_cur_pos);
+     }
 
    // by passing
    if (evas_textblock_cursor_compare(en->cursor, en->sel_start) <= 0)
