@@ -161,6 +161,9 @@ eet_sound_reader_get(Edje_Multisense_Env *msenv, const char *path,
    sf_parms = cd_set_replace(env, sf_parms, sf_speed_key, CD_DOUBLE(speed));
    eet_snd_reader = remix_new(env, sf_plugin, sf_parms);
 
+   //free the sf_parms as it is no more needed.
+   cd_set_free(env, sf_parms);
+
    return eet_snd_reader;
 }
 
