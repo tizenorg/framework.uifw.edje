@@ -178,7 +178,7 @@ edje_remix_sample_create(Multisense_Data *msdata, Edje_File *file, Edje_Sample_A
    for (i = 0; i < (int)file->sound_dir->samples_count; i++)
      {
         sample = &file->sound_dir->samples[i];
-        if (!strcmp(sample->name, action->sample_name))
+        if (sample && !strcmp(sample->name, action->sample_name))
           {
              snprintf(snd_id_str, sizeof(snd_id_str), "edje/sounds/%i", sample->id);
              remix_snd = eet_sound_reader_get(msdata->msenv, file->path,
@@ -202,7 +202,7 @@ edje_remix_tone_create(Multisense_Data *msdata, Edje_File *file, Edje_Tone_Actio
    for (i = 0; i < file->sound_dir->tones_count; i++)
      {
         tone = &file->sound_dir->tones[i];
-        if (!strcmp(tone->name, action->tone_name))
+        if (tone && !strcmp(tone->name, action->tone_name))
           {
              square = remix_squaretone_new (msdata->msenv->remixenv, tone->value);
              break;
