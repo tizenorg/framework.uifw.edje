@@ -221,8 +221,9 @@ sound_command_handler(Multisense_Data *msdata)
    Edje_Multisense_Sound_Action command;
    RemixBase *base = NULL;
    RemixBase *sound;
+   int read_len = sizeof(command);
 
-   if (read(command_pipe[0], &command, sizeof(command)) <= 0) return;
+   if (read(command_pipe[0], &command, sizeof(command)) < read_len) return;
    switch (command.action)
      {
       case EDJE_PLAY_SAMPLE:
