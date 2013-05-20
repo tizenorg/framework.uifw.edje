@@ -168,7 +168,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                   en->sel_handler_end = edje_object_add(en->rp->edje->base.evas);
                   edje_object_file_set(en->sel_handler_end, en->rp->edje->path, en->rp->part->source8);
 
-                  evas_object_layer_set(en->sel_handler_end, EVAS_LAYER_MAX - 2);
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_end);
                   evas_object_event_callback_add(en->sel_handler_end, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_end_handler_mouse_down_cb, en->rp);
                   evas_object_event_callback_add(en->sel_handler_end, EVAS_CALLBACK_MOUSE_UP, _edje_entry_end_handler_mouse_up_cb, en->rp);
@@ -179,7 +178,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                {
                   en->sel_handler_start = edje_object_add(en->rp->edje->base.evas);
                   edje_object_file_set(en->sel_handler_start, en->rp->edje->path, en->rp->part->source7);
-                  evas_object_layer_set(en->sel_handler_start, EVAS_LAYER_MAX - 2);
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_start);
                   evas_object_event_callback_add(en->sel_handler_start, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_start_handler_mouse_down_cb, en->rp);
                   evas_object_event_callback_add(en->sel_handler_start, EVAS_CALLBACK_MOUSE_UP, _edje_entry_start_handler_mouse_up_cb, en->rp);
@@ -191,7 +189,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                {
                   en->sel_handler_edge_start = edje_object_add(en->rp->edje->base.evas);
                   edje_object_file_set(en->sel_handler_edge_start, en->rp->edje->path, en->rp->part->source10);
-                  evas_object_layer_set(en->sel_handler_edge_start, EVAS_LAYER_MAX - 2);
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_start);
                   evas_object_clip_set(en->sel_handler_edge_start, evas_object_clip_get(rp->object));
                }
@@ -201,7 +198,6 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                {
                   en->sel_handler_edge_end = edje_object_add(en->rp->edje->base.evas);
                   edje_object_file_set(en->sel_handler_edge_end, en->rp->edje->path, en->rp->part->source11);
-                  evas_object_layer_set(en->sel_handler_edge_end, EVAS_LAYER_MAX - 2);
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_end);
                   evas_object_clip_set(en->sel_handler_edge_end, evas_object_clip_get(rp->object));
                }
@@ -287,7 +283,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              en->sel_handler_end = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(en->sel_handler_end, en->rp->edje->path, en->rp->part->source8);
 
-             evas_object_layer_set(en->sel_handler_end, EVAS_LAYER_MAX - 2);
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_end);
              evas_object_event_callback_add(en->sel_handler_end, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_end_handler_mouse_down_cb, en->rp);
              evas_object_event_callback_add(en->sel_handler_end, EVAS_CALLBACK_MOUSE_UP, _edje_entry_end_handler_mouse_up_cb, en->rp);
@@ -298,7 +293,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           {
              en->sel_handler_start = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(en->sel_handler_start, en->rp->edje->path, en->rp->part->source7);
-             evas_object_layer_set(en->sel_handler_start, EVAS_LAYER_MAX - 2);
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_start);
              evas_object_event_callback_add(en->sel_handler_start, EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_start_handler_mouse_down_cb, en->rp);
              evas_object_event_callback_add(en->sel_handler_start, EVAS_CALLBACK_MOUSE_UP, _edje_entry_start_handler_mouse_up_cb, en->rp);
@@ -310,7 +304,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           {
              en->sel_handler_edge_start = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(en->sel_handler_edge_start, en->rp->edje->path, en->rp->part->source10);
-             evas_object_layer_set(en->sel_handler_edge_start, EVAS_LAYER_MAX - 2);
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_start);
              evas_object_clip_set(en->sel_handler_edge_start, evas_object_clip_get(rp->object));
           }
@@ -320,7 +313,6 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
           {
              en->sel_handler_edge_end = edje_object_add(en->rp->edje->base.evas);
              edje_object_file_set(en->sel_handler_edge_end, en->rp->edje->path, en->rp->part->source11);
-             evas_object_layer_set(en->sel_handler_edge_end, EVAS_LAYER_MAX - 2);
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_end);
              evas_object_clip_set(en->sel_handler_edge_end, evas_object_clip_get(rp->object));
           }
@@ -3419,7 +3411,6 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         en->cursor_handler = edje_object_add(en->rp->edje->base.evas);
         edje_object_file_set(en->cursor_handler , en->rp->edje->path, rp->part->source9);
 
-        evas_object_layer_set(en->cursor_handler , EVAS_LAYER_MAX - 2);
         en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->cursor_handler );
 
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_DOWN, _edje_entry_cursor_handler_mouse_down_cb, en->rp);
@@ -3654,16 +3645,33 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
 
    if (en->cursor_handler && (!en->cursor_handler_disabled || en->long_press_state == _ENTRY_LONG_PRESSED || en->long_press_state == _ENTRY_LONG_PRESSING))
      {
+        Evas_Coord chh;
         Evas_Coord chx, chy;
+
         chx = x + xx;
         chy = y + yy + hh;
         evas_object_move(en->cursor_handler, chx, chy);
-        if (((chx < en->viewport_region.x) || (chy < en->viewport_region.y) ||
-             (chx > en->viewport_region.x + en->viewport_region.w) || (chy > en->viewport_region.y + en->viewport_region.h))
-            && (en->cursor_handler_show))
+        edje_object_size_min_calc(en->cursor_handler, NULL, &chh);
+        if (en->cursor_handler_show)
           {
-             evas_object_hide(en->cursor_handler);
-             en->cursor_handler_show = EINA_FALSE;
+             if (((chx < en->viewport_region.x) || (chy < en->viewport_region.y) ||
+                  (chx > en->viewport_region.x + en->viewport_region.w) || (chy > en->viewport_region.y + en->viewport_region.h)))
+               {
+                  evas_object_hide(en->cursor_handler);
+                  en->cursor_handler_show = EINA_FALSE;
+               }
+             else if (en->focused)
+               {
+                  if (chy + chh > en->layout_region.y + en->layout_region.h)
+                    {
+                       evas_object_move(en->cursor_handler, x + xx, y + yy);
+                       edje_object_signal_emit(en->cursor_handler, "edje,cursor,handle,top", "edje");
+                    }
+                  else
+                    {
+                       edje_object_signal_emit(en->cursor_handler, "edje,cursor,handle,show", "edje");
+                    }
+               }
           }
      }
 }
