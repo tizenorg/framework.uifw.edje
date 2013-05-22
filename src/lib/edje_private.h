@@ -1783,8 +1783,11 @@ void           _edje_text_recalc_apply(Edje *ed,
 				       Edje_Part_Description_Text *chosen_desc);
 Evas_Font_Size _edje_text_size_calc(Evas_Font_Size size, Edje_Text_Class *tc);
 const char *   _edje_text_class_font_get(Edje *ed,
-					 Edje_Part_Description_Text *chosen_desc,
-					 int *size, char **free_later);
+                                         Edje_Part_Description_Text *chosen_desc,
+                                         int *size, char **free_later);
+const char *   _edje_text_font_get(const char *base, const char *new,
+                                   char **free_later);
+
 
 
 Edje_Real_Part   *_edje_real_part_get(const Edje *ed, const char *part);
