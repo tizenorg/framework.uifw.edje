@@ -151,10 +151,8 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
    si->efp = eet_open(path, EET_FILE_MODE_READ);
    if (!si->efp) goto err;
 
-   // xxx: eet_read_direct does not work on Threads, using eet_read.
-   sound_data = eet_read(si->efp, sound_id, &(sound_size));
-   eet_close(si->efp);
-   si->efp = NULL;
+   //sound_data = eet_read(si->efp, sound_id, &(sound_size));
+   sound_data = eet_read_direct(si->efp, sound_id, &(sound_size));
    if (sound_data == NULL) goto err;
 
    eet_vio = calloc(1, sizeof(SF_VIRTUAL_IO));
@@ -187,18 +185,16 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
 
 err:
    if (eet_vio) free(eet_vio);
-   if (si->path) free(si->path);
-   if (si->sound_id) free(si->sound_id);
-   if (si->snd_info) free(si->snd_info);
-   if (si->vio_data)
+   if (si)
      {
-        if (si->vio_data->data) free(si->vio_data->data);
-        free(si->vio_data);
+        if (si->efp) eet_close(si->efp);
+        if (si->path) free(si->path);
+        if (si->sound_id) free(si->sound_id);
+        if (si->snd_info) free(si->snd_info);
+        if (si->vio_data) free(si->vio_data);
+        free(si);
      }
-   else
-     {
-        if (sound_data) free(sound_data);
-     }
+
    remix_set_error(env, REMIX_ERROR_SYSTEM);
    remix_destroy(env, (RemixBase *)sndfile);
    return RemixNone;
@@ -238,18 +234,13 @@ remix_eet_sndfile_destroy(RemixEnv *env, RemixBase *base)
    if (si)
      {
         sf_close (si->pcm_fp);
-        eet_close(si->efp);
         if (si->path) free(si->path);
         if (si->sound_id) free(si->sound_id);
         if (si->snd_info) free(si->snd_info);
         if (si->efp) eet_close(si->efp);
         if (si->inbuf) free(si->inbuf);
         if (si->outbuf) free(si->outbuf);
-        if (si->vio_data)
-          {
-             if (si->vio_data->data) free(si->vio_data->data);
-             free(si->vio_data);
-          }
+        if (si->vio_data) free(si->vio_data);
         free(si);
       }
    if (base) free (base);
