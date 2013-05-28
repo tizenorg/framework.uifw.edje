@@ -400,7 +400,8 @@ _edje_multisense_init(void)
    if (!msdata) msdata = init_multisense_environment();
 
    if (!player_thread)
-     player_thread = ecore_thread_run(_player_job, NULL, NULL, NULL);
+     player_thread = ecore_thread_feedback_run(_player_job, NULL, NULL, NULL,
+                                               NULL, EINA_TRUE);
 #endif
 }
 
