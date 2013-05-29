@@ -218,7 +218,7 @@ static void
 sound_command_handler(Multisense_Data *msdata)
 {
    RemixCount length;
-   Edje_Multisense_Sound_Action command;
+   Edje_Multisense_Sound_Action command = {0,};
    RemixBase *base = NULL;
    RemixBase *sound;
    int read_len = sizeof(command);
@@ -335,7 +335,7 @@ _edje_multisense_internal_sound_sample_play(Edje *ed, const char *sample_name, c
 {
    ssize_t size = 0;
 #if defined(ENABLE_MULTISENSE) && defined(HAVE_LIBREMIX)
-   Edje_Multisense_Sound_Action command;
+   Edje_Multisense_Sound_Action command = {0,};
 
    if ((!pipe_initialized) && (!player_thread)) return EINA_FALSE;
    if (!sample_name)
@@ -363,7 +363,7 @@ _edje_multisense_internal_sound_tone_play(Edje *ed, const char *tone_name, const
 {
    ssize_t size = 0;
 #if defined(ENABLE_MULTISENSE) && defined(HAVE_LIBREMIX)
-   Edje_Multisense_Sound_Action command;
+   Edje_Multisense_Sound_Action command = {0,};
 
    if ((!pipe_initialized) && (!player_thread)) return EINA_FALSE;
    if (!tone_name)
@@ -409,7 +409,7 @@ void
 _edje_multisense_shutdown(void)
 {
 #ifdef ENABLE_MULTISENSE
-   Edje_Multisense_Sound_Action command;
+   Edje_Multisense_Sound_Action command = {0,};
    MULTISENSE_FACTORY_SHUTDOWN_FUNC multisense_factory_shutdown;
 
    if (m) multisense_factory_shutdown
