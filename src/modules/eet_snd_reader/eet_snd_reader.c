@@ -151,9 +151,16 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
    si->efp = eet_open(path, EET_FILE_MODE_READ);
    if (!si->efp) goto err;
 
-   //sound_data = eet_read(si->efp, sound_id, &(sound_size));
-   sound_data = eet_read_direct(si->efp, sound_id, &(sound_size));
+   sound_data = eet_read(si->efp, sound_id, &(sound_size));
+   //sound_data = eet_read_direct(si->efp, sound_id, &(sound_size));
    if (sound_data == NULL) goto err;
+
+   //close immediately to avoid synchronisation issue during shutdown,
+   if (si->efp)
+     {
+        eet_close(si->efp);
+        si->efp = NULL;
+     }
 
    eet_vio = calloc(1, sizeof(SF_VIRTUAL_IO));
    if (!eet_vio) goto err;
@@ -191,7 +198,15 @@ err:
         if (si->path) free(si->path);
         if (si->sound_id) free(si->sound_id);
         if (si->snd_info) free(si->snd_info);
-        if (si->vio_data) free(si->vio_data);
+        if (si->vio_data)
+          {
+             if (si->vio_data->data) free(si->vio_data->data);
+             free(si->vio_data);
+          }
+        else
+          {
+             if (sound_data) free(sound_data);
+          }
         free(si);
      }
 
@@ -233,14 +248,18 @@ remix_eet_sndfile_destroy(RemixEnv *env, RemixBase *base)
    SndInstanceData *si = remix_base_get_instance_data(env, base);
    if (si)
      {
-        sf_close (si->pcm_fp);
+        if (si->pcm_fp) sf_close (si->pcm_fp);
         if (si->path) free(si->path);
         if (si->sound_id) free(si->sound_id);
         if (si->snd_info) free(si->snd_info);
         if (si->efp) eet_close(si->efp);
         if (si->inbuf) free(si->inbuf);
         if (si->outbuf) free(si->outbuf);
-        if (si->vio_data) free(si->vio_data);
+        if (si->vio_data)
+          {
+             if (si->vio_data->data) free(si->vio_data->data);
+             free(si->vio_data);
+          }
         free(si);
       }
    if (base) free (base);
