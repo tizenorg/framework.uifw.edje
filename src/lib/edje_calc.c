@@ -2438,6 +2438,8 @@ _edje_proxy_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3, Edj
    evas_object_image_fill_set(ep->object, p3->type.common.fill.x, p3->type.common.fill.y,
                               p3->type.common.fill.w, p3->type.common.fill.h);
    evas_object_image_smooth_scale_set(ep->object, p3->smooth);
+   evas_object_image_source_visible_set(ep->object, chosen_desc->proxy.source_visible);
+   evas_object_image_source_clip_set(ep->object, chosen_desc->proxy.source_clip);
 }
 
 static void
