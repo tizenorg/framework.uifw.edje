@@ -231,7 +231,7 @@ perform_math (char *input)
 static int
 isdelim(char c)
 {
-   const char *delims = "{},;:";
+   const char *delims = "{},;:[]";
    char *d;
 
    d = (char *)delims;
@@ -560,6 +560,7 @@ parse(char *data, off_t size)
    char *p, *end, *token;
    int delim = 0;
    int do_params = 0;
+   int do_indexes = 0;  // 0: none, 1: ready, 2: done
 
    DBG("Parsing input file");
 
@@ -582,7 +583,14 @@ parse(char *data, off_t size)
 	  }
 	else if (delim)
 	  {
-	     if (*token == ',' || *token == ':') do_params = 1;
+             if ((do_indexes == 2) && (*token != ']'))
+               {
+                  ERR("parse error %s:%i. %c marker before ] marker",
+                      file_in, line - 1, *token);
+                  err_show();
+                  exit(-1);
+               }
+             else if (*token == ',' || *token == ':') do_params = 1;
 	     else if (*token == '}')
 	       {
 		  if (do_params)
@@ -617,19 +625,45 @@ parse(char *data, off_t size)
 		       ERR("parse error %s:%i. { marker before ; marker",
 			   file_in, line - 1);
                        err_show();
-		       exit(-1);
-		    }
-	       }
-	     free(token);
-	  }
-	else
-	  {
-	     if (do_params)
+                       exit(-1);
+                    }
+               }
+             else if (*token == '[')
+               {
+                  do_indexes = 1;
+               }
+             else if (*token == ']')
+               {
+                  if (do_indexes == 2)
+                    do_indexes = 0;
+                  else
+                    {
+                       if (do_indexes == 0)
+                         ERR("parse error %s:%i. ] marker before [ marker",
+                             file_in, line - 1);
+                       else
+                         ERR("parse error %s:%i. [?] empty bracket",
+                             file_in, line - 1);
+
+                       err_show();
+                       exit(-1);
+                    }
+               }
+             free(token);
+          }
+        else
+          {
+             if (do_params)
                {
                   eina_array_push(&params, token);
                }
-	     else
-	       {
+             else if (do_indexes)
+               {
+                  do_indexes++;
+                  eina_array_push(&params, token);
+               }
+             else
+               {
                   stack_push(token);
 		  new_object();
 		  if ((verbatim == 1) && (p < (end - 2)))
