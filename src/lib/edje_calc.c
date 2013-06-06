@@ -2145,6 +2145,7 @@ _edje_part_recalc_single_map(Edje *ed,
              params->map.persp.z = persp->param1.description->persp.zplane;
              params->map.persp.focal = persp->param1.description->persp.focal;
           }
+        params->map.colors = desc->map.colors;
      }
 }
 
@@ -2503,6 +2504,120 @@ _edje_real_part_state_get(Edje *ed, Edje_Real_Part *ep, int flags, int id, int *
    return result;
 }
 
+#define FINTP(_x1, _x2, _p)                     \
+        (((_x1) == (_x2))                       \
+         ? FROM_INT((_x1))                      \
+         : ADD(FROM_INT(_x1),                   \
+               SCALE((_p), (_x2) - (_x1))))
+
+#define FFP(_x1, _x2, _p)                       \
+        (((_x1) == (_x2))                       \
+         ? (_x1)                                \
+         : ADD(_x1, MUL(_p, SUB(_x2, _x1))));
+
+#define INTP(_x1, _x2, _p) TO_INT(FINTP(_x1, _x2, _p))
+
+static Eina_Bool
+map_colors_interp(Edje_Calc_Params *p1, Edje_Calc_Params *p2,
+                  Edje_Calc_Params *p3, FLOAT_T pos)
+{
+   Eina_List *l, *l2;
+   Edje_Map_Color *col, *col2, *col3;
+   Eina_Bool matched = EINA_FALSE;
+   p3->map.colors = NULL;
+
+   if (p1->map.colors || p2->map.colors)
+     {
+        EINA_LIST_FOREACH(p1->map.colors, l, col)
+          {
+             col3 = calloc(1, sizeof(Edje_Map_Color));
+             col3->idx = col->idx;
+
+             EINA_LIST_FOREACH(p2->map.colors, l2, col2)
+               {
+                  if (col->idx != col2->idx) continue;
+                  col3->r = INTP(col->r, col2->r, pos);
+                  col3->g = INTP(col->g, col2->g, pos);
+                  col3->b = INTP(col->b, col2->b, pos);
+                  col3->a = INTP(col->a, col2->a, pos);
+                  p3->map.colors = eina_list_append(p3->map.colors, col3);
+                  matched = EINA_TRUE;
+                  break;
+               }
+             if (!matched)
+               {
+                  col3->r = INTP(col->r, 255, pos);
+                  col3->g = INTP(col->g, 255, pos);
+                  col3->b = INTP(col->b, 255, pos);
+                  col3->a = INTP(col->a, 255, pos);
+                  p3->map.colors = eina_list_append(p3->map.colors, col3);
+               }
+             matched = EINA_FALSE;
+          }
+        EINA_LIST_FOREACH(p2->map.colors, l, col)
+          {
+             EINA_LIST_FOREACH(p1->map.colors, l2, col2)
+               {
+                  if (col->idx != col2->idx) continue;
+                  matched = EINA_TRUE;
+                  break;
+               }
+             if (!matched)
+               {
+                  col3 = calloc(1, sizeof(Edje_Map_Color));
+                  col3->idx = col->idx;
+                  col3->r = INTP(255, col->r, pos);
+                  col3->g = INTP(255, col->g, pos);
+                  col3->b = INTP(255, col->b, pos);
+                  col3->a = INTP(255, col->a, pos);
+                  p3->map.colors = eina_list_append(p3->map.colors, col3);
+               }
+             matched = EINA_FALSE;
+          }
+        return EINA_TRUE;
+     }
+
+   return EINA_FALSE;
+}
+
+static void
+_edje_map_prop_set(Evas_Map *map, const  Edje_Calc_Params *pf,
+                   Eina_Bool map_colors_free)
+{
+   Eina_List *colors = pf->map.colors;
+   Edje_Map_Color *color;
+   Eina_List *l;
+
+   //map color
+   if (!colors)
+     {
+        evas_map_point_color_set(map, 0, 255, 255, 255, 255);
+        evas_map_point_color_set(map, 1, 255, 255, 255, 255);
+        evas_map_point_color_set(map, 2, 255, 255, 255, 255);
+        evas_map_point_color_set(map, 3, 255, 255, 255, 255);
+     }
+   else
+     {
+        if (map_colors_free)
+          {
+             EINA_LIST_FREE(colors, color)
+               {
+                  evas_map_point_color_set(map, color->idx, color->r, color->g,
+                                           color->b, color->a);
+                  free(color);
+               }
+          }
+        else
+          {
+             EINA_LIST_FOREACH(colors, l, color)
+               {
+                  evas_map_point_color_set(map, color->idx, color->r, color->g,
+                                           color->b, color->a);
+               }
+          }
+     }
+}
+
 void
 _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *state)
 {
@@ -2528,6 +2643,7 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
    Edje_Real_Part *confine_to = NULL;
    FLOAT_T pos = ZERO, pos2;
    Edje_Calc_Params lp3;
+   Eina_Bool map_colors_free = EINA_FALSE;
 
    /* GRADIENT ARE GONE, WE MUST IGNORE IT FROM OLD FILE. */
    if (ep->part->type == EDJE_PART_TYPE_GRADIENT)
@@ -2838,18 +2954,6 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
         p3->smooth = (beginning_pos) ? p1->smooth : p2->smooth;
 
         /* FIXME: do x and y separately base on flag */
-#define FINTP(_x1, _x2, _p)                     \
-        (((_x1) == (_x2))                       \
-         ? FROM_INT((_x1))                      \
-         : ADD(FROM_INT(_x1),                   \
-               SCALE((_p), (_x2) - (_x1))))
-
-#define FFP(_x1, _x2, _p)                       \
-        (((_x1) == (_x2))                       \
-         ? (_x1)                                \
-         : ADD(_x1, MUL(_p, SUB(_x2, _x1))));
-
-#define INTP(_x1, _x2, _p) TO_INT(FINTP(_x1, _x2, _p))
 
         p3->x = INTP(p1->x, p2->x, pos);
         p3->y = INTP(p1->y, p2->y, pos);
@@ -2924,6 +3028,7 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
 
 #define MIX(P1, P2, P3, pos, info)              \
              P3->info = P1->info + TO_INT(SCALE(pos, P2->info - P1->info));
+             map_colors_free = map_colors_interp(p1, p2, p3, pos);
 
              if (p1->lighted && p2->lighted)
                {
@@ -3164,6 +3269,9 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
                   evas_map_point_image_uv_set(map, 2, iw , ih );
                   evas_map_point_image_uv_set(map, 3, 0.0, ih );
                }
+
+             _edje_map_prop_set(map, pf, map_colors_free);
+
              evas_map_util_3d_rotate(map,
                                      TO_DOUBLE(pf->map.rotation.x),
                                      TO_DOUBLE(pf->map.rotation.y),
