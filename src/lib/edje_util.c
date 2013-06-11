@@ -5003,7 +5003,7 @@ void
 _edje_color_class_on_del(Edje *ed, Edje_Part *ep)
 {
    unsigned int i;
-
+   if (!ep) return;
    if ((ep->default_desc) && (ep->default_desc->color_class))
      _edje_color_class_member_del(ed, ep->default_desc->color_class);
 
