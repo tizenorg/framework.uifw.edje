@@ -3033,6 +3033,7 @@ _edje_entry_start_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Obj
 
    if (ev->button != 1) return;
 
+   _edje_entry_cursor_copy(rp, EDJE_CURSOR_SELECTION_BEGIN, EDJE_CURSOR_MAIN);
    en->rx = en->sx = ev->canvas.x;
    en->ry = en->sy = ev->canvas.y;
 
@@ -3104,7 +3105,7 @@ _edje_entry_start_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Obj
 
    evas_textblock_cursor_line_geometry_get(en->cursor, NULL, NULL, NULL, &lh);
    if (cx <= 0) cx = 1;
-   if (cy <= 0) cy = lh / 2;
+   if (cy < lh / 2) cy = lh / 2;
    if (cy > th) cy = th - 1;
 
    switch (rp->part->cursor_mode)
@@ -3158,6 +3159,7 @@ _edje_entry_end_handler_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 
    if (ev->button != 1) return;
 
+   _edje_entry_cursor_copy(rp, EDJE_CURSOR_SELECTION_END, EDJE_CURSOR_MAIN);
    en->rx = en->sx = ev->canvas.x;
    en->ry = en->sy = ev->canvas.y;
 
@@ -3210,6 +3212,7 @@ _edje_entry_end_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
    Entry *en = rp->typedata.text->entry_data;
    Evas_Coord x, y, tx, ty, tw, th;
    Evas_Coord cx, cy;
+   Evas_Coord lh;
    Evas_Textblock_Cursor_Type cur_type;
    Evas_Coord sx, sy;
    int old_cur_pos;
@@ -3230,8 +3233,9 @@ _edje_entry_end_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
    cx = en->rx + en->ox - tx;
    cy = en->ry + en->oy - ty;
 
+   evas_textblock_cursor_line_geometry_get(en->cursor, NULL, NULL, NULL, &lh);
    if (cx < 0) cx = 0;
-   if (cy < 0) cy = 0;
+   if (cy < lh / 2) cy = lh / 2;
    if (cy > th) cy = th - 1;
 
    switch (rp->part->cursor_mode)
