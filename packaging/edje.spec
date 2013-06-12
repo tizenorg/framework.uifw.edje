@@ -1,7 +1,7 @@
 #sbs-git:slp/pkgs/e/edje edje 1.1.0+svn.69011slp2+build03 96cd9783918ce594c786d12a5107be27aec4d34b
 Name:       edje
 Summary:    Complex Graphical Design/Layout Engine
-Version:    1.7.1+svn.77330+build32
+Version:    1.7.1+svn.77330+build46
 Release:    1
 Group:      System/Libraries
 License:    BSD
@@ -19,10 +19,10 @@ BuildRequires:  pkgconfig(eina)
 BuildRequires:  pkgconfig(embryo)
 BuildRequires:  pkgconfig(evas)
 BuildRequires:  pkgconfig(lua)
-#BuildRequires:  pkgconfig(remix)
-#BuildRequires:  pkgconfig(flac)
-#BuildRequires:  pkgconfig(sndfile)
-#BuildRequires:  pkgconfig(libpulse)
+BuildRequires:  pkgconfig(remix)
+BuildRequires:  pkgconfig(flac)
+BuildRequires:  pkgconfig(sndfile)
+BuildRequires:  pkgconfig(libpulse)
 
 %description
 Various binaries for use with libedje
@@ -60,8 +60,8 @@ Edje is a graphical layout and animation library (tools)
 export CFLAGS+=" -fvisibility=hidden -ffast-math -fPIC"
 export LDFLAGS+=" -fvisibility=hidden -Wl,--hash-style=both -Wl,--as-needed"
 
-%autogen --disable-static --disable-multisense
-%configure --disable-static --disable-multisense
+%autogen --disable-static
+%configure --disable-static
 make %{?jobs:-j%jobs}
 
 %install
@@ -78,9 +78,9 @@ cp %{_builddir}/%{buildsubdir}/COPYING %{buildroot}/usr/share/license/%{name}
 %defattr(-,root,root,-)
 %{_libdir}/libedje.so.*
 %{_datadir}/mime/packages/edje.xml
-#%{_libdir}/edje/modules/multisense_factory/*/module.so
+%{_libdir}/edje/modules/multisense_factory/*/module.so
 /usr/share/license/%{name}
-#%{_libdir}/remix/*.so*
+%{_libdir}/remix/*.so*
 %manifest %{name}.manifest
 
 %files devel
