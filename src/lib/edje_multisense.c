@@ -19,11 +19,13 @@ typedef struct _Multisense_Data
 
 #define BUF_LEN 64
 #define SND_PROCESS_LENGTH 2048
+#define TIMEOUT_FOR_MM_HANDLER 10
 
 #ifdef ENABLE_MULTISENSE
 static Ecore_Thread *player_thread = NULL;
 static int command_pipe[2];
 static Eina_Bool pipe_initialized = EINA_FALSE;
+static Ecore_Timer *idletimer = NULL;
 #endif
 
 typedef enum _Edje_Sound_Action_Type
@@ -35,6 +37,7 @@ typedef enum _Edje_Sound_Action_Type
    EDJE_PLAY_INSTRUMENT,
    EDJE_PLAY_SONG,
    */
+   EDJE_CLOSE_HANDLE,
    EDJE_SOUND_LAST
 } Edje_Sound_Action_Type;
 
@@ -66,6 +69,47 @@ struct _Edje_Multisense_Sound_Action
 };
 #ifdef ENABLE_MULTISENSE
 static Eina_Module *m = NULL;
+static Eina_Bool _edje_multisense_Timer_Callback(void *data);
+
+static Eina_Bool
+edje_multisense_create_timer(void)
+{
+   ecore_thread_main_loop_begin();
+   if (idletimer) ecore_timer_del(idletimer);
+   idletimer = ecore_timer_add(TIMEOUT_FOR_MM_HANDLER,
+                                  _edje_multisense_Timer_Callback, NULL);
+
+   ecore_thread_main_loop_end();
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+edje_multisense_kill_timer(void)
+{
+   ecore_thread_main_loop_begin();
+   if (idletimer) ecore_timer_del(idletimer);
+   idletimer = NULL;
+   ecore_thread_main_loop_end();
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_edje_multisense_Timer_Callback(void *data)
+{
+#if defined(ENABLE_MULTISENSE) && defined(HAVE_LIBREMIX)
+   ssize_t size = 0;
+   Edje_Multisense_Sound_Action command = {0,};
+
+   if ((!pipe_initialized) && (!player_thread)) return ECORE_CALLBACK_CANCEL;
+
+   //post a command to handle mm sound cleanup
+   command.action = EDJE_CLOSE_HANDLE;
+   size = write(command_pipe[1], &command, sizeof(command));
+   idletimer = NULL;
+#endif
+   return ECORE_CALLBACK_CANCEL;
+}
+
 static Multisense_Data *
 init_multisense_environment(void)
 {
@@ -223,34 +267,41 @@ sound_command_handler(Multisense_Data *msdata)
    RemixBase *sound;
    int read_len = sizeof(command);
 
-   if (read(command_pipe[0], &command, sizeof(command)) < read_len) return;
-   switch (command.action)
+   //read and handle all samples to avoid queue effect
+   while(read(command_pipe[0], &command, sizeof(command)) == read_len)
      {
-      case EDJE_PLAY_SAMPLE:
-        base = edje_remix_sample_create(msdata, command.snd_file,
+        switch (command.action)
+          {
+              case EDJE_PLAY_SAMPLE:
+                 base = edje_remix_sample_create(msdata, command.snd_file,
                                         &command.type.sample);
-        length = remix_length(msdata->msenv->remixenv, base);
-        if (remix_flush(msdata->msenv->remixenv, msdata->player) < 0) return;
-        break;
-      case EDJE_PLAY_TONE:
-        base = edje_remix_tone_create(msdata, command.snd_file, &command.type.tone);
-        length = (command.type.tone.duration *
+                 length = remix_length(msdata->msenv->remixenv, base);
+                 edje_multisense_create_timer();
+                 break;
+              case EDJE_PLAY_TONE:
+                 base = edje_remix_tone_create(msdata, command.snd_file, &command.type.tone);
+                 length = (command.type.tone.duration *
                               remix_get_samplerate(msdata->msenv->remixenv));
-        break;
-      case EDJE_SOUND_LAST:
-        return;
-      default:
-        ERR("Invalid Sound Play Command\n");
-        break;
-     }
-   if (base)
-     {
-        sound = remix_sound_new(msdata->msenv->remixenv, base, msdata->snd_layer,
+                 break;
+              case EDJE_CLOSE_HANDLE:
+                 remix_reset(msdata->msenv->remixenv, msdata->player);
+                 return;
+                 break;
+              case EDJE_SOUND_LAST:
+                 return;
+              default:
+                 ERR("Invalid Sound Play Command\n");
+                 break;
+          }
+        if (base)
+          {
+             sound = remix_sound_new(msdata->msenv->remixenv, base, msdata->snd_layer,
                                 REMIX_SAMPLES(msdata->offset),
                                 REMIX_SAMPLES(length));
-        if (msdata->remaining < length) msdata->remaining = length;
-        msdata->snd_src_list = eina_list_append(msdata->snd_src_list, sound);
-        msdata->snd_src_list = eina_list_append(msdata->snd_src_list, base);
+             if (msdata->remaining < length) msdata->remaining = length;
+             msdata->snd_src_list = eina_list_append(msdata->snd_src_list, sound);
+             msdata->snd_src_list = eina_list_append(msdata->snd_src_list, base);
+          }
      }
 }
 #endif
@@ -264,6 +315,7 @@ _msdata_free(void)
 {
    // cleanup msdata outside of thread due to thread issues in dlsym etc.
    if (!msdata) return;
+   edje_multisense_kill_timer();
 #ifdef HAVE_LIBREMIX
    //cleanup Remix stuffs
    remix_destroy(msdata->msenv->remixenv, msdata->player);
