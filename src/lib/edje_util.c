@@ -1783,6 +1783,7 @@ edje_object_part_text_cursor_handler_disabled_get(const Evas_Object *obj, const 
    if (!rp) return EINA_FALSE;
    if (rp->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
       return _edje_entry_cursor_handler_disabled_get(rp);
+   return EINA_FALSE;
 }
 
 EAPI void

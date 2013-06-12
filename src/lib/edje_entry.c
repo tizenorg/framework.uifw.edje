@@ -191,6 +191,10 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                   edje_object_file_set(en->sel_handler_edge_start, en->rp->edje->path, en->rp->part->source10);
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_start);
                   evas_object_clip_set(en->sel_handler_edge_start, evas_object_clip_get(rp->object));
+                  if (en->sel_handler_start)
+                     evas_object_stack_below(en->sel_handler_edge_start, en->sel_handler_start);
+                  if (en->sel_handler_end)
+                     evas_object_stack_below(en->sel_handler_edge_start, en->sel_handler_end);
                }
 
              //end edge handler
@@ -200,6 +204,10 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
                   edje_object_file_set(en->sel_handler_edge_end, en->rp->edje->path, en->rp->part->source11);
                   en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_end);
                   evas_object_clip_set(en->sel_handler_edge_end, evas_object_clip_get(rp->object));
+                  if (en->sel_handler_start)
+                     evas_object_stack_below(en->sel_handler_edge_end, en->sel_handler_start);
+                  if (en->sel_handler_end)
+                     evas_object_stack_below(en->sel_handler_edge_end, en->sel_handler_end);
                }
           }
         if (en->sel_handler_start)
@@ -306,6 +314,10 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              edje_object_file_set(en->sel_handler_edge_start, en->rp->edje->path, en->rp->part->source10);
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_start);
              evas_object_clip_set(en->sel_handler_edge_start, evas_object_clip_get(rp->object));
+             if (en->sel_handler_start)
+                evas_object_stack_below(en->sel_handler_edge_start, en->sel_handler_start);
+             if (en->sel_handler_end)
+                evas_object_stack_below(en->sel_handler_edge_start, en->sel_handler_end);
           }
 
         //end edge handler
@@ -315,6 +327,10 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
              edje_object_file_set(en->sel_handler_edge_end, en->rp->edje->path, en->rp->part->source11);
              en->rp->edje->subobjs = eina_list_append(en->rp->edje->subobjs, en->sel_handler_edge_end);
              evas_object_clip_set(en->sel_handler_edge_end, evas_object_clip_get(rp->object));
+             if (en->sel_handler_start)
+                evas_object_stack_below(en->sel_handler_edge_end, en->sel_handler_start);
+             if (en->sel_handler_end)
+                evas_object_stack_below(en->sel_handler_edge_end, en->sel_handler_end);
           }
      }
    if (en->sel_handler_start)
@@ -892,17 +908,17 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                        if (en->handler_bypassing)
                          {
                             nx = x + r->x + r->w;
-                            ny = y + r->y;
+                            ny = y + r->y + r->h;
                          }
                        else
                          {
                             nx = x + r->x;
-                            ny = y + r->y;
+                            ny = y + r->y + r->h;
                          }
                        evas_object_hide(en->sel_handler_start);
 
                        edje_object_size_min_calc(en->sel_handler_edge_start, &edge_w, NULL);
-                       evas_object_move(en->sel_handler_edge_start, nx, ny);
+                       evas_object_move(en->sel_handler_edge_start, nx, ny - r->h);
                        evas_object_resize(en->sel_handler_edge_start, edge_w, r->h);
 
                        if (!en->vp_updated && en->sh_start_normal_pos)
@@ -919,7 +935,7 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                          {
                             evas_object_hide(en->sel_handler_start);
                             evas_object_move(en->sel_handler_start, nx, ny);
-                            edje_object_signal_emit(en->sel_handler_start, "elm,state,top", "elm");
+                            edje_object_signal_emit(en->sel_handler_start, "elm,state,bottom", "elm");
                             evas_object_show(en->sel_handler_start);
 
                             evas_object_show(en->sel_handler_edge_start);
@@ -928,27 +944,27 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                          {
                             if ((en->viewport_region.w > 0 && en->viewport_region.h > 0) &&
                                 (nx >= en->viewport_region.x) && (nx <= (en->viewport_region.x + en->viewport_region.w)) &&
-                                (ny + r->h >= en->viewport_region.y) && (ny <= (en->viewport_region.y + en->viewport_region.h)))
+                                (ny >= en->viewport_region.y) && (ny - r->h <= (en->viewport_region.y + en->viewport_region.h)))
                               {
                                  if ((en->layout_region.w != -1) && (en->layout_region.h != -1) &&
-                                     ((ny - handler_height) > en->layout_region.y) &&
-                                     (ny + moving >= en->viewport_region.y))
+                                     (((ny + handler_height) > (en->layout_region.y + en->layout_region.h))
+                                      || (ny > en->viewport_region.y + en->viewport_region.h + moving)))
                                    {
-                                      evas_object_move(en->sel_handler_start, nx, ny);
+                                      evas_object_move(en->sel_handler_start, nx, ny - r->h);
                                       if (nx <= en->layout_region.x + bh_gap)
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,top,reversed", "elm");
                                       else
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,top", "elm");
-                                      en->sh_start_normal_pos = EINA_TRUE;
+                                      en->sh_start_normal_pos = EINA_FALSE;
                                    }
                                  else
                                    {
-                                      evas_object_move(en->sel_handler_start, nx, ny + r->h);
+                                      evas_object_move(en->sel_handler_start, nx, ny);
                                       if (nx <= en->layout_region.x + bh_gap)
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,bottom,reversed", "elm");
                                       else
                                          edje_object_signal_emit(en->sel_handler_start, "elm,state,bottom", "elm");
-                                      en->sh_start_normal_pos = EINA_FALSE;
+                                      en->sh_start_normal_pos = EINA_TRUE;
                                    }
 
                                  evas_object_show(en->sel_handler_start);
