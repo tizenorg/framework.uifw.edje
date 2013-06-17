@@ -26,6 +26,8 @@ static Ecore_Thread *player_thread = NULL;
 static int command_pipe[2];
 static Eina_Bool pipe_initialized = EINA_FALSE;
 static Ecore_Timer *idletimer = NULL;
+static Eina_Condition eina_player_cond;
+static Eina_Lock eina_player_mutex;
 #endif
 
 typedef enum _Edje_Sound_Action_Type
@@ -258,7 +260,7 @@ edje_remix_tone_create(Multisense_Data *msdata, Edje_File *file, Edje_Tone_Actio
    return square;
 }
 
-static void
+static Eina_Bool
 sound_command_handler(Multisense_Data *msdata)
 {
    RemixCount length;
@@ -285,10 +287,10 @@ sound_command_handler(Multisense_Data *msdata)
                  break;
               case EDJE_CLOSE_HANDLE:
                  remix_reset(msdata->msenv->remixenv, msdata->player);
-                 return;
+                 return EINA_TRUE;
                  break;
               case EDJE_SOUND_LAST:
-                 return;
+                 return EINA_FALSE;
               default:
                  ERR("Invalid Sound Play Command\n");
                  break;
@@ -303,6 +305,7 @@ sound_command_handler(Multisense_Data *msdata)
              msdata->snd_src_list = eina_list_append(msdata->snd_src_list, base);
           }
      }
+     return EINA_TRUE;
 }
 #endif
 
@@ -315,7 +318,7 @@ _msdata_free(void)
 {
    // cleanup msdata outside of thread due to thread issues in dlsym etc.
    if (!msdata) return;
-   edje_multisense_kill_timer();
+
 #ifdef HAVE_LIBREMIX
    //cleanup Remix stuffs
    remix_destroy(msdata->msenv->remixenv, msdata->player);
@@ -359,7 +362,7 @@ _player_job(void *data __UNUSED__, Ecore_Thread *th)
              err = select(command_pipe[0] + 1, &wait_fds, NULL, NULL, 0);
           }
         //read sound command , if any
-        sound_command_handler(msdata);
+        if (!sound_command_handler(msdata)) break;
         process_len = MIN(msdata->remaining, SND_PROCESS_LENGTH);
         remix_process(msdata->msenv->remixenv, msdata->deck, process_len,
                       RemixNone, RemixNone);
@@ -379,6 +382,11 @@ _player_job(void *data __UNUSED__, Ecore_Thread *th)
    player_thread = NULL;
    close(command_pipe[0]);
    close(command_pipe[1]);
+
+   /* Lock mutex and signal the main thread to resume shutdown */
+   eina_lock_take(&eina_player_mutex);
+   eina_condition_signal(&eina_player_cond);
+   eina_lock_release(&eina_player_mutex);
 }
 #endif
 
@@ -451,6 +459,10 @@ _edje_multisense_init(void)
    // init msdata outside of thread due to thread issues in dlsym etc.
    if (!msdata) msdata = init_multisense_environment();
 
+   // Initialize the synchronisation elements with main thread.
+   eina_lock_new(&eina_player_mutex);
+   eina_condition_new(&eina_player_cond, &eina_player_mutex);
+
    if (!player_thread)
      player_thread = ecore_thread_feedback_run(_player_job, NULL, NULL, NULL,
                                                NULL, EINA_TRUE);
@@ -464,16 +476,32 @@ _edje_multisense_shutdown(void)
    Edje_Multisense_Sound_Action command = {0,};
    MULTISENSE_FACTORY_SHUTDOWN_FUNC multisense_factory_shutdown;
 
+   // lock the synchronisation mutex and hold it.
+   eina_lock_take(&eina_player_mutex);
+
    if (m) multisense_factory_shutdown
             = eina_module_symbol_get(m,"multisense_factory_shutdown");
    if (multisense_factory_shutdown && msdata)
          multisense_factory_shutdown(msdata->msenv);
-   if (player_thread) ecore_thread_cancel(player_thread);
+   /* Disable cancel call and exit thread function on recieving EDJE_SOUND_LAST
+   at other end of pipe */
+   //if (player_thread) ecore_thread_cancel(player_thread);
    if (pipe_initialized)
      {
         //unblock the select() in player worker thread
         command.action = EDJE_SOUND_LAST;
         write(command_pipe[1], &command, sizeof(command));
      }
+
+   // kill the timer if alive still.
+   edje_multisense_kill_timer();
+
+   // wait for edje multisense player to quit.
+   eina_condition_wait(&eina_player_cond);
+   eina_lock_release(&eina_player_mutex);
+
+   // cleanup the synchronisation elements.
+   eina_condition_free(&eina_player_cond);
+   eina_lock_free(&eina_player_mutex);
 #endif
 }
