@@ -432,6 +432,13 @@ remix_eet_sndfile_seek(RemixEnv *env, RemixBase *base, RemixCount offset)
    return sf_seek(si->pcm_fp, offset, SEEK_SET);
 }
 
+static int
+remix_eet_sndfile_reader_destroy (RemixEnv * env, RemixPlugin * plugin)
+{
+  cd_set_free (env, plugin->init_scheme);
+  return 0;
+}
+
 static struct _RemixMethods _remix_eet_sndfile_reader_methods =
 {
    remix_eet_sndfile_clone,
@@ -500,7 +507,7 @@ static struct _RemixPlugin eet_sndfile_reader_plugin =
    CD_EMPTY_SET, /* process scheme */
    NULL, /* suggests */
    NULL, /* plugin data */
-   NULL  /* destroy */
+   remix_eet_sndfile_reader_destroy /* destroy */
 };
 
 EAPI CDList *
