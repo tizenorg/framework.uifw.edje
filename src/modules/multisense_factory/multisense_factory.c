@@ -41,7 +41,7 @@ multisense_sound_player_get(Edje_Multisense_Env *msenv)
      }
 #endif
    if (!player_plugin)
-     return remix_monitor_new(env);
+     return NULL;//remix_monitor_new(env);
 
    player = remix_new(env, player_plugin, NULL);
    return player;

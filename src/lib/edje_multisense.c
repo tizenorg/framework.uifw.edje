@@ -171,6 +171,7 @@ err:
 #endif
         if (msdata->msenv) free(msdata->msenv);
         free(msdata);
+        msdata = NULL;
      }
    return NULL;
 }
@@ -454,7 +455,6 @@ _edje_multisense_init(void)
 #ifdef ENABLE_MULTISENSE
    if (!pipe_initialized && (pipe(command_pipe) != -1))
      pipe_initialized = EINA_TRUE;
-   multisense_init = EINA_TRUE;
 
    // init msdata outside of thread due to thread issues in dlsym etc.
    if (!msdata) msdata = init_multisense_environment();
@@ -466,6 +466,7 @@ _edje_multisense_init(void)
    if (!player_thread)
      player_thread = ecore_thread_feedback_run(_player_job, NULL, NULL, NULL,
                                                NULL, EINA_TRUE);
+   multisense_init = EINA_TRUE;
 #endif
 }
 
