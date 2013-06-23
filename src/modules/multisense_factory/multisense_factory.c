@@ -49,7 +49,7 @@ multisense_sound_player_get(Edje_Multisense_Env *msenv)
 #endif
 
 EAPI Eina_Bool
-multisense_factory_init(Edje_Multisense_Env *env __UNUSED__)
+multisense_factory_init(Edje_Multisense_Env *env)
 {
    init_count++;
    if (init_count == 1)

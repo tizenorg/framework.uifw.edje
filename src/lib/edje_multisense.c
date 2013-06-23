@@ -136,6 +136,7 @@ init_multisense_environment(void)
    if (!m) goto err;
 #ifdef HAVE_LIBREMIX
    msdata->msenv->remixenv = remix_init();
+   if (!msdata->msenv->remixenv) goto err;
 #endif
    multisense_factory_init = 
      eina_module_symbol_get(m, "multisense_factory_init");
@@ -326,6 +327,8 @@ _msdata_free(void)
    remix_destroy(msdata->msenv->remixenv, msdata->deck);
    remix_purge(msdata->msenv->remixenv);
 #endif
+   //TODO: This call must be in player plugin code.
+   free(msdata->player);
    free(msdata->msenv);
    free(msdata);
    msdata = NULL;
@@ -453,11 +456,20 @@ void
 _edje_multisense_init(void)
 {
 #ifdef ENABLE_MULTISENSE
-   if (!pipe_initialized && (pipe(command_pipe) != -1))
-     pipe_initialized = EINA_TRUE;
-
    // init msdata outside of thread due to thread issues in dlsym etc.
    if (!msdata) msdata = init_multisense_environment();
+   multisense_init = EINA_TRUE;
+   if (!msdata) return;
+
+   if (!pipe_initialized)
+     {
+        if (pipe(command_pipe) == -1)
+          {
+              _msdata_free();
+              return;
+          }
+        pipe_initialized = EINA_TRUE;
+     }
 
    // Initialize the synchronisation elements with main thread.
    eina_lock_new(&eina_player_mutex);
@@ -466,7 +478,6 @@ _edje_multisense_init(void)
    if (!player_thread)
      player_thread = ecore_thread_feedback_run(_player_job, NULL, NULL, NULL,
                                                NULL, EINA_TRUE);
-   multisense_init = EINA_TRUE;
 #endif
 }
 
@@ -477,6 +488,7 @@ _edje_multisense_shutdown(void)
    Edje_Multisense_Sound_Action command = {0,};
    MULTISENSE_FACTORY_SHUTDOWN_FUNC multisense_factory_shutdown;
 
+   if (!msdata) return;
    // lock the synchronisation mutex and hold it.
    eina_lock_take(&eina_player_mutex);
 
