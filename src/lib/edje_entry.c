@@ -2530,6 +2530,12 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
                     }
                }
           }
+        else if ((en->have_selection) &&
+                 (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE))
+          { // TIZEN ONLY - START
+             if (shift)
+                _sel_extend(en->cursor, rp->object, en);
+          } // TIZEN ONLY - END
         else
           {
              if ((en->have_selection) && (shift))
@@ -2707,6 +2713,17 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
            en->selecting = EINA_FALSE;
          }
      }
+   else // TIZEN ONLY - START
+     {
+        Evas_Coord dx, dy;
+
+        dx = en->dx - ev->canvas.x;
+        dy = en->dy - ev->canvas.y;
+        if (((dx * dx) + (dy * dy)) < (40 * 40)) //FIXME: maxing number!
+          {
+             _sel_clear(en->cursor, en->rp->object, en);
+          }
+     } // TIZEN ONLY - END
 
    if (evas_textblock_cursor_compare(tc, en->cursor))
      {
