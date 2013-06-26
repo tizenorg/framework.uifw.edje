@@ -437,7 +437,7 @@ _edje_object_file_set_internal(Evas_Object *obj, const char *file, const char *g
 		  ep = ed->collection->parts[i];
 
 		  /* Register any color classes in this parts descriptions. */
-		  if ((ep->default_desc) && (ep->default_desc->color_class))
+		  if ( ep && (ep->default_desc) && (ep->default_desc->color_class))
 		    _edje_color_class_member_add(ed, ep->default_desc->color_class);
 
 		  for (k = 0; k < ep->other.desc_count; k++)
