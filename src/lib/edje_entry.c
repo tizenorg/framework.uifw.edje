@@ -2565,8 +2565,9 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         if (en->long_press_timer) ecore_timer_del(en->long_press_timer);
         en->long_press_timer = ecore_timer_add(0.5, _long_press_cb, data); //FIXME: timer value
      }
-   else
-      _edje_entry_real_part_configure(rp);
+   // TIZEN ONLY - END
+
+   _edje_entry_real_part_configure(rp);
    if (ev->button == 2)
      {
         _edje_emit(rp->edje, "entry,paste,request", rp->part->name);
@@ -3171,11 +3172,8 @@ _edje_entry_start_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Obj
 
    if (en->select_allow)
      {
-        if (en->had_sel)
-          {
-             if (en->select_mod_start)
-               _sel_preextend(en->cursor, rp->object, en);
-          }
+        if (en->select_mod_start)
+           _sel_preextend(en->cursor, rp->object, en);
      }
    _edje_entry_real_part_configure(rp);
    _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
@@ -3301,11 +3299,8 @@ _edje_entry_end_handler_mouse_move_cb(void *data, Evas *e __UNUSED__, Evas_Objec
 
    if (en->select_allow)
      {
-        if (en->had_sel)
-          {
-             if (en->select_mod_end)
-               _sel_extend(en->cursor, rp->object, en);
-          }
+        if (en->select_mod_end)
+           _sel_extend(en->cursor, rp->object, en);
      }
    _edje_entry_real_part_configure(rp);
    _edje_emit(en->rp->edje, "handler,moving", en->rp->part->name);
