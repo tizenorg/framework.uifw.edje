@@ -1120,18 +1120,19 @@ _edje_anchor_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
        (!rp->typedata.text)) return;
    en = rp->typedata.text->entry_data;
    ignored = rp->part->ignore_flags & ev->event_flags;
-   if (((rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_EXPLICIT) ||
-        (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)) &&
-       (en->select_allow))
-     return;
    n = an->name;
    if (!n) n = "";
    len = 200 + strlen(n);
    buf = alloca(len);
-   if ((!ev->event_flags) || (!ignored))
+   if (((rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_EXPLICIT) ||
+        (rp->part->select_mode == EDJE_ENTRY_SELECTION_MODE_BLOCK_HANDLE)) &&
+       (en->select_allow))
      {
-        snprintf(buf, len, "anchor,mouse,up,%i,%s", ev->button, n);
-        _edje_emit(rp->edje, buf, rp->part->name);
+        if ((!ev->event_flags) || (!ignored))
+          {
+             snprintf(buf, len, "anchor,mouse,up,%i,%s", ev->button, n);
+             _edje_emit(rp->edje, buf, rp->part->name);
+          }
      }
    if ((rp->still_in) && (rp->clicked_button == ev->button) && (!ignored))
      {
