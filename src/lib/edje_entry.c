@@ -79,6 +79,7 @@ struct _Entry
    Eina_Bool input_panel_enable : 1;
    Eina_Bool prediction_allow : 1;
    Eina_Bool focused : 1; // TIZEN ONLY
+   Eina_Bool focus_changed : 1; // TIZEN ONLY
    Eina_Bool vp_updated : 1; // TIZEN ONLY
    Eina_Bool sh_start_normal_pos : 1; // TIZEN ONLY
    Eina_Bool sh_end_normal_pos : 1; // TIZEN ONLY
@@ -220,6 +221,7 @@ _edje_entry_focus_in_cb(void *data, Evas_Object *o __UNUSED__, const char *emiss
            edje_object_signal_emit(en->sel_handler_edge_start, "edje,focus,in", "edje");
         if (en->sel_handler_edge_end)
            edje_object_signal_emit(en->sel_handler_edge_end, "edje,focus,in", "edje");
+        if (!en->focused) en->focus_changed = EINA_TRUE;
         // TIZEN ONLY - END
 
         ecore_imf_context_reset(en->imf_context);
@@ -254,6 +256,7 @@ _edje_entry_focus_out_cb(void *data, Evas_Object *o __UNUSED__, const char *emis
      edje_object_signal_emit(en->sel_handler_edge_start, "edje,focus,out", "edje");
    if (en->sel_handler_edge_end)
      edje_object_signal_emit(en->sel_handler_edge_end, "edje,focus,out", "edje");
+   if (en->focused) en->focus_changed = EINA_TRUE;
    // TIZEN ONLY - END
 
    ecore_imf_context_reset(en->imf_context);
@@ -344,6 +347,7 @@ _edje_focus_in_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, v
    if (en->sel_handler_edge_end)
       edje_object_signal_emit(en->sel_handler_edge_end, "edje,focus,in", "edje");
 
+   if (!en->focused) en->focus_changed = EINA_TRUE;
    en->focused = EINA_TRUE;
    if (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE) return;
    // TIZEN ONLY - END
@@ -388,6 +392,7 @@ _edje_focus_out_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED__, 
      edje_object_signal_emit(en->sel_handler_edge_start, "edje,focus,out", "edje");
    if (en->sel_handler_edge_end)
      edje_object_signal_emit(en->sel_handler_edge_end, "edje,focus,out", "edje");
+   if (en->focused) en->focus_changed = EINA_TRUE;
    en->focused = EINA_FALSE;
    if (rp->part->entry_mode < EDJE_ENTRY_EDIT_MODE_EDITABLE) return;
    // TIZEN ONLY - END
@@ -2566,6 +2571,7 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
         if (en->long_press_timer) ecore_timer_del(en->long_press_timer);
         en->long_press_timer = ecore_timer_add(0.5, _long_press_cb, data); //FIXME: timer value
      }
+   en->focus_changed = EINA_FALSE;
    // TIZEN ONLY - END
 
    _edje_entry_real_part_configure(rp);
@@ -2723,9 +2729,12 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
         dy = en->dy - ev->canvas.y;
         if (((dx * dx) + (dy * dy)) < (40 * 40)) //FIXME: maxing number!
           {
-             _sel_clear(en->cursor, en->rp->object, en);
+             if (!en->focus_changed)
+                _sel_clear(en->cursor, en->rp->object, en);
           }
-     } // TIZEN ONLY - END
+     }
+   en->focus_changed = EINA_FALSE;
+   // TIZEN ONLY - END
 
    if (evas_textblock_cursor_compare(tc, en->cursor))
      {
@@ -3451,8 +3460,9 @@ _edje_entry_real_part_init(Edje_Real_Part *rp)
         evas_object_event_callback_add(en->cursor_handler , EVAS_CALLBACK_MOUSE_MOVE, _edje_entry_cursor_handler_mouse_move_cb, en->rp);
      }
    en->cursor_handler_show = EINA_FALSE;
-   // TIZEN ONLY - END
    en->focused = EINA_FALSE;
+   en->focus_changed = EINA_FALSE;
+   // TIZEN ONLY - END
 
    evas_object_textblock_legacy_newline_set(rp->object, EINA_TRUE);
 
