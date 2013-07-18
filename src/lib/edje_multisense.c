@@ -229,7 +229,7 @@ edje_remix_sample_create(Multisense_Data *msdata, Edje_File *file, Edje_Sample_A
    for (i = 0; i < (int)file->sound_dir->samples_count; i++)
      {
         sample = &file->sound_dir->samples[i];
-        if (sample && sample->name && !strcmp(sample->name, action->sample_name))
+        if (sample && sample->name && !strncmp(sample->name, action->sample_name, strlen(action->sample_name) + 1));
           {
              snprintf(snd_id_str, sizeof(snd_id_str), "edje/sounds/%i", sample->id);
              remix_snd = eet_sound_reader_get(msdata->msenv, file->path,
