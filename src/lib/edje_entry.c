@@ -976,6 +976,8 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                                  evas_object_show(en->sel_handler_edge_start);
                               }
                          }
+                       evas_object_raise(en->sel_handler_edge_start);
+                       evas_object_raise(en->sel_handler_start);
                     }
                   if (list_idx == eh_idx)
                     {
@@ -1055,6 +1057,8 @@ _sel_update(Evas_Textblock_Cursor *c __UNUSED__, Evas_Object *o, Entry *en)
                                  evas_object_show(en->sel_handler_edge_end);
                               }
                          }
+                       evas_object_raise(en->sel_handler_edge_end);
+                       evas_object_raise(en->sel_handler_end);
                     }
                }
              // TIZEN ONLY - END
@@ -2406,6 +2410,13 @@ _edje_part_mouse_down_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUS
           }
         else if (ev->flags & EVAS_BUTTON_DOUBLE_CLICK)
           {
+             // TIZEN ONLY - START
+             if (en->sel_handler_start)
+                edje_object_signal_emit(en->sel_handler_start, "edje,entry,double,clicked", "edje");
+             if (en->sel_handler_end)
+                edje_object_signal_emit(en->sel_handler_end, "edje,entry,double,clicked", "edje");
+             // TIZEN ONLY - END
+
              if (shift)
                {
                   tc = evas_object_textblock_cursor_new(rp->object);
@@ -2632,12 +2643,6 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
         return;
      }
    en->long_press_state = _ENTRY_LONG_PRESS_RELEASED;
-
-   if ((en->cursor_handler) && (!en->cursor_handler_disabled) && (!en->have_selection))
-     {
-        evas_object_show(en->cursor_handler);
-        en->cursor_handler_show = EINA_TRUE;
-     }
    // TIZEN ONLY - END
 
 #ifdef HAVE_ECORE_IMF
@@ -2734,6 +2739,12 @@ _edje_part_mouse_up_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj __UNUSED
           }
      }
    en->focus_changed = EINA_FALSE;
+
+   if ((en->cursor_handler) && (!en->cursor_handler_disabled) && (!en->have_selection))
+     {
+        evas_object_show(en->cursor_handler);
+        en->cursor_handler_show = EINA_TRUE;
+     }
    // TIZEN ONLY - END
 
    if (evas_textblock_cursor_compare(tc, en->cursor))
@@ -3697,8 +3708,14 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
         edje_object_size_min_calc(en->cursor_handler, NULL, &chh);
         if (en->cursor_handler_show)
           {
-             if (((chx < en->viewport_region.x) || (chy < en->viewport_region.y) ||
-                  (chx > en->viewport_region.x + en->viewport_region.w) || (chy > en->viewport_region.y + en->viewport_region.h)))
+             if (((en->viewport_region.x != -1) &&
+                  (en->viewport_region.y != -1) &&
+                  (en->viewport_region.w != -1) &&
+                  (en->viewport_region.h != -1)) &&
+                 ((chx < en->viewport_region.x) ||
+                  (chy < en->viewport_region.y) ||
+                  (chx > en->viewport_region.x + en->viewport_region.w) ||
+                  (chy > en->viewport_region.y + en->viewport_region.h)))
                {
                   evas_object_hide(en->cursor_handler);
                   en->cursor_handler_show = EINA_FALSE;
@@ -3714,6 +3731,7 @@ _edje_entry_real_part_configure(Edje_Real_Part *rp)
                     {
                        edje_object_signal_emit(en->cursor_handler, "edje,cursor,handle,show", "edje");
                     }
+                  evas_object_raise(en->cursor_handler);
                }
           }
      }
