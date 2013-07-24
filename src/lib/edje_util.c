@@ -911,6 +911,7 @@ edje_text_class_list(void)
 {
    Edje_List_Foreach_Data fdata;
 
+   if(!_edje_text_class_member_hash) return NULL;
    memset(&fdata, 0, sizeof(Edje_List_Foreach_Data));
    eina_hash_foreach(_edje_text_class_member_hash,
                      _edje_text_class_list_foreach, &fdata);
