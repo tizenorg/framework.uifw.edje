@@ -1,0 +1,17 @@
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+modules=/usr/lib/edje/modules
+includedir=/usr/include
+datarootdir=${prefix}/share
+datadir=/usr/share/edje
+vmaj=1
+multisense=yes
+
+Name: edje
+Description: Enlightened graphical design and layout engine.
+Requires.private: libpulse >= 0.9.21 ogg >= 1.1.4 vorbis >= 1.2.3 vorbisenc >= 1.2.3 remix >= 0.2.4 sndfile >= 1.0.21 ecore-imf-evas >= 1.6.99 ecore-imf >= 1.6.99 lua embryo >= 1.6.99 ecore-evas >= 1.6.99 ecore >= 1.6.99 evas >= 1.6.99 eet >= 1.6.99 eina >= 1.6.99 
+Version: 1.7.99.0
+Libs: -L${libdir} -ledje
+Libs.private: 
+Cflags: -I${includedir}/edje-1
