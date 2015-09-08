@@ -336,6 +336,11 @@ _edje_collection_convert(Eet_File *ef, Edje_Part_Collection_Directory_Entry *ce,
 	replacement->source4 = part->source4;
 	replacement->source5 = part->source5;
 	replacement->source6 = part->source6;
+	replacement->source7 = part->source7;
+	replacement->source8 = part->source8;
+	replacement->source9 = part->source9;
+	replacement->source10 = part->source10;
+	replacement->source11 = part->source11;
 	replacement->id = part->id;
 	replacement->clip_to_id = part->clip_to_id;
 	replacement->dragable = part->dragable;

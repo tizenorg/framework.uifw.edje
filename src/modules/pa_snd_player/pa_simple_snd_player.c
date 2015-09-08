@@ -82,12 +82,6 @@ pa_player_reset_device(RemixEnv *env, RemixBase *base)
 
    if(!player_data->playbuffer) goto error;
 
-   if (sample_spec.rate != player_data->frequency)
-     {
-        player_data->frequency = sample_spec.rate;
-        remix_set_samplerate(env, player_data->frequency);
-     }
-
    return base;
 
 error:
@@ -199,23 +193,29 @@ static void
 pa_player_playbuffer(RemixEnv *env __UNUSED__, PA_Player_Data *player, RemixPCM *data, RemixCount count)
 {
    int ret;
-   RemixCount i;
+   RemixCount i, j;
    RemixPCM value;
-   size_t length;
+   size_t length, total_written;
 
-   length = count * sizeof(RemixCount);
+   length = count * sizeof(RemixPCM);
+   total_written = 0;
 
-   for (i = 0; i < length; i++)
+   while (total_written < length)
      {
-        value = *data++ * (player->max_value);
-        *(player->playbuffer + i) = (PLAYER_PCM) value;
+        j = length - total_written;
+        j = (j > PA_PLAYER_BUFFERLEN) ? PA_PLAYER_BUFFERLEN : j;
+        for (i = 0; i < j; i++)
+          {
+             value = *data++ * (player->max_value);
+             *(player->playbuffer + i) = (PLAYER_PCM) value;
+          }
+
+        ret = pa_simple_write(player->server, player->playbuffer, j, &player->error);
+
+        if (ret < 0) WRN("pa_simple_write() failed: (%s)", pa_strerror(player->error));
+
+        total_written += j;
      }
-
-   ret = pa_simple_write(player->server, player->playbuffer, length, &player->error);
-
-   if (ret < 0) WRN("pa_simple_write() failed: (%s)", pa_strerror(player->error));
-
-   return;
 }
 
 static RemixCount
@@ -288,7 +288,9 @@ pa_player_seek(RemixEnv *env __UNUSED__, RemixBase *base __UNUSED__, RemixCount 
 static int
 pa_player_flush(RemixEnv *env, RemixBase *base)
 {
-   pa_player_reset_device(env, base);
+   if (!pa_player_reset_device(env, base))
+     return -1;
+
    return 0;
 }
 
@@ -311,7 +313,7 @@ pa_player_optimise(RemixEnv *env, RemixBase *base)
    return base;
 }
 
-static struct _RemixMetaText pa_player_metatext =
+static RemixMetaText pa_player_metatext =
 {
    "pa_snd_player",
    "PA sound player for Remix",
@@ -321,7 +323,7 @@ static struct _RemixMetaText pa_player_metatext =
    REMIX_ONE_AUTHOR("Prince Kr Dubey", "prince.dubey@samsung.com"),
 };
 
-static struct _RemixPlugin pa_player_plugin =
+static RemixPlugin pa_player_plugin =
 {
    &pa_player_metatext,
    REMIX_FLAGS_NONE,

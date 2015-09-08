@@ -57,3 +57,6 @@ DEFS= \
 -DTARGET_TAB=9 \
 -DTARGET_VT=11
 
+### TIZEN_ONLY(20150417): Apply ASLR to executable files.
+epp_LDFLAGS = -pie
+epp_CPPFLAGS += -fPIE

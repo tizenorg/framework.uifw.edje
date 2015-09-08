@@ -7,6 +7,11 @@
 #define WIDTH 320
 #define HEIGHT 240
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 static Evas_Object *create_my_group(Evas *canvas, const char *text)
 {
    Evas_Object *edje;

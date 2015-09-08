@@ -1,7 +1,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
+SUBDIRS = include images
 
 mimedir = $(datadir)/mime/packages
 mime_DATA = edje.xml

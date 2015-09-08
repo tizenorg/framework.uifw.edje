@@ -2,6 +2,11 @@
 # include "config.h"
 #endif
 
+#include <locale.h>
+#include <fnmatch.h>
+#include <unistd.h>
+#include <errno.h>
+
 #include "Edje.h"
 #define EDJE_EDIT_IS_UNSTABLE_AND_I_KNOW_ABOUT_IT 1
 #include "Edje_Edit.h"
@@ -9,9 +14,6 @@
 #include <Ecore.h>
 #include <Ecore_Evas.h>
 #include <Ecore_Getopt.h>
-#include <locale.h>
-#include <fnmatch.h>
-#include <unistd.h>
 
 static int _log_dom;
 #define DBG(...) EINA_LOG_DOM_DBG(_log_dom, __VA_ARGS__)
@@ -722,6 +724,14 @@ text_effect_name_get(Edje_Text_Effect effect)
          return "FAR_SOFT_SHADOW";
       case EDJE_TEXT_EFFECT_GLOW:
          return "GLOW";
+      // TIZEN ONLY (20131106) : Font effect for tizen.
+      case EDJE_TEXT_EFFECT_TIZEN_GLOW_SHADOW:
+         return "TIZEN_GLOW_SHADOW";
+      case EDJE_TEXT_EFFECT_TIZEN_SOFT_GLOW_SHADOW:
+         return "TIZEN_SOFT_GLOW_SHADOW";
+      case EDJE_TEXT_EFFECT_TIZEN_SHADOW:
+         return "TIZEN_SHADOW";
+      ///////////////
 
       case EDJE_TEXT_EFFECT_LAST:
          ERR("Invalid part type %d", effect);
@@ -1060,6 +1070,7 @@ _transition_name_get(Edje_Tween_Mode mode)
       case EDJE_TWEEN_MODE_ACCELERATE: return "ACCELERATE";
       case EDJE_TWEEN_MODE_DECELERATE: return "DECELERATE";
       case EDJE_TWEEN_MODE_SINUSOIDAL: return "SINUSOIDAL";
+      case EDJE_TWEEN_MODE_CUBIC_BEZIER: return "CUBIC_BEZIER";
       default:
          ERR("Unknown transition mode %d", mode);
          return "???";

@@ -27,6 +27,11 @@
 #define MSG_COLOR 1
 #define MSG_TEXT  2
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 static const char commands[] = \
   "commands are:\n"
   "\tt - toggle right rectangle's visibility\n"

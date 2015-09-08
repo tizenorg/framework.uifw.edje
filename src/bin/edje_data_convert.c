@@ -331,6 +331,9 @@ _edje_edd_old_init(void)
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "text.id_source", text.id_source, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "text.id_text_source", text.id_text_source, EET_T_INT);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "text.elipsis", text.elipsis, EET_T_DOUBLE);
+   // TIZEN_ONLY(20150306): Add fade_ellipsis feature to TEXTBLOCK, TEXT part.
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "text.fade_ellipsis", text.fade_ellipsis, EET_T_DOUBLE);
+   //
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "box.layout", box.layout, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "box.alt_layout", box.alt_layout, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part_description, Old_Edje_Part_Description, "box.align.x", box.align.x, EDJE_T_FLOAT);
@@ -422,6 +425,11 @@ _edje_edd_old_init(void)
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source4", source4, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source5", source5, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source6", source6, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source7", source7, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source8", source8, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source9", source9, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source10", source10, EET_T_STRING);
+   EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "source11", source11, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_LIST(_edje_edd_old_edje_part, Old_Edje_Part, "items", items, _edje_edd_old_edje_pack_element);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "api.name", api.name, EET_T_STRING);
    EET_DATA_DESCRIPTOR_ADD_BASIC(_edje_edd_old_edje_part, Old_Edje_Part, "api.description", api.description, EET_T_STRING);

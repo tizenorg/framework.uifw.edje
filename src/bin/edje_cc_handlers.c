@@ -28,14 +28,13 @@
 # include "config.h"
 #endif
 
-#include <string.h>
+#include "edje_cc.h"
+
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
-
-#include "edje_cc.h"
 
 /**
  * @page edcref Edje Data Collection reference
@@ -72,6 +71,25 @@ static Edje_Part_Description_Common *current_desc = NULL;
 static Edje_Part_Description_Common *parent_desc = NULL;
 static Edje_Program *current_program = NULL;
 
+struct _Edje_Cc_Handlers_Hierarchy_Info
+{  /* Struct that keeps globals value to impl hierarchy */
+   Edje_Part_Collection_Directory_Entry *current_de;
+   Edje_Part *current_part;
+   Edje_Pack_Element *current_item;
+   Edje_Part_Description_Common *current_desc;
+   Edje_Part_Description_Common *parent_desc;
+   Edje_Program *current_program;
+   Edje_Part *ep;
+};
+typedef struct _Edje_Cc_Handlers_Hierarchy_Info Edje_Cc_Handlers_Hierarchy_Info;
+
+static Eina_Array *part_hierarchy = NULL; /* stack parts,support nested parts */
+static void edje_cc_handlers_hierarchy_set(Edje_Part *src);
+static Edje_Part *edje_cc_handlers_hierarchy_parent_get(void);
+static void edje_cc_handlers_hierarchy_push(Edje_Part *ep, Edje_Part *cp);
+static void edje_cc_handlers_hierarchy_rename(Edje_Part *old, Edje_Part *new);
+static void edje_cc_handlers_hierarchy_pop(void);
+
 static void st_externals_external(void);
 
 static void st_images_image(void);
@@ -80,6 +98,8 @@ static void st_images_set_name(void);
 static void ob_images_set_image(void);
 static void st_images_set_image_image(void);
 static void st_images_set_image_size(void);
+static void st_images_set_image_border(void);
+static void st_images_set_image_border_scale_by(void);
 
 static void st_fonts_font(void);
 
@@ -98,6 +118,7 @@ static void st_color_class_color2(void);
 static void st_color_class_color3(void);
 
 static void ob_collections(void);
+static void st_collections_base_scale(void);
 
 static void ob_collections_group(void);
 static void st_collections_group_name(void);
@@ -118,6 +139,7 @@ static void ob_collections_group_lua_script(void);
 
 static void st_collections_group_parts_alias(void);
 
+static Edje_Part *edje_cc_handlers_part_make(void);
 static void ob_collections_group_parts_part(void);
 static void st_collections_group_parts_part_name(void);
 static void st_collections_group_parts_part_type(void);
@@ -138,6 +160,11 @@ static void st_collections_group_parts_part_source3(void);
 static void st_collections_group_parts_part_source4(void);
 static void st_collections_group_parts_part_source5(void);
 static void st_collections_group_parts_part_source6(void);
+static void st_collections_group_parts_part_source7(void);
+static void st_collections_group_parts_part_source8(void);
+static void st_collections_group_parts_part_source9(void);
+static void st_collections_group_parts_part_source10(void);
+static void st_collections_group_parts_part_source11(void);
 static void st_collections_group_parts_part_entry_mode(void);
 static void st_collections_group_parts_part_select_mode(void);
 static void st_collections_group_parts_part_cursor_mode(void);
@@ -182,11 +209,13 @@ static void st_collections_group_parts_part_description_aspect(void);
 static void st_collections_group_parts_part_description_aspect_preference(void);
 static void st_collections_group_parts_part_description_rel1_relative(void);
 static void st_collections_group_parts_part_description_rel1_offset(void);
+static void st_collections_group_parts_part_description_rel1_to_set(const char *name);
 static void st_collections_group_parts_part_description_rel1_to(void);
 static void st_collections_group_parts_part_description_rel1_to_x(void);
 static void st_collections_group_parts_part_description_rel1_to_y(void);
 static void st_collections_group_parts_part_description_rel2_relative(void);
 static void st_collections_group_parts_part_description_rel2_offset(void);
+static void st_collections_group_parts_part_description_rel2_to_set(const char *name);
 static void st_collections_group_parts_part_description_rel2_to(void);
 static void st_collections_group_parts_part_description_rel2_to_x(void);
 static void st_collections_group_parts_part_description_rel2_to_y(void);
@@ -222,6 +251,10 @@ static void st_collections_group_parts_part_description_text_align(void);
 static void st_collections_group_parts_part_description_text_source(void);
 static void st_collections_group_parts_part_description_text_text_source(void);
 static void st_collections_group_parts_part_description_text_elipsis(void);
+static void st_collections_group_parts_part_description_text_filter(void);
+// TIZEN_ONLY(20150306): Add fade_ellipsis feature to TEXTBLOCK, TEXT part.
+static void st_collections_group_parts_part_description_text_fade_ellipsis(void);
+//
 static void st_collections_group_parts_part_description_box_layout(void);
 static void st_collections_group_parts_part_description_box_align(void);
 static void st_collections_group_parts_part_description_box_padding(void);
@@ -230,6 +263,8 @@ static void st_collections_group_parts_part_description_table_homogeneous(void);
 static void st_collections_group_parts_part_description_table_align(void);
 static void st_collections_group_parts_part_description_table_padding(void);
 static void st_collections_group_parts_part_description_table_min(void);
+static void st_collections_group_parts_part_description_proxy_source_visible(void);
+static void st_collections_group_parts_part_description_proxy_source_clip(void);
 static void st_collections_group_parts_part_description_map_perspective(void);
 static void st_collections_group_parts_part_description_map_light(void);
 static void st_collections_group_parts_part_description_map_rotation_center(void);
@@ -241,6 +276,9 @@ static void st_collections_group_parts_part_description_map_smooth(void);
 static void st_collections_group_parts_part_description_map_alpha(void);
 static void st_collections_group_parts_part_description_map_backface_cull(void);
 static void st_collections_group_parts_part_description_map_perspective_on(void);
+static void st_collections_group_parts_part_description_map_color(void);
+static void st_collections_group_parts_part_description_map_zoom_x(void);
+static void st_collections_group_parts_part_description_map_zoom_y(void);
 static void st_collections_group_parts_part_description_perspective_zplane(void);
 static void st_collections_group_parts_part_description_perspective_focal(void);
 static void st_collections_group_parts_part_api(void);
@@ -269,6 +307,13 @@ static void ob_collections_group_programs_program_script(void);
 static void st_collections_group_sound_sample_name(void);
 static void st_collections_group_sound_sample_source(void);
 static void st_collections_group_sound_tone(void);
+
+#ifdef PLUGIN
+static void ob_plugins_plug(void);
+static void st_collections_plugins_plugin_name(void);
+static void st_collections_plugins_plugin_source(void);
+static void st_collections_plugins_plugin_param(void);
+#endif
 /*****/
 
 New_Statement_Handler statement_handlers[] =
@@ -278,6 +323,8 @@ New_Statement_Handler statement_handlers[] =
      {"images.set.name", st_images_set_name},
      {"images.set.image.image", st_images_set_image_image},
      {"images.set.image.size", st_images_set_image_size},
+     {"images.set.image.border", st_images_set_image_border},
+     {"images.set.image.scale_by", st_images_set_image_border_scale_by},
      {"fonts.font", st_fonts_font},
      {"data.item", st_data_item},
      {"data.file", st_data_file},
@@ -288,15 +335,20 @@ New_Statement_Handler statement_handlers[] =
      {"color_classes.color_class.color", st_color_class_color},
      {"color_classes.color_class.color2", st_color_class_color2},
      {"color_classes.color_class.color3", st_color_class_color3},
+     {"collections.base_scale", st_collections_base_scale},
      {"collections.externals.external", st_externals_external}, /* dup */
      {"collections.image", st_images_image}, /* dup */
      {"collections.set.name", st_images_set_name}, /* dup */
      {"collections.set.image.image", st_images_set_image_image}, /* dup */
      {"collections.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.images.image", st_images_image}, /* dup */
      {"collections.images.set.name", st_images_set_name}, /* dup */
      {"collections.images.set.image.image", st_images_set_image_image}, /* dup */
      {"collections.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.font", st_fonts_font}, /* dup */
      {"collections.fonts.font", st_fonts_font}, /* dup */
      {"collections.styles.style.name", st_styles_style_name}, /* dup */
@@ -306,6 +358,14 @@ New_Statement_Handler statement_handlers[] =
      {"collections.color_classes.color_class.color", st_color_class_color}, /* dup */
      {"collections.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.color_classes.color_class.color3", st_color_class_color3}, /* dup */
+#ifdef PLUGIN
+     {"collections.plugins.plugin.name", st_collections_plugins_plugin_name},
+     {"collections.plugins.plugin.source", st_collections_plugins_plugin_source},
+     {"collections.plugins.plugin.param", st_collections_plugins_plugin_param},
+     {"collections.group.plugins.plugin.name", st_collections_plugins_plugin_name}, /* dup */
+     {"collections.group.plugins.plugin.source", st_collections_plugins_plugin_source}, /* dup */
+     {"collections.group.plugins.plugin.param", st_collections_plugins_plugin_param}, /* dup */
+#endif
      {"collections.sounds.sample.name", st_collections_group_sound_sample_name},
      {"collections.sounds.sample.source", st_collections_group_sound_sample_source},
      {"collections.group.sounds.sample.name", st_collections_group_sound_sample_name}, /* dup */
@@ -326,13 +386,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.limits.vertical", st_collections_group_limits_vertical},
      {"collections.group.externals.external", st_externals_external}, /* dup */
      {"collections.group.image", st_images_image}, /* dup */
-     {"collections.group.set.name", st_images_set_name},
-     {"collections.group.set.image.image", st_images_set_image_image},
-     {"collections.group.set.image.size", st_images_set_image_size},
+     {"collections.group.set.name", st_images_set_name}, /* dup */
+     {"collections.group.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.images.image", st_images_image}, /* dup */
-     {"collections.group.images.set.name", st_images_set_name},
-     {"collections.group.images.set.image.image", st_images_set_image_image},
-     {"collections.group.images.set.image.size", st_images_set_image_size},
+     {"collections.group.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.font", st_fonts_font}, /* dup */
      {"collections.group.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.styles.style.name", st_styles_style_name}, /* dup */
@@ -344,13 +408,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.color_classes.color_class.color3", st_color_class_color3}, /* dup */
      {"collections.group.parts.alias", st_collections_group_parts_alias },
      {"collections.group.parts.image", st_images_image}, /* dup */
-     {"collections.group.parts.set.name", st_images_set_name},
-     {"collections.group.parts.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.images.set.name", st_images_set_name},
-     {"collections.group.parts.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.styles.style.name", st_styles_style_name}, /* dup */
@@ -380,6 +448,11 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.source4", st_collections_group_parts_part_source4},
      {"collections.group.parts.part.source5", st_collections_group_parts_part_source5},
      {"collections.group.parts.part.source6", st_collections_group_parts_part_source6},
+     {"collections.group.parts.part.source7", st_collections_group_parts_part_source7},
+     {"collections.group.parts.part.source8", st_collections_group_parts_part_source8},
+     {"collections.group.parts.part.source9", st_collections_group_parts_part_source9},
+     {"collections.group.parts.part.source10", st_collections_group_parts_part_source10},
+     {"collections.group.parts.part.source11", st_collections_group_parts_part_source11},
      {"collections.group.parts.part.dragable.x", st_collections_group_parts_part_dragable_x},
      {"collections.group.parts.part.dragable.y", st_collections_group_parts_part_dragable_y},
      {"collections.group.parts.part.dragable.confine", st_collections_group_parts_part_dragable_confine},
@@ -390,13 +463,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.multiline", st_collections_group_parts_part_multiline},
      {"collections.group.parts.part.access", st_collections_group_parts_part_access},
      {"collections.group.parts.part.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.set.name", st_images_set_name},
-     {"collections.group.parts.part.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.images.set.name", st_images_set_name},
-     {"collections.group.parts.part.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.styles.style.name", st_styles_style_name}, /* dup */
@@ -458,13 +535,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.image.normal", st_collections_group_parts_part_description_image_normal},
      {"collections.group.parts.part.description.image.tween", st_collections_group_parts_part_description_image_tween},
      {"collections.group.parts.part.description.image.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.description.image.set.name", st_images_set_name},
-     {"collections.group.parts.part.description.image.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.description.image.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.description.image.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.description.image.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.description.image.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.description.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.description.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.description.image.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.description.image.images.set.name", st_images_set_name},
-     {"collections.group.parts.part.description.image.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.description.image.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.description.image.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.description.image.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.description.image.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.description.image.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.description.image.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.description.image.border", st_collections_group_parts_part_description_image_border},
      {"collections.group.parts.part.description.image.middle", st_collections_group_parts_part_description_image_middle},
      {"collections.group.parts.part.description.image.border_scale", st_collections_group_parts_part_description_image_border_scale},
@@ -498,6 +579,10 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.text.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.text.elipsis", st_collections_group_parts_part_description_text_elipsis},
      {"collections.group.parts.part.description.text.ellipsis", st_collections_group_parts_part_description_text_elipsis},
+     {"collections.group.parts.part.description.text.filter", st_collections_group_parts_part_description_text_filter},
+     // TIZEN_ONLY(20150306): Add fade_ellipsis feature to TEXTBLOCK, TEXT part.
+     {"collections.group.parts.part.description.text.fade_ellipsis", st_collections_group_parts_part_description_text_fade_ellipsis},
+     //
      {"collections.group.parts.part.description.box.layout", st_collections_group_parts_part_description_box_layout},
      {"collections.group.parts.part.description.box.align", st_collections_group_parts_part_description_box_align},
      {"collections.group.parts.part.description.box.padding", st_collections_group_parts_part_description_box_padding},
@@ -506,6 +591,8 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.table.align", st_collections_group_parts_part_description_table_align},
      {"collections.group.parts.part.description.table.padding", st_collections_group_parts_part_description_table_padding},
      {"collections.group.parts.part.description.table.min", st_collections_group_parts_part_description_table_min},
+     {"collections.group.parts.part.description.proxy.source_visible", st_collections_group_parts_part_description_proxy_source_visible},
+     {"collections.group.parts.part.description.proxy.source_clip", st_collections_group_parts_part_description_proxy_source_clip},
      {"collections.group.parts.part.description.map.perspective", st_collections_group_parts_part_description_map_perspective},
      {"collections.group.parts.part.description.map.light", st_collections_group_parts_part_description_map_light},
      {"collections.group.parts.part.description.map.rotation.center", st_collections_group_parts_part_description_map_rotation_center},
@@ -517,6 +604,9 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.map.alpha", st_collections_group_parts_part_description_map_alpha},
      {"collections.group.parts.part.description.map.backface_cull", st_collections_group_parts_part_description_map_backface_cull},
      {"collections.group.parts.part.description.map.perspective_on", st_collections_group_parts_part_description_map_perspective_on},
+     {"collections.group.parts.part.description.map.color", st_collections_group_parts_part_description_map_color},
+     {"collections.group.parts.part.description.map.zoom.x", st_collections_group_parts_part_description_map_zoom_x},
+     {"collections.group.parts.part.description.map.zoom.y", st_collections_group_parts_part_description_map_zoom_y},
      {"collections.group.parts.part.description.perspective.zplane", st_collections_group_parts_part_description_perspective_zplane},
      {"collections.group.parts.part.description.perspective.focal", st_collections_group_parts_part_description_perspective_focal},
      {"collections.group.parts.part.description.params.int", st_collections_group_parts_part_description_params_int},
@@ -525,9 +615,11 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.params.bool", st_collections_group_parts_part_description_params_bool},
      {"collections.group.parts.part.description.params.choice", st_collections_group_parts_part_description_params_choice},
      {"collections.group.parts.part.description.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.description.images.set.name", st_images_set_name},
-     {"collections.group.parts.part.description.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.description.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.description.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.description.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.description.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.description.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.description.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.description.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.styles.style.name", st_styles_style_name}, /* dup */
@@ -538,13 +630,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.color_classes.color_class.color2", st_color_class_color2}, /* dup */
      {"collections.group.parts.part.description.color_classes.color_class.color3", st_color_class_color3}, /* dup */
      {"collections.group.parts.part.description.programs.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.description.programs.set.name", st_images_set_name},
-     {"collections.group.parts.part.description.programs.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.description.programs.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.description.programs.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.description.programs.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.description.programs.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.description.programs.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.description.programs.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.description.programs.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.description.programs.images.set.name", st_images_set_name},
-     {"collections.group.parts.part.description.programs.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.description.programs.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.description.programs.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.description.programs.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.description.programs.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.description.programs.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.description.programs.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.description.programs.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.programs.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.description.programs.program.name", st_collections_group_programs_program_name}, /* dup */
@@ -566,13 +662,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.program.after", st_collections_group_programs_program_after}, /* dup */
      {"collections.group.parts.part.description.program.api", st_collections_group_programs_program_api}, /* dup */
      {"collections.group.parts.part.programs.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.programs.set.name", st_images_set_name},
-     {"collections.group.parts.part.programs.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.programs.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.programs.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.programs.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.programs.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.programs.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.programs.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.programs.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.part.programs.images.set.name", st_images_set_name},
-     {"collections.group.parts.part.programs.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.part.programs.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.part.programs.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.part.programs.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.part.programs.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.part.programs.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.part.programs.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.part.programs.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.programs.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.part.programs.program.name", st_collections_group_programs_program_name}, /* dup */
@@ -594,13 +694,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.program.after", st_collections_group_programs_program_after}, /* dup */
      {"collections.group.parts.part.program.api", st_collections_group_programs_program_api}, /* dup */
      {"collections.group.parts.programs.image", st_images_image}, /* dup */
-     {"collections.group.parts.programs.set.name", st_images_set_name},
-     {"collections.group.parts.programs.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.programs.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.programs.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.programs.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.programs.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.programs.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.programs.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.programs.images.image", st_images_image}, /* dup */
-     {"collections.group.parts.programs.images.set.name", st_images_set_name},
-     {"collections.group.parts.programs.images.set.image.image", st_images_set_image_image},
-     {"collections.group.parts.programs.images.set.image.size", st_images_set_image_size},
+     {"collections.group.parts.programs.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.parts.programs.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.parts.programs.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.parts.programs.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.parts.programs.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.parts.programs.font", st_fonts_font}, /* dup */
      {"collections.group.parts.programs.fonts.font", st_fonts_font}, /* dup */
      {"collections.group.parts.programs.program.name", st_collections_group_programs_program_name}, /* dup */
@@ -644,13 +748,17 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.programs.program.after", st_collections_group_programs_program_after},
      {"collections.group.programs.program.api", st_collections_group_programs_program_api},
      {"collections.group.programs.image", st_images_image}, /* dup */
-     {"collections.group.programs.set.name", st_images_set_name},
-     {"collections.group.programs.set.image.image", st_images_set_image_image},
-     {"collections.group.programs.set.image.size", st_images_set_image_size},
+     {"collections.group.programs.set.name", st_images_set_name}, /* dup */
+     {"collections.group.programs.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.programs.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.programs.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.programs.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.programs.images.image", st_images_image}, /* dup */
-     {"collections.group.programs.images.set.name", st_images_set_name},
-     {"collections.group.programs.images.set.image.image", st_images_set_image_image},
-     {"collections.group.programs.images.set.image.size", st_images_set_image_size},
+     {"collections.group.programs.images.set.name", st_images_set_name}, /* dup */
+     {"collections.group.programs.images.set.image.image", st_images_set_image_image}, /* dup */
+     {"collections.group.programs.images.set.image.size", st_images_set_image_size}, /* dup */
+     {"collections.group.programs.images.set.image.border", st_images_set_image_border}, /* dup */
+     {"collections.group.programs.images.set.image.scale_by", st_images_set_image_border_scale_by}, /* dup */
      {"collections.group.programs.font", st_fonts_font}, /* dup */
      {"collections.group.programs.fonts.font", st_fonts_font} /* dup */
 };
@@ -680,6 +788,12 @@ New_Object_Handler object_handlers[] =
      {"collections.styles.style", ob_styles_style}, /* dup */
      {"collections.color_classes", NULL}, /* dup */
      {"collections.color_classes.color_class", ob_color_class}, /* dup */
+#ifdef PLUGIN
+     {"collections.plugins", NULL}, /* dup */
+     {"collections.plugins.plugin", ob_plugins_plug}, /* dup */
+     {"collections.group.plugins", NULL}, /* dup */
+     {"collections.group.plugins.plugin", ob_plugins_plug}, /* dup */
+#endif
      {"collections.sounds", NULL},
      {"collections.group.sounds", NULL}, /* dup */
      {"collections.sounds.sample", NULL},
@@ -753,6 +867,7 @@ New_Object_Handler object_handlers[] =
      {"collections.group.parts.part.description.table", NULL},
      {"collections.group.parts.part.description.map", NULL},
      {"collections.group.parts.part.description.map.rotation", NULL},
+     {"collections.group.parts.part.description.map.zoom", NULL},
      {"collections.group.parts.part.description.perspective", NULL},
      {"collections.group.parts.part.description.params", NULL},
      {"collections.group.parts.part.description.color_classes", NULL}, /* dup */
@@ -807,6 +922,10 @@ New_Object_Handler object_handlers[] =
      {"collections.group.programs.script", ob_collections_group_script} /* dup */
 };
 
+New_Nested_Handler nested_handlers[] = {
+     {"collections.group.parts", "part", NULL, edje_cc_handlers_hierarchy_pop }
+};
+
 /*****/
 
 int
@@ -819,6 +938,12 @@ int
 statement_handler_num(void)
 {
    return sizeof(statement_handlers) / sizeof (New_Object_Handler);
+}
+
+int
+nested_handler_num(void)
+{
+   return sizeof(nested_handlers) / sizeof (New_Nested_Handler);
 }
 
 static void
@@ -899,6 +1024,9 @@ _edje_part_description_alloc(unsigned char type, const char *collection, const c
 	   ed->text.align.y = FROM_DOUBLE(0.5);
 	   ed->text.id_source = -1;
 	   ed->text.id_text_source = -1;
+           // TIZEN_ONLY(20150306): Add fade_ellipsis feature to TEXTBLOCK, TEXT part.
+	   ed->text.fade_ellipsis = FROM_DOUBLE(0.0);
+           //
 
 	   result = &ed->common;
 	   break;
@@ -923,7 +1051,8 @@ _edje_part_description_alloc(unsigned char type, const char *collection, const c
            ed = mem_alloc(SZ(Edje_Part_Description_Proxy));
 
            ed->proxy.id = -1;
-
+           ed->proxy.source_visible = EINA_TRUE;
+           ed->proxy.source_clip = EINA_TRUE;
            _edje_part_description_fill(&ed->proxy.fill);
 
            result = &ed->common;
@@ -1048,6 +1177,9 @@ _edje_program_copy(Edje_Program *ep, Edje_Program *ep2)
    ep->tween.v1 = ep2->tween.v1;
    ep->tween.v2 = ep2->tween.v2;
    ep->sample_name = STRDUP(ep2->sample_name);
+#ifdef PLUGIN
+   ep->plugin_name = STRDUP(ep2->plugin_name);
+#endif
    ep->tone_name = STRDUP(ep2->tone_name);
    ep->duration = ep2->duration;
    ep->speed = ep2->speed;
@@ -1064,6 +1196,8 @@ _edje_program_copy(Edje_Program *ep, Edje_Program *ep2)
         if (ep2->action == EDJE_ACTION_TYPE_STATE_SET)
           data_queue_copied_part_lookup(pc, &(et2->id), &(et->id));
         else if (ep2->action == EDJE_ACTION_TYPE_ACTION_STOP)
+          data_queue_copied_program_lookup(pc, &(et2->id), &(et->id));
+        else if (ep2->action == EDJE_ACTION_TYPE_SCRIPT)
           data_queue_copied_program_lookup(pc, &(et2->id), &(et->id));
         else if (ep2->action == EDJE_ACTION_TYPE_DRAG_VAL_SET)
           data_queue_copied_part_lookup(pc, &(et2->id), &(et->id));
@@ -1086,9 +1220,11 @@ _edje_program_copy(Edje_Program *ep, Edje_Program *ep2)
 
    EINA_LIST_FOREACH(ep2->after, l, pa2)
      {
-        pa = mem_alloc(SZ(Edje_Program_After));
+        name = (char*) (pa2 + 1);
+        pa = mem_alloc(SZ(Edje_Program_After) + strlen(name) + 1);
         ep->after = eina_list_append(ep->after, pa);
-
+        copy = (char*) (pa + 1);
+        memcpy(copy, name, strlen(name) + 1);
         data_queue_copied_program_lookup(pc, &(pa2->id), &(pa->id));
      }
 
@@ -1104,6 +1240,37 @@ _edje_program_copy(Edje_Program *ep, Edje_Program *ep2)
 }
 
 /*****/
+
+/**
+    @page edcref
+    @block
+        base_scale
+    @context
+        collections {
+            ..
+            base_scale: 1.2;
+            ..
+        }
+    @description
+        The base_scale is the standard scale value of the collection.
+        The default base_scale is 1.0. It means the collection is made in the environment
+        which is same with a desktop(The monitor has 96 dpi).
+        If you make a collection in another environment(ex: 115 dpi), you have to
+        set the base_scale(ex: 1.2). Then it will be shown same size in the desktop.
+    @endblock
+*/
+static void
+st_collections_base_scale(void)
+{
+   check_min_arg_count(1);
+
+   edje_file->base_scale = FROM_DOUBLE(parse_float_range(0, 0.0, 999999999.0));
+   if (edje_file->base_scale == ZERO)
+     {
+        ERR("The base_scale is 0.0. The value should be bigger than 0.0.");
+        exit(-1);
+     }
+}
 
 /**
    @edcsection{toplevel,Top-Level blocks}
@@ -1225,7 +1392,9 @@ st_externals_external(void)
         Compression methods:
         @li RAW: Uncompressed.
         @li COMP: Lossless compression.
-        @li LOSSY [0-100]: Lossy compression with quality from 0 to 100.
+        @li LOSSY [0-100]: JPEG lossy compression with quality from 0 to 100.
+        @li LOSSY_ETC1 [0-100]: ETC1 lossy texture compression with quality from 0 to 100.
+        @li LOSSY_ETC2 [0-100]: ETC2 lossy texture compression with quality from 0 to 100 (supports alpha).
         @li USER: Do not embed the file, refer to the external file instead.
     @endproperty
  */
@@ -1236,6 +1405,8 @@ st_images_image(void)
    const char *tmp;
    unsigned int i;
    int v;
+
+   check_min_arg_count(2);
 
    if (!edje_file->image_dir)
      edje_file->image_dir = mem_alloc(SZ(Edje_Image_Directory));
@@ -1266,9 +1437,11 @@ st_images_image(void)
    img->id = edje_file->image_dir->entries_count - 1;
    v = parse_enum(1,
 		  "RAW", 0,
-		  "COMP", 1,
-		  "LOSSY", 2,
-		  "USER", 3,
+                  "COMP", 1,
+                  "LOSSY", 2,
+                  "LOSSY_ETC1", 3,
+                  "LOSSY_ETC2", 4,
+                  "USER", 5,
 		  NULL);
    if (v == 0)
      {
@@ -1282,15 +1455,26 @@ st_images_image(void)
      }
    else if (v == 2)
      {
-	img->source_type = EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY;
-	img->source_param = 0;
+        img->source_type = EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY;
+        img->source_param = 0;
      }
    else if (v == 3)
+     {
+        img->source_type = EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY_ETC1;
+        img->source_param = 0;
+     }
+   else if (v == 4)
+     {
+        img->source_type = EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY_ETC2;
+        img->source_param = 0;
+     }
+   else if (v == 5)
      {
 	img->source_type = EDJE_IMAGE_SOURCE_TYPE_EXTERNAL;
 	img->source_param = 0;
      }
-   if (img->source_type != EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY)
+   if ((img->source_type < EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY) ||
+       (img->source_type > EDJE_IMAGE_SOURCE_TYPE_INLINE_LOSSY_ETC2))
 	check_arg_count(2);
    else
      {
@@ -1406,7 +1590,9 @@ ob_images_set_image(void)
         Compression methods:
         @li RAW: Uncompressed.
         @li COMP: Lossless compression.
-        @li LOSSY [0-100]: Lossy compression with quality from 0 to 100.
+        @li LOSSY [0-100]: JPEG lossy compression with quality from 0 to 100.
+        @li LOSSY_ETC1 [0-100]: ETC1 lossy texture compression with quality from 0 to 100.
+        @li LOSSY_ETC2 [0-100]: ETC2 lossy texture compression with quality from 0 to 100 (supports alpha).
         @li USER: Do not embed the file, refer to the external file instead.
     @endproperty
 **/
@@ -1424,6 +1610,21 @@ st_images_set_image_image(void)
    st_images_image();
 
    entry->name = parse_str(0);
+
+   /*********************Ninepatch patch for Samsung************************************/
+   {
+       Eina_Bool b_ninepatch = is_ninepatch_image(entry->name);
+       if (b_ninepatch)
+         {
+              int border_left, border_right, border_top, border_bottom;
+              ninepatch_image_info_get(entry->name, NULL, NULL, &border_left, &border_right, &border_top, &border_bottom);
+              entry->border.l = border_left;
+              entry->border.r = border_right;
+              entry->border.t = border_top;
+              entry->border.b = border_bottom;
+        }
+   }
+   /************************************************************************************/
 
    for (i = 0; i < edje_file->image_dir->entries_count; ++i)
      if (!strcmp(edje_file->image_dir->entries[i].entry, entry->name))
@@ -1467,6 +1668,72 @@ st_images_set_image_size(void)
 	   entry->size.max.w, entry->size.max.h);
        exit(-1);
      }
+}
+
+/**
+    @page edcref
+    @property
+        border
+    @parameters
+        [left] [right] [top] [bottom]
+    @since 1.8
+    @effect
+        If set, the area (in pixels) of each side of the image will be
+        displayed as a fixed size border, from the side -> inwards, preventing
+        the corners from being changed on a resize.
+    @endproperty
+*/
+static void
+st_images_set_image_border(void)
+{
+   Edje_Image_Directory_Set_Entry *entry;
+   Edje_Image_Directory_Set *set;
+
+   set = edje_file->image_dir->sets + edje_file->image_dir->sets_count - 1;
+   entry = eina_list_data_get(eina_list_last(set->entries));
+
+   entry->border.l = parse_int_range(0, 0, 0x7fffffff);
+   entry->border.r = parse_int_range(1, 0, 0x7fffffff);
+   entry->border.t = parse_int_range(2, 0, 0x7fffffff);
+   entry->border.b = parse_int_range(3, 0, 0x7fffffff);
+}
+
+
+/**
+    @page edcref
+    @property
+        border_scale_by
+    @parameters
+        0.0 or bigger (0.0 or 1.0 to turn it off)
+    @since 1.8
+    @effect
+        If border scaling is enabled then normally the OUTPUT border sizes
+        (e.g. if 3 pixels on the left edge are set as a border, then normally
+        at scale 1.0, those 3 columns will always be the exact 3 columns of
+        output, or at scale 2.0 they will be 6 columns, or 0.33 they will merge
+        into a single column). This property multiplies the input scale
+        factor by this multiplier, allowing the creation of "supersampled"
+        borders to make much higher resolution outputs possible by always using
+        the highest resolution artwork and then runtime scaling it down.
+    @endproperty
+*/
+static void
+st_images_set_image_border_scale_by(void)
+{
+   Edje_Part_Description_Image *ed;
+
+   check_arg_count(1);
+
+   if (current_part->type != EDJE_PART_TYPE_IMAGE)
+     {
+        ERR("parse error %s:%i. image attributes in non-IMAGE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Image*) current_desc;
+
+   ed->image.border.scale_by = FROM_DOUBLE(parse_float_range(0, 0.0, 999999999.0));
 }
 
 /**
@@ -1924,7 +2191,10 @@ static void
 ob_collections(void)
 {
    if (!edje_file->collection)
-     edje_file->collection = eina_hash_string_small_new(NULL);
+     {
+        edje_file->collection = eina_hash_string_small_new(NULL);
+        edje_collections_lookup = eina_hash_int32_new(NULL);
+     }
 }
 /**
     @page edcref
@@ -1937,7 +2207,7 @@ ob_collections(void)
               source: "sound_file1.wav";
            }
            sample {
-              name: "sound_file2" LOSSY 99.0;
+              name: "sound_file2" LOSSY 0.4;
               source: "sound_file2.wav";
            }
            tone: "tone-1"  2300;
@@ -1954,7 +2224,7 @@ ob_collections(void)
           source: "sound_file1.wav";
        }
        sample {
-          name: "sound_file2" LOSSY 88.0;
+          name: "sound_file2" LOSSY 0.5;
           source: "sound_file2.wav";
        }
        sample {
@@ -2138,6 +2408,70 @@ st_collections_group_sound_tone(void)
    tone->value = value;
    tone->id = edje_file->sound_dir->tones_count - 1;
 }
+
+#ifdef PLUGIN
+static void
+ob_plugins_plug(void)
+{
+   Edje_Plugin *plug;
+
+   plug = mem_alloc(SZ(Edje_Plugin));
+   edje_file->plugins = eina_list_append(edje_file->plugins, plug);
+}
+
+static void
+st_collections_plugins_plugin_source(void)
+{
+   Edje_Plugin *plug;
+
+   check_arg_count(1);
+   plug = eina_list_data_get(eina_list_last(edje_file->plugins));
+   if (plug->source)
+     {
+        ERR("parse error %s:%i. There is already a basic source for the plugin: %s",
+            file_in, line - 1, plug->name);
+        exit(-1);
+     }
+   plug->source = parse_str(0);
+}
+
+static void
+st_collections_plugins_plugin_param(void)
+{
+   Edje_Plugin *plug;
+
+   check_arg_count(1);
+   plug = eina_list_data_get(eina_list_last(edje_file->plugins));
+   if (plug->param)
+     {
+        ERR("parse error %s:%i. There is already a basic param for the plugin: %s",
+            file_in, line - 1, plug->name);
+        exit(-1);
+     }
+   plug->param = parse_str(0);
+}
+
+static void
+st_collections_plugins_plugin_name(void)
+{
+   Edje_Plugin *plug, *tplug;
+   Eina_List *l;
+
+   check_arg_count(1);
+   plug = eina_list_data_get(eina_list_last(edje_file->plugins));
+   plug->name = parse_str(0);
+   EINA_LIST_FOREACH(edje_file->plugins, l, tplug)
+     {
+        if (plug->name && tplug->name && (plug != tplug) && (!strcmp(plug->name, tplug->name)))
+          {
+             ERR("parse error %s:%i. There is already a style named \"%s\"",
+                 file_in, line - 1, plug->name);
+             exit(-1);
+          }
+     }
+}
+#endif
+
 /**
    @edcsection{group,Group sub blocks}
  */
@@ -2181,6 +2515,8 @@ ob_collections_group(void)
 
    current_de = mem_alloc(SZ(Edje_Part_Collection_Directory_Entry));
    current_de->id = eina_list_count(edje_collections);
+
+   eina_hash_add(edje_collections_lookup, &current_de->id, current_de);
 
    pc = mem_alloc(SZ(Edje_Part_Collection));
    edje_collections = eina_list_append(edje_collections, pc);
@@ -2368,7 +2704,7 @@ st_collections_group_inherit(void)
    for (i = 0 ; i < pc2->parts_count ; i++)
      {
         // copy the part
-        ob_collections_group_parts_part();
+        edje_cc_handlers_part_make();
         ep = pc->parts[i];
         ep2 = pc2->parts[i];
         ep->name = STRDUP(ep2->name);
@@ -2378,6 +2714,11 @@ st_collections_group_inherit(void)
         ep->source4 = STRDUP(ep2->source4);
         ep->source5 = STRDUP(ep2->source5);
         ep->source6 = STRDUP(ep2->source6);
+        ep->source7 = STRDUP(ep2->source7);
+        ep->source8 = STRDUP(ep2->source8);
+        ep->source9 = STRDUP(ep2->source9);
+        ep->source10 = STRDUP(ep2->source10);
+        ep->source11 = STRDUP(ep2->source11);
 
         data_queue_copied_part_lookup(pc, &(ep2->clip_to_id), &(ep->clip_to_id));
 
@@ -2401,6 +2742,7 @@ st_collections_group_inherit(void)
         ep->dragable.y = ep2->dragable.y;
         ep->dragable.step_y = ep2->dragable.step_y;
         ep->dragable.count_y = ep2->dragable.count_y;
+        ep->nested_children_count = ep2->nested_children_count;
 
         data_queue_copied_part_lookup(pc, &(ep2->dragable.confine_id), &(ep->dragable.confine_id));
         data_queue_copied_part_lookup(pc, &(ep2->dragable.event_id), &(ep->dragable.event_id));
@@ -2514,6 +2856,7 @@ st_collections_group_inherit(void)
         cp->l2 = cp2->l2;
         cp->script = STRDUP(cp2->script);
         cd->is_lua = cd2->is_lua;
+        cd->shared = cd2->shared;
         cd->programs = eina_list_append(cd->programs, cp);
         data_queue_copied_anonymous_lookup(pc, &(cp2->id), &(cp->id));
      }
@@ -2959,9 +3302,9 @@ st_collections_group_parts_alias(void)
         on a button.
     @endblock
 */
-static void
-ob_collections_group_parts_part(void)
-{
+static Edje_Part *
+edje_cc_handlers_part_make(void)
+{  /* Doing ob_collections_group_parts_part() job, without hierarchy */
    Edje_Part_Collection *pc;
    Edje_Part *ep;
    Edje_Part_Parser *epp;
@@ -2992,6 +3335,7 @@ ob_collections_group_parts_part(void)
    ep->dragable.confine_id = -1;
    ep->dragable.event_id = -1;
    ep->items = NULL;
+   ep->nested_children_count = 0;
 
    epp = (Edje_Part_Parser *)ep;
    epp->reorder.insert_before = NULL;
@@ -3002,6 +3346,23 @@ ob_collections_group_parts_part(void)
    epp->reorder.linked_next = 0;
    epp->reorder.done = EINA_FALSE;
    epp->can_override = EINA_FALSE;
+
+   return ep;
+}
+
+static void
+ob_collections_group_parts_part(void)
+{
+   Edje_Part *cp = current_part;  /* Save to restore on pop    */
+   Edje_Part *ep = edje_cc_handlers_part_make(); /* This changes current_part */
+   Edje_Part *prnt;
+
+   /* Add this new part to hierarchy stack (removed part finished parse) */
+   edje_cc_handlers_hierarchy_push(ep, cp);
+
+   prnt = edje_cc_handlers_hierarchy_parent_get();
+   if (prnt)  /* This is the child of parent in stack */
+     prnt->nested_children_count++;
 }
 
 /**
@@ -3034,8 +3395,10 @@ st_collections_group_parts_part_name(void)
         unsigned int i;
 
         for (i = 0; i < (pc->parts_count - 1); i++)
-          {
-             if (pc->parts[i]->name && (!strcmp(pc->parts[i]->name, ep->name)))
+          {  /* Compare name only if did NOT updated ep from hircy pop */
+             if ((ep != pc->parts[i]) &&
+                   (pc->parts[i]->name &&
+                    (!strcmp(pc->parts[i]->name, ep->name))))
                {
                   epp = (Edje_Part_Parser *)pc->parts[i];
                   if (!epp->can_override)
@@ -3046,10 +3409,11 @@ st_collections_group_parts_part_name(void)
                     }
                   else
                     {
-                       free(ep);
                        pc->parts_count--;
                        pc->parts = realloc(pc->parts, pc->parts_count * sizeof (Edje_Part *));
-                       ep = current_part = pc->parts[i];
+                       current_part = pc->parts[i];
+                       edje_cc_handlers_hierarchy_rename(ep, current_part);
+                       free(ep);
                        epp->can_override = EINA_FALSE;
                        break;
                     }
@@ -3136,6 +3500,38 @@ st_collections_group_parts_part_type(void)
 
    current_part->type = type;
 }
+
+/**
+    @page edcref
+    @property
+        part
+    @parameters
+        [part declaration]
+    @effect
+    @code
+        group {
+            parts {
+                part {
+                    name: "parent_rect";
+                    type: RECT;
+                    description { }
+                    part {
+                        name: "nested_rect";
+                        type: RECT;
+                        description { }
+                    }
+                }
+                ..
+            }
+        }
+    @endcode
+        Nested parts adds hierarchy to edje.
+        Nested part inherits it's location relatively to the parent part.
+        To declare a nested part just start a new part within current part decl.
+        You must define parent part name before adding nested parts.
+    @endproperty
+    @since 1.7.0
+*/
 
 /**
     @page edcref
@@ -3503,6 +3899,112 @@ st_collections_group_parts_part_source6(void)
 
 /**
     @page edcref
+    @property
+        source7
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for start selection handler display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source7(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source7 = parse_str(0);
+   data_queue_group_lookup(current_part->source7, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source8
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for end selection handler display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source8(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source8 = parse_str(0);
+   data_queue_group_lookup(current_part->source8, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source9
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for cursor handler display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source9(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source9 = parse_str(0);
+   data_queue_group_lookup(current_part->source9, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source10
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for start edge of selection display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source10(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source10 = parse_str(0);
+   data_queue_group_lookup(current_part->source10, current_part);
+}
+
+/**
+    @page edcref
+    @property
+        source11
+    @parameters
+        [another group's name]
+    @effect
+        Only available to TEXTBLOCK parts. It is used for the group to be
+        loaded and used for end edge of selection display.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_source11(void)
+{
+   check_arg_count(1);
+
+   //FIXME: validate this somehow (need to decide on the format also)
+   current_part->source11 = parse_str(0);
+   data_queue_group_lookup(current_part->source11, current_part);
+}
+
+
+/**
+    @page edcref
 
     @property
         effect
@@ -3550,6 +4052,11 @@ st_collections_group_parts_part_effect(void)
                "FAR_SHADOW", EDJE_TEXT_EFFECT_FAR_SHADOW,
                "FAR_SOFT_SHADOW", EDJE_TEXT_EFFECT_FAR_SOFT_SHADOW,
                "GLOW", EDJE_TEXT_EFFECT_GLOW,
+               // TIZEN ONLY (20131106) : Font effect for tizen.
+               "TIZEN_GLOW_SHADOW", EDJE_TEXT_EFFECT_TIZEN_GLOW_SHADOW,
+               "TIZEN_SOFT_GLOW_SHADOW", EDJE_TEXT_EFFECT_TIZEN_SOFT_GLOW_SHADOW,
+               "TIZEN_SHADOW", EDJE_TEXT_EFFECT_TIZEN_SHADOW,
+               ///////
                NULL);
    if (get_arg_count() >= 2)
      {
@@ -3927,10 +4434,12 @@ static void st_collections_group_parts_part_box_items_item_type(void)
 	s = parse_str(0);
 	if (strcmp(s, "GROUP"))
 	  {
-	     ERR("parse error %s:%i. token %s not one of: GROUP.",
-		 file_in, line - 1, s);
+             ERR("parse error %s:%i. token %s not one of: GROUP.",
+                 file_in, line - 1, s);
+	     free(s);
 	     exit(-1);
 	  }
+	free(s);
 	/* FIXME: handle the enum, once everything else is supported */
 	current_item->type = EDJE_PART_TYPE_GROUP;
      }
@@ -3980,6 +4489,7 @@ static void st_collections_group_parts_part_box_items_item_name(void)
                        ep->items = realloc(ep->items, ep->items_count * sizeof (Edje_Pack_Element *));
                        current_item = ep->items[i];
                        pitem->can_override = EINA_FALSE;
+                       break;
                     }
                }
           }
@@ -4223,6 +4733,27 @@ static void st_collections_group_parts_part_table_items_item_span(void)
    current_item->rowspan = parse_int_range(1, 1, 0xffff);
 }
 
+static Eina_List *
+_copied_map_colors_get(Edje_Part_Description_Common *parent)
+{
+   Eina_List *colors = NULL;
+   Eina_List *l;
+   Edje_Map_Color *color;
+   EINA_LIST_FOREACH(parent->map.colors, l, color)
+     {
+        Edje_Map_Color *c = mem_alloc(SZ(Edje_Map_Color));
+        if (!color)
+          {
+             ERR("not enough memory");
+             exit(-1);
+             return NULL;
+          }
+        memcpy(c, color, sizeof(Edje_Map_Color));
+        colors = eina_list_append(colors, c);
+     }
+   return colors;
+}
+
 /**
    @edcsection{description,State description sub blocks}
  */
@@ -4259,7 +4790,7 @@ static void st_collections_group_parts_part_table_items_item_span(void)
 */
 static void
 ob_collections_group_parts_part_description(void)
-{
+{  /* Allocate and set desc, set relative part hierarchy if needed */
    Edje_Part_Collection *pc;
    Edje_Part *ep;
    Edje_Part_Description_Common *ed;
@@ -4269,9 +4800,20 @@ ob_collections_group_parts_part_description(void)
 
    ed = _edje_part_description_alloc(ep->type, pc->part, ep->name);
 
+   ed->rel1.id_x = -1;
+   ed->rel1.id_y = -1;
+   ed->rel2.id_x = -1;
+   ed->rel2.id_y = -1;
+
    if (!ep->default_desc)
      {
         current_desc = ep->default_desc = ed;
+
+          {  /* Get the ptr of the part above current part in hierarchy */
+             Edje_Part *node = edje_cc_handlers_hierarchy_parent_get();
+             if (node)  /* Make relative according to part hierarchy */
+               edje_cc_handlers_hierarchy_set(node);
+          }
      }
    else
      {
@@ -4295,14 +4837,10 @@ ob_collections_group_parts_part_description(void)
    ed->rel1.relative_y = FROM_DOUBLE(0.0);
    ed->rel1.offset_x = 0;
    ed->rel1.offset_y = 0;
-   ed->rel1.id_x = -1;
-   ed->rel1.id_y = -1;
    ed->rel2.relative_x = FROM_DOUBLE(1.0);
    ed->rel2.relative_y = FROM_DOUBLE(1.0);
    ed->rel2.offset_x = -1;
    ed->rel2.offset_y = -1;
-   ed->rel2.id_x = -1;
-   ed->rel2.id_y = -1;
    ed->color_class = NULL;
    ed->color.r = 255;
    ed->color.g = 255;
@@ -4323,6 +4861,9 @@ ob_collections_group_parts_part_description(void)
    ed->map.alpha = 1;
    ed->map.backcull = 0;
    ed->map.persp_on = 0;
+   ed->map.colors = NULL;
+   ed->map.zoom.x = FROM_DOUBLE(1.0);
+   ed->map.zoom.y = FROM_DOUBLE(1.0);
    ed->persp.zplane = 0;
    ed->persp.focal = 1000;
    ed->minmul.have = 1;
@@ -4453,6 +4994,8 @@ st_collections_group_parts_part_description_inherit(void)
 #define STRDUP(x) x ? strdup(x) : NULL
 
    ed->color_class = STRDUP(ed->color_class);
+   ed->map.colors = _copied_map_colors_get(parent);
+
    switch (ep->type)
      {
       case EDJE_PART_TYPE_SPACER:
@@ -4475,6 +5018,10 @@ st_collections_group_parts_part_description_inherit(void)
 
               data_queue_copied_part_lookup(pc, &(tparent->text.id_source), &(ted->text.id_source));
               data_queue_copied_part_lookup(pc, &(tparent->text.id_text_source), &(ted->text.id_text_source));
+
+              // TIZEN_ONLY(20150306): Add fade_ellipsis feature to TEXTBLOCK, TEXT part.
+              ted->text.fade_ellipsis = tparent->text.fade_ellipsis;
+              //
 
               break;
            }
@@ -4809,11 +5356,13 @@ st_collections_group_parts_part_description_min(void)
       if ((current_part->type != EDJE_PART_TYPE_IMAGE && current_part->type != EDJE_PART_TYPE_GROUP) ||
           !tmp || strcmp(tmp, "SOURCE") != 0)
         {
+           free(tmp);
            ERR("parse error %s:%i. "
                "Only IMAGE and GROUP part can have a min: SOURCE; defined",
                file_in, line - 1);
            exit(-1);
         }
+      free(tmp);
 
       current_desc->min.limit = EINA_TRUE;
    }
@@ -4869,11 +5418,13 @@ st_collections_group_parts_part_description_max(void)
       if (current_part->type != EDJE_PART_TYPE_IMAGE ||
           !tmp || strcmp(tmp, "SOURCE") != 0)
         {
+           free(tmp);
            ERR("parse error %s:%i. "
                "Only IMAGE part can have a max: SOURCE; defined",
                file_in, line - 1);
            exit(-1);
         }
+      free(tmp);
 
       current_desc->max.limit = EINA_TRUE;
    }
@@ -5142,20 +5693,23 @@ st_collections_group_parts_part_description_rel1_offset(void)
     @endproperty
 */
 static void
-st_collections_group_parts_part_description_rel1_to(void)
+st_collections_group_parts_part_description_rel1_to_set(const char *name)
 {
    Edje_Part_Collection *pc;
-
-   check_arg_count(1);
-
    pc = eina_list_data_get(eina_list_last(edje_collections));
+   data_queue_part_lookup(pc, name, &(current_desc->rel1.id_x));
+   data_queue_part_lookup(pc, name, &(current_desc->rel1.id_y));
+}
+
+static void
+st_collections_group_parts_part_description_rel1_to(void)
+{
+   check_arg_count(1);
 
    {
       char *name;
-
       name = parse_str(0);
-      data_queue_part_lookup(pc, name, &(current_desc->rel1.id_x));
-      data_queue_part_lookup(pc, name, &(current_desc->rel1.id_y));
+      st_collections_group_parts_part_description_rel1_to_set(name);
       free(name);
    }
 }
@@ -5239,20 +5793,23 @@ st_collections_group_parts_part_description_rel2_offset(void)
 }
 
 static void
-st_collections_group_parts_part_description_rel2_to(void)
+st_collections_group_parts_part_description_rel2_to_set(const char *name)
 {
    Edje_Part_Collection *pc;
-
-   check_arg_count(1);
-
    pc = eina_list_data_get(eina_list_last(edje_collections));
+   data_queue_part_lookup(pc, name, &(current_desc->rel2.id_x));
+   data_queue_part_lookup(pc, name, &(current_desc->rel2.id_y));
+}
+
+static void
+st_collections_group_parts_part_description_rel2_to(void)
+{
+   check_arg_count(1);
 
    {
       char *name;
-
       name = parse_str(0);
-      data_queue_part_lookup(pc, name, &(current_desc->rel2.id_x));
-      data_queue_part_lookup(pc, name, &(current_desc->rel2.id_y));
+      st_collections_group_parts_part_description_rel2_to_set(name);
       free(name);
    }
 }
@@ -5352,6 +5909,24 @@ st_collections_group_parts_part_description_image_normal(void)
       data_queue_image_lookup(name, &(ed->image.id), &(ed->image.set));
       free(name);
    }
+
+   /*********************Ninepatch patch for Samsung************************************/
+   {
+	   char* name = parse_str(0);
+       Eina_Bool b_ninepatch = is_ninepatch_image(name);
+       if (b_ninepatch)
+         {
+    	      int border_left, border_right, border_top, border_bottom;
+              ninepatch_image_info_get(name, NULL, NULL, &border_left, &border_right, &border_top, &border_bottom);
+              ed->image.border.scale = 1;
+              ed->image.border.l = border_left;
+              ed->image.border.r = border_right;
+              ed->image.border.t = border_top;
+              ed->image.border.b = border_bottom;
+        }
+      free(name);
+   }
+   /************************************************************************************/
 }
 
 /**
@@ -6519,9 +7094,130 @@ st_collections_group_parts_part_description_text_elipsis(void)
 
    ed = (Edje_Part_Description_Text*) current_desc;
 
-   ed->text.elipsis = parse_float_range(0, 0.0, 1.0);
+   ed->text.elipsis = parse_float_range(0, -1.0, 1.0);
 }
 
+/**
+    @page edcref
+
+    @property
+        filter
+    @parameters
+        [filter program as a string]
+    @effect
+        Applies a series of filtering operations to the text.
+        EXPERIMENTAL FEATURE. TO BE DOCUMENTED.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_text_filter(void)
+{
+   Edje_Part_Description_Text *ed;
+   Eina_List *sources = NULL;
+   Eina_Stringshare *name;
+   char *token, *code;
+   Eina_Bool valid = EINA_TRUE;
+   Edje_Part_Collection *pc;
+
+   static int part_key = 0;
+
+   static const char *allowed_name_chars =
+         "abcdefghijklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ0123456789_";
+
+   check_arg_count(1);
+
+   if (current_part->type != EDJE_PART_TYPE_TEXT)
+     {
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Text*) current_desc;
+   ed->text.filter_sources = NULL;
+
+   ed->text.filter.str = parse_str(0);
+   if (!ed->text.filter.str) return;
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+
+   // Parse list of buffers that have a source
+   // note: does not support comments
+   code = strdup(ed->text.filter.str);
+   for (token = strtok(code, ";"); token; token = strtok(NULL, ";"))
+     {
+        size_t len;
+
+        len = strspn(token, " \n\t");
+        token += len;
+
+        if (!strncasecmp("buffer", token, 6))
+          {
+             // note: a valid string won't necessary compile at runtime
+
+             token = strchr(token, ':');
+             if (!token)
+               {
+                  valid = EINA_FALSE;
+                  break;
+               }
+             token = strchr(token, '(');
+             if (!token)
+               {
+                  valid = EINA_FALSE;
+                  break;
+               }
+             token = strcasestr(token, "src");
+             if (!token) continue;
+             token += 3;
+             len = strspn(token, " =\n\t");
+             if (!len || !token[len])
+               {
+                  valid = EINA_FALSE;
+                  break;
+               }
+             token += len;
+             len = strspn(token, allowed_name_chars);
+             if (!len || !token[len])
+               {
+                  valid = EINA_FALSE;
+                  break;
+               }
+             token[len] = '\0';
+             name = eina_stringshare_add(token);
+
+             sources = eina_list_append(sources, name);
+             data_queue_part_lookup(pc, name, &part_key);
+          }
+     }
+   free(code);
+
+   if (valid) ed->text.filter_sources = sources;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// TIZEN_ONLY(20150306): Add fade_ellipsis feature to TEXTBLOCK, TEXT part. //
+//////////////////////////////////////////////////////////////////////////////
+static void
+st_collections_group_parts_part_description_text_fade_ellipsis(void)
+{
+   Edje_Part_Description_Text *ed;
+
+   check_arg_count(1);
+
+   if ((current_part->type != EDJE_PART_TYPE_TEXT) &&
+       (current_part->type != EDJE_PART_TYPE_TEXTBLOCK))
+     {
+        ERR("parse error %s:%i. text attributes in non-TEXT part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Text*) current_desc;
+
+   ed->text.fade_ellipsis = parse_float_range(0, -1.0, 1.0) + 1.0;
+}
+/////////////////////////////////////////////////////////////////////////////////
 
 /**
    @edcsection{description_box,Box state description sub blocks}
@@ -6805,6 +7501,42 @@ static void st_collections_group_parts_part_description_table_padding(void)
 }
 
 static void
+st_collections_group_parts_part_description_proxy_source_clip(void)
+{
+   Edje_Part_Description_Proxy *ed;
+
+   check_arg_count(1);
+
+   if (current_part->type != EDJE_PART_TYPE_PROXY)
+     {
+        ERR("parse error %s:%i. proxy attributes in non-PROXY part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Proxy*) current_desc;
+   ed->proxy.source_clip = parse_bool(0);
+}
+
+static void
+st_collections_group_parts_part_description_proxy_source_visible(void)
+{
+   Edje_Part_Description_Proxy *ed;
+
+   check_arg_count(1);
+
+   if (current_part->type != EDJE_PART_TYPE_PROXY)
+     {
+        ERR("parse error %s:%i. proxy attributes in non-PROXY part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Proxy*) current_desc;
+   ed->proxy.source_visible = parse_bool(0);
+}
+
+static void
 st_collections_group_parts_part_description_table_min(void)
 {
    Edje_Part_Description_Table *ed;
@@ -7021,6 +7753,86 @@ st_collections_group_parts_part_description_map_perspective_on(void)
 
    current_desc->map.persp_on = parse_bool(0);
 }
+
+static void
+st_collections_group_parts_part_description_map_color(void)
+{
+   Edje_Map_Color *color;
+   Edje_Map_Color tmp;
+
+   check_arg_count(5);
+
+   tmp.idx = parse_int(0);
+   tmp.r = parse_int_range(1, 0, 255);
+   tmp.g = parse_int_range(2, 0, 255);
+   tmp.b = parse_int_range(3, 0, 255);
+   tmp.a = parse_int_range(4, 0, 255);
+
+   Eina_List *l;
+   Edje_Map_Color *ex_color;
+   EINA_LIST_FOREACH(current_desc->map.colors, l, ex_color)
+     {
+        if (ex_color->idx != tmp.idx) continue;
+        ex_color->r = tmp.r;
+        ex_color->g = tmp.g;
+        ex_color->b = tmp.b;
+        ex_color->a = tmp.a;
+        return;
+     }
+
+   color = mem_alloc(SZ(Edje_Map_Color));
+   if (!color)
+     {
+        ERR("not enough memory");
+        exit(-1);
+        return;
+     }
+
+   *color = tmp;
+
+   current_desc->map.colors = eina_list_append(current_desc->map.colors, color);
+}
+
+/**
+    @page edcref
+    @property
+        x
+    @parameters
+        [X horizontal zoom to use]
+    @effect
+        This sets the zoom rate of the horizontal
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_map_zoom_x(void)
+{
+   check_arg_count(1);
+
+   current_desc->map.zoom.x = FROM_DOUBLE(parse_float(0));
+}
+
+/**
+    @page edcref
+    @property
+        y
+    @parameters
+        [Y vertical zoom to use]
+    @effect
+        This sets the zoom rate of vertical
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_map_zoom_y(void)
+{
+   check_arg_count(1);
+
+   current_desc->map.zoom.y = FROM_DOUBLE(parse_float(0));
+}
+
+/**
+   @edcsubsection{collections_group_parts_description_map_rotation,Rotation}
+ */
+
 /**
     @page edcref
     @block
@@ -7214,7 +8026,7 @@ _st_collections_group_parts_part_description_params(Edje_External_Param_Type typ
    Edje_Part_Description_External *ed;
    Edje_External_Param *param;
    Eina_List *l;
-   const char *name;
+   char *name;
    int found = 0;
 
    check_arg_count(2);
@@ -7236,6 +8048,7 @@ _st_collections_group_parts_part_description_params(Edje_External_Param_Type typ
 	if (!strcmp(param->name, name))
 	  {
 	     found = 1;
+             free(name);
 	     break;
 	  }
      }
@@ -7547,7 +8360,11 @@ st_collections_group_programs_program_in(void)
     @effect
         Action to be performed by the program. Valid actions are: STATE_SET,
         ACTION_STOP, SIGNAL_EMIT, DRAG_VAL_SET, DRAG_VAL_STEP, DRAG_VAL_PAGE,
+#ifdef PLUGIN
+        FOCUS_SET, PARAM_COPY, PARAM_SET, PLAY_SAMPLE, PLAY_TONE, RUN_PLUGIN
+#else
         FOCUS_SET, PARAM_COPY, PARAM_SET, PLAY_SAMPLE, PLAY_TONE
+#endif
         Only one action can be specified per program. Examples:\n
            action: STATE_SET "statename" 0.5;\n
            action: ACTION_STOP;\n
@@ -7561,6 +8378,9 @@ st_collections_group_programs_program_in(void)
            action: PARAM_SET "part" "param" "value";\n
            action: PLAY_SAMPLE "sample name";\n
            action: PLAY_TONE "tone name" duration in seconds ( Range 0.1 to 10.0 );\n
+#ifdef PLUGIN
+           action: RUN_PLUGIN "plugin name";\n
+#endif
     @endproperty
 */
 static void
@@ -7568,6 +8388,7 @@ st_collections_group_programs_program_action(void)
 {
    Edje_Part_Collection *pc;
    Edje_Program *ep;
+   int i;
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = current_program;
@@ -7585,6 +8406,9 @@ st_collections_group_programs_program_action(void)
                            "PARAM_SET", EDJE_ACTION_TYPE_PARAM_SET,
                            "PLAY_SAMPLE", EDJE_ACTION_TYPE_SOUND_SAMPLE,
                            "PLAY_TONE", EDJE_ACTION_TYPE_SOUND_TONE,
+#ifdef PLUGIN
+                           "RUN_PLUGIN", EDJE_ACTION_TYPE_RUN_PLUGIN,
+#endif
                            NULL);
    if (ep->action == EDJE_ACTION_TYPE_STATE_SET)
      {
@@ -7601,8 +8425,6 @@ st_collections_group_programs_program_action(void)
      }
    else if (ep->action == EDJE_ACTION_TYPE_SOUND_SAMPLE)
      {
-        int i;
-
         ep->sample_name = parse_str(1);
         for (i = 0; i < (int)edje_file->sound_dir->samples_count; i++)
           {
@@ -7618,8 +8440,6 @@ st_collections_group_programs_program_action(void)
      }
    else if (ep->action == EDJE_ACTION_TYPE_SOUND_TONE)
      {
-        int i;
-
         ep->tone_name = parse_str(1);
         for (i = 0; i < (int)edje_file->sound_dir->tones_count; i++)
           {
@@ -7633,6 +8453,12 @@ st_collections_group_programs_program_action(void)
           }
         ep->duration = parse_float_range(2, 0.1, 10.0);
      }
+#ifdef PLUGIN
+   else if (ep->action == EDJE_ACTION_TYPE_RUN_PLUGIN)
+     {
+        ep->plugin_name = parse_str(1);
+     }
+#endif
    else if (ep->action == EDJE_ACTION_TYPE_DRAG_VAL_SET)
      {
 	ep->value = parse_float(1);
@@ -7700,6 +8526,11 @@ st_collections_group_programs_program_action(void)
       case EDJE_ACTION_TYPE_SOUND_TONE:
         check_arg_count(3);
         break;
+#ifdef PLUGIN
+      case EDJE_ACTION_TYPE_RUN_PLUGIN:
+        check_arg_count(2);
+        break;
+#endif
       default:
 	check_arg_count(3);
      }
@@ -7756,6 +8587,8 @@ st_collections_group_programs_program_action(void)
 static void
 st_collections_group_programs_program_transition(void)
 {
+   char *tmp = NULL;
+
    check_min_arg_count(2);
 
    current_program->tween.mode = parse_enum(0,
@@ -7772,6 +8605,7 @@ st_collections_group_programs_program_transition(void)
                                             // long/full names
 					    "LINEAR", EDJE_TWEEN_MODE_LINEAR,
 					    "SINUSOIDAL", EDJE_TWEEN_MODE_SINUSOIDAL,
+					    "CUBIC_BEZIER", EDJE_TWEEN_MODE_CUBIC_BEZIER,
 					    "ACCELERATE", EDJE_TWEEN_MODE_ACCELERATE,
 					    "DECELERATE", EDJE_TWEEN_MODE_DECELERATE,
 					    "ACCELERATE_FACTOR", EDJE_TWEEN_MODE_ACCELERATE_FACTOR,
@@ -7787,10 +8621,14 @@ st_collections_group_programs_program_transition(void)
    if ((current_program->tween.mode >= EDJE_TWEEN_MODE_LINEAR) &&
        (current_program->tween.mode <= EDJE_TWEEN_MODE_DECELERATE))
      {
-        if ((get_arg_count() == 3) && (!strcmp(parse_str(2), "CURRENT")))
-          current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+        tmp = NULL;
+        if ((get_arg_count() == 3) && (!strcmp((tmp = parse_str(2)), "CURRENT")))
+          {
+             current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+          }
         else if (get_arg_count() != 2)
           {
+             free(tmp);
              ERR("parse error %s:%i. Need 2rd parameter to set time",
                  file_in, line - 1);
              exit(-1);
@@ -7804,10 +8642,14 @@ st_collections_group_programs_program_transition(void)
    else if ((current_program->tween.mode >= EDJE_TWEEN_MODE_ACCELERATE_FACTOR) &&
        (current_program->tween.mode <= EDJE_TWEEN_MODE_SINUSOIDAL_FACTOR))
      {
-        if ((get_arg_count() == 4) && (!strcmp(parse_str(3), "CURRENT")))
-          current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+        tmp = NULL;
+        if ((get_arg_count() == 4) && (!strcmp((tmp = parse_str(3)), "CURRENT")))
+          {
+             current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+          }
         else if (get_arg_count() != 3)
           {
+             free(tmp);
 	     ERR("parse error %s:%i. Need 3rd parameter to set factor",
 		 file_in, line - 1);
 	     exit(-1);
@@ -7822,10 +8664,14 @@ st_collections_group_programs_program_transition(void)
    else if ((current_program->tween.mode >= EDJE_TWEEN_MODE_DIVISOR_INTERP) &&
             (current_program->tween.mode <= EDJE_TWEEN_MODE_SPRING))
      {
-        if ((get_arg_count() == 5) && (!strcmp(parse_str(4), "CURRENT")))
-          current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+        tmp = NULL;
+        if ((get_arg_count() == 5) && (!strcmp((tmp = parse_str(4)), "CURRENT")))
+          {
+             current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+          }
         else if (get_arg_count() != 4)
           {
+             free(tmp);
 	     ERR("parse error %s:%i. "
 		 "Need 3rd and 4th parameters to set factor and counts",
 		 file_in, line - 1);
@@ -7834,6 +8680,32 @@ st_collections_group_programs_program_transition(void)
         current_program->tween.v1 = FROM_DOUBLE(parse_float_range(2, 0.0, 999999999.0));
         current_program->tween.v2 = FROM_DOUBLE(parse_float_range(3, 0.0, 999999999.0));
      }
+   else if (current_program->tween.mode == EDJE_TWEEN_MODE_CUBIC_BEZIER)
+     {
+        tmp = NULL;
+        tmp = parse_str(4);
+        if ((get_arg_count() == 7) && (!strcmp(tmp, "CURRENT")))
+          {
+             current_program->tween.mode |= EDJE_TWEEN_MODE_OPT_FROM_CURRENT;
+          }
+        else if (get_arg_count() != 6)
+          {
+             free(tmp);
+             ERR("parse error %s:%i. "
+             "Need 3rd, 4th, 5th and 6th parameters to set x1, y1, x2 and y2",
+             file_in, line - 1);
+             exit(-1);
+          }
+        current_program->tween.v1 =
+           FROM_DOUBLE(parse_float_range(2, -999999999.0, 999999999.0));
+        current_program->tween.v2 =
+           FROM_DOUBLE(parse_float_range(3, -999999999.0, 999999999.0));
+        current_program->tween.v3 =
+           FROM_DOUBLE(parse_float_range(4, -999999999.0, 999999999.0));
+        current_program->tween.v4 =
+           FROM_DOUBLE(parse_float_range(5, -999999999.0, 999999999.0));
+     }
+   if (tmp) free(tmp);
 }
 
 /**
@@ -7930,14 +8802,27 @@ st_collections_group_programs_program_after(void)
    ep = current_program;
      {
 	Edje_Program_After *pa;
+	Edje_Program_After *pa2;
+	Eina_List *l;
 	char *name;
+        char *copy;
 
 	name = parse_str(0);
 
-	pa = mem_alloc(SZ(Edje_Program_After));
+        EINA_LIST_FOREACH(ep->after, l, pa2)
+          {
+             if (!strcmp(name, (char*) (pa2 + 1)))
+               {
+                  free(name);
+                  return;
+               }
+          }
+
+	pa = mem_alloc(SZ(Edje_Program_After) + strlen(name) + 1);
 	pa->id = -1;
 	ep->after = eina_list_append(ep->after, pa);
-
+        copy = (char*)(pa + 1);
+        memcpy(copy, name, strlen(name) + 1);
 	data_queue_program_lookup(pc, name, &(pa->id));
 	free(name);
      }
@@ -8036,6 +8921,7 @@ ob_collections_group_programs_program_script(void)
              else
                {
                   data_queue_anonymous_lookup(pc, current_program, NULL);
+                  free(cp->original);
                   free(cp);
                   cp = NULL;
                }
@@ -8048,3 +8934,305 @@ ob_collections_group_programs_program_script(void)
     @page edcref
     </table>
 */
+
+static void
+edje_cc_handlers_hierarchy_set(Edje_Part *src)
+{  /* This funcion makes current part rel_1.id, rel_2.id relative to src */
+   if (!src->name)
+     {
+        ERR("parse error %s:%i. You must set parent name before creating nested part",
+            file_in, line - 1);
+        exit(-1);
+     }
+   st_collections_group_parts_part_description_rel1_to_set(src->name);
+   st_collections_group_parts_part_description_rel2_to_set(src->name);
+}
+
+static Edje_Part *
+edje_cc_handlers_hierarchy_parent_get(void)
+{  /* Return the parent part pointer */
+   int idx = eina_array_count(part_hierarchy) - 2;
+   Edje_Cc_Handlers_Hierarchy_Info *info = (idx >= 0) ?
+      eina_array_data_get(part_hierarchy, idx) : NULL;
+
+   return (info) ? info->ep : NULL;
+}
+
+static void
+edje_cc_handlers_hierarchy_push(Edje_Part *ep, Edje_Part *cp)
+{  /* Remove part from hierarchy stack when finished parsing it */
+   Edje_Cc_Handlers_Hierarchy_Info *info = malloc(sizeof(*info));
+   info->current_de = current_de;
+   info->current_part = cp;  /* current_part restored on pop */
+   info->current_item = current_item;
+   info->current_desc = current_desc;
+   info->parent_desc = parent_desc;
+   info->current_program = current_program;
+   info->ep = ep;
+
+   eina_array_push(part_hierarchy, info);
+}
+
+static void
+edje_cc_handlers_hierarchy_rename(Edje_Part *old, Edje_Part *new)
+{
+   Edje_Cc_Handlers_Hierarchy_Info *item;
+   Eina_Array_Iterator iterator;
+   unsigned int i;       
+
+   EINA_ARRAY_ITER_NEXT(part_hierarchy, i, item, iterator)
+     {
+        if (item->ep == old) item->ep = new;
+        if (item->current_part == old) item->current_part = new;
+     }
+}
+
+void
+edje_cc_handlers_hierarchy_alloc(void)
+{
+   part_hierarchy = eina_array_new(8);
+}
+
+void
+edje_cc_handlers_hierarchy_free(void)
+{
+   eina_array_free(part_hierarchy);
+   part_hierarchy = NULL;
+}
+
+static void
+edje_cc_handlers_hierarchy_pop(void)
+{  /* Remove part from hierarchy stack when finished parsing it */
+   Edje_Cc_Handlers_Hierarchy_Info *info = eina_array_pop(part_hierarchy);
+
+   if (info)
+     {
+        current_de = info->current_de;
+        current_part = info->current_part;
+        current_item = info->current_item;
+        current_desc = info->current_desc;
+        parent_desc = info->parent_desc;
+        current_program = info->current_program;
+
+        free(info);
+     }
+}
+
+/*********************Ninepatch patch for Samsung************************************/
+
+int getBorderInfo(unsigned int* pBuffer, int width, int height, int bytesPerLine, int* borderLeft, int* borderRight, int* borderTop, int* borderBottom);
+
+typedef struct _NinePatch_Image_Info    NinePatch_Image_Info;
+
+struct _NinePatch_Image_Info
+{
+   char*                        name;
+   int                          w;
+   int                          h;
+   int                          border_left;
+   int                          border_right;
+   int                          border_top;
+   int                          border_bottom;
+};
+
+Eina_List   *ninepatch_image_infos = NULL;
+
+Eina_Bool    is_ninepatch_image(char* name)
+{
+    char* check_point;
+    int str_len = strlen(name);
+
+    if (str_len <= 6)
+        return EINA_FALSE;
+
+    check_point = name + str_len - 6;
+
+    if (!strncmp(check_point, ".#.png", 6))
+        return EINA_TRUE;
+    else
+        return EINA_FALSE;
+}
+
+Eina_Bool    ninepatch_image_info_get(char* name, int *w, int *h, int* borderleft, int* borderright, int* bordertop, int* borderbottom)
+{
+    NinePatch_Image_Info* info;
+    Eina_List* l;
+    Eina_List* ll;
+    char* dir_name;
+    Ecore_Evas *ee;
+    Evas* evas;
+    Evas_Object *obj_img;
+    int load_err = EVAS_LOAD_ERROR_NONE;
+    void* image_data;
+    Eina_List* test;
+    int bytes_per_line;
+
+
+    EINA_LIST_FOREACH(ninepatch_image_infos, l, info)
+      {
+        if (!strcmp(info->name, name))
+          {
+            if (w)
+                *w = info->w;
+            if (h)
+                *h = info->h;
+            if (borderleft)
+                *borderleft = info->border_left;
+            if (borderright)
+                *borderright = info->border_right;
+            if (bordertop)
+                *bordertop = info->border_top;
+            if (borderbottom)
+                *borderbottom = info->border_bottom;
+            return EINA_TRUE;
+          }
+      }
+
+    ecore_evas_init();
+    ee = ecore_evas_buffer_new(1, 1);
+    if (!ee)
+        return EINA_FALSE;
+
+    evas = ecore_evas_get(ee);
+
+    obj_img = evas_object_image_add(evas);
+
+    EINA_LIST_FOREACH(img_dirs, ll, dir_name)
+      {
+        char buf[PATH_MAX];
+
+        snprintf(buf, sizeof(buf), "%s/%s", dir_name, name);
+        evas_object_image_file_set(obj_img, buf, NULL);
+        load_err = evas_object_image_load_error_get(obj_img);
+        if (load_err == EVAS_LOAD_ERROR_NONE)
+            break; //loaded...
+      }
+
+    if (load_err != EVAS_LOAD_ERROR_NONE)
+      {
+        evas_object_image_file_set(obj_img, name, NULL);
+        load_err = evas_object_image_load_error_get(obj_img);
+      }
+
+    if (load_err != EVAS_LOAD_ERROR_NONE)
+        return EINA_FALSE;
+
+
+    info = (NinePatch_Image_Info*)calloc(1, sizeof(NinePatch_Image_Info));
+    info->name = (char*)calloc(strlen(name) + 1, sizeof(char));
+    strcpy(info->name, name);
+
+
+    evas_object_image_size_get(obj_img, &info->w, &info->h);
+
+    //get border info from ninepatch image data...
+    image_data = evas_object_image_data_get(obj_img, 0);
+    bytes_per_line = evas_object_image_stride_get(obj_img);
+
+    getBorderInfo(image_data, info->w, info->h, bytes_per_line, &info->border_left, &info->border_right, &info->border_top, &info->border_bottom);
+
+    //clean evas object...
+    evas_object_del(obj_img);
+
+    //ninepatch_image_infos = eina_list_append(ninepatch_image_infos, info);
+    test = eina_list_append(ninepatch_image_infos, info);
+    ninepatch_image_infos = test;
+
+    if (w)
+        *w = info->w;
+    if (h)
+        *h = info->h;
+    if (borderleft)
+        *borderleft = info->border_left;
+    if (borderright)
+        *borderright = info->border_right;
+    if (bordertop)
+        *bordertop = info->border_top;
+    if (borderbottom)
+        *borderbottom = info->border_bottom;
+
+    return EINA_TRUE;
+}
+
+int getBorderInfo(unsigned int* pBuffer, int width, int height, int bytesPerLine, int* borderLeft, int* borderRight, int* borderTop, int* borderBottom)
+{
+	typedef unsigned int Pixel;
+
+	if (pBuffer == (void*)0 || width <= 3 || height <= 3 || (bytesPerLine < width*4 && bytesPerLine > -width*4))
+		return 0;
+
+	if (borderLeft)
+	  {
+		Pixel* pProbe = (Pixel*)(pBuffer);
+		Pixel* pProbeEnd = pProbe + width;
+
+		*borderLeft = 0;
+
+		while (++pProbe < pProbeEnd)
+		  {
+			if ((*pProbe & 0xFF000000) != 0)
+				break;
+
+			++(*borderLeft);
+		  }
+		if (pProbe >= pProbeEnd) *borderLeft = 0;
+	  }
+
+	if (borderRight)
+	  {
+		Pixel* pProbe = (Pixel*)(pBuffer) + width - 1;
+		Pixel* pProbeEnd = pProbe - width;
+
+		*borderRight = 0;
+
+		while (--pProbe > pProbeEnd)
+		  {
+			if ((*pProbe & 0xFF000000) != 0)
+				break;
+
+			++(*borderRight);
+		  }
+		if (pProbe <= pProbeEnd) *borderRight = 0;
+	  }
+
+	if (borderTop)
+	  {
+		Pixel* pProbe = (Pixel*)(pBuffer);
+		Pixel* pProbeEnd = (Pixel*)((char*)pProbe + bytesPerLine * height);
+
+		*borderTop = 0;
+
+		pProbe = (Pixel*)((char*)pProbe + bytesPerLine);
+
+		for ( ; pProbe < pProbeEnd; pProbe = (Pixel*)((char*)pProbe + bytesPerLine))
+		  {
+			if ((*pProbe & 0xFF000000) != 0)
+				break;
+
+			++(*borderTop);
+		  }
+		if (pProbe >= pProbeEnd) *borderTop = 0;
+	  }
+
+	if (borderBottom)
+	  {
+		int y;
+
+		*borderBottom = 0;
+
+		for (y = height - 2; y >= 1; y--)
+		  {
+			Pixel* pProbe = (Pixel*)((char*)pBuffer + bytesPerLine * y);
+
+			if ((*pProbe & 0xFF000000) != 0)
+				break;
+
+			++(*borderBottom);
+		  }
+		if (y < 1) *borderBottom = 0;
+	  }
+
+	return 1;
+}
+
+/************************************************************************************/

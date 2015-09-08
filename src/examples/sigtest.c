@@ -13,6 +13,11 @@
 #define WIDTH  (300)
 #define HEIGHT (300)
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 static const char commands[] = \
   "commands are:\n"
   "\te - change te edje base\n"

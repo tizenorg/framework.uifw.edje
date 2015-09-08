@@ -44,8 +44,7 @@ static void  new_statement(void);
 static char *perform_math (char *input);
 static int   isdelim(char c);
 static char *next_token(char *p, char *end, char **new_p, int *delim);
-static char *stack_id(void);
-static void  stack_chop_top(void);
+static const char *stack_id(void);
 static void  parse(char *data, off_t size);
 
 /* simple expression parsing protos */
@@ -75,25 +74,23 @@ static int strstrip(const char *in, char *out, size_t size);
 
 int        line = 0;
 Eina_List *stack = NULL;
-Eina_List *params = NULL;
+Eina_Array params;
 
 static char  file_buf[4096];
 static int   verbatim = 0;
 static int   verbatim_line1 = 0;
 static int   verbatim_line2 = 0;
 static char *verbatim_str = NULL;
+static Eina_Strbuf *stack_buf = NULL;
 
 static void
 err_show_stack(void)
 {
-   char *s;
+   const char *s;
    
    s = stack_id();
    if (s)
-     {
-        ERR("PARSE STACK:\n%s", s);
-        free(s);
-     }
+      ERR("PARSE STACK:\n%s", s);
    else
       ERR("NO PARSE STACK");
 }
@@ -101,11 +98,12 @@ err_show_stack(void)
 static void
 err_show_params(void)
 {
-   Eina_List *l;
+   Eina_Array_Iterator iterator;
+   unsigned int i;
    char *p;
 
    ERR("PARAMS:");
-   EINA_LIST_FOREACH(params, l, p)
+   EINA_ARRAY_ITER_NEXT(&params, i, p, iterator)
      {
         ERR("  %s", p);
      }
@@ -118,8 +116,17 @@ err_show(void)
    err_show_params();
 }
 
+static char *
+_parse_param_get(int n)
+{
+   if (n < (int) eina_array_count(&params))
+     return eina_array_data_get(&params, n);
+   return NULL;
+}
+
 static Eina_Hash *_new_object_hash = NULL;
 static Eina_Hash *_new_statement_hash = NULL;
+static Eina_Hash *_new_nested_hash = NULL;
 static void
 fill_object_statement_hashes(void)
 {
@@ -129,25 +136,32 @@ fill_object_statement_hashes(void)
    
    _new_object_hash = eina_hash_string_superfast_new(NULL);
    _new_statement_hash = eina_hash_string_superfast_new(NULL);
+   _new_nested_hash = eina_hash_string_superfast_new(NULL);
    
    n = object_handler_num();
    for (i = 0; i < n; i++)
      {
-        eina_hash_add(_new_object_hash, object_handlers[i].type,
-                      &(object_handlers[i]));
+        eina_hash_direct_add(_new_object_hash, object_handlers[i].type,
+                             &(object_handlers[i]));
      }
    n = statement_handler_num();
    for (i = 0; i < n; i++)
      {
-        eina_hash_add(_new_statement_hash, statement_handlers[i].type,
-                      &(statement_handlers[i]));
+        eina_hash_direct_add(_new_statement_hash, statement_handlers[i].type,
+                             &(statement_handlers[i]));
+     }
+   n = nested_handler_num();
+   for (i = 0; i < n; i++)
+     {
+        eina_hash_direct_add(_new_nested_hash, nested_handlers[i].type,
+                             &(nested_handlers[i]));
      }
 }
 
 static void
 new_object(void)
 {
-   char *id;
+   const char *id;
    New_Object_Handler *oh;
    New_Statement_Handler *sh;
 
@@ -170,13 +184,12 @@ new_object(void)
              exit(-1);
           }
      }
-   free(id);
 }
 
 static void
 new_statement(void)
 {
-   char *id;
+   const char *id;
    New_Statement_Handler *sh;
 
    fill_object_statement_hashes();
@@ -194,7 +207,6 @@ new_statement(void)
         err_show();
         exit(-1);
      }
-   free(id);
 }
 
 static char *
@@ -219,7 +231,7 @@ perform_math (char *input)
 static int
 isdelim(char c)
 {
-   const char *delims = "{},;:";
+   const char *delims = "{},;:[]";
    char *d;
 
    d = (char *)delims;
@@ -284,12 +296,6 @@ next_token(char *p, char *end, char **new_p, int *delim)
 	       }
 	     l = pp - p;
 	     tmpstr = alloca(l + 1);
-	     if (!tmpstr)
-	       {
-		  ERR("%s:%i malloc %i bytes failed",
-		      file_in, line - 1, l + 1);
-		  exit(-1);
-	       }
 	     strncpy(tmpstr, p, l);
 	     tmpstr[l] = 0;
 	     l = sscanf(tmpstr, "%*s %i \"%[^\"]\"", &nm, fl);
@@ -384,6 +390,8 @@ next_token(char *p, char *end, char **new_p, int *delim)
    *new_p = p;
 
    tok = mem_alloc(tok_end - tok_start + 2);
+   if (!tok) return NULL;
+
    strncpy(tok, tok_start, tok_end - tok_start + 1);
    tok[tok_end - tok_start + 1] = 0;
 
@@ -421,7 +429,7 @@ next_token(char *p, char *end, char **new_p, int *delim)
 	       }
 	  }
      }
-   else if ((tok) && (*tok == '('))
+   else if (*tok == '(')
      {
 	char *tmp;
 	tmp = tok;
@@ -432,46 +440,120 @@ next_token(char *p, char *end, char **new_p, int *delim)
    return tok;
 }
 
-static char *
-stack_id(void)
+static void
+stack_push(char *token)
 {
-   char *id;
-   int len;
-   Eina_List *l;
-   char *data;
+   New_Nested_Handler *nested;
+   Eina_Bool do_append = EINA_TRUE;
 
-   len = 0;
-   EINA_LIST_FOREACH(stack, l, data)
-     len += strlen(data) + 1;
-   id = mem_alloc(len);
-   id[0] = 0;
-   EINA_LIST_FOREACH(stack, l, data)
+   if (eina_list_count(stack) > 1)
      {
-	strcat(id, data);
-	if (eina_list_next(l)) strcat(id, ".");
+        if (!strcmp(token, eina_list_data_get(eina_list_last(stack))))
+          {
+             char *tmp;
+             int token_length;
+
+             token_length = strlen(token);
+             tmp = alloca(eina_strbuf_length_get(stack_buf));
+             memcpy(tmp,
+                    eina_strbuf_string_get(stack_buf),
+                    eina_strbuf_length_get(stack_buf) - token_length - 1);
+             tmp[eina_strbuf_length_get(stack_buf) - token_length - 1] = '\0';
+
+             nested = eina_hash_find(_new_nested_hash, tmp);
+             if (nested)
+               {
+                  if (!strcmp(token, nested->token) &&
+                      stack && !strcmp(eina_list_data_get(eina_list_last(stack)), nested->token))
+                    {
+                       /* Do not append the nested token in buffer */
+                       do_append = EINA_FALSE;
+                       if (nested->func_push) nested->func_push();
+                    }
+               }
+          }
      }
-   return id;
+   if (do_append)
+     {
+        if (stack) eina_strbuf_append(stack_buf, ".");
+        eina_strbuf_append(stack_buf, token);
+     }
+   stack = eina_list_append(stack, token);
 }
 
 static void
-stack_chop_top(void)
+stack_pop(void)
 {
-   char *top;
+   char *tmp;
+   int tmp_length;
+   Eina_Bool do_remove = EINA_TRUE;
 
-   /* remove top from stack */
-   top = eina_list_data_get(eina_list_last(stack));
-   if (top)
-     {
-	free(top);
-	stack = eina_list_remove(stack, top);
-     }
-   else
+   if (!stack)
      {
 	ERR("parse error %s:%i. } marker without matching { marker",
 	    file_in, line - 1);
         err_show();
 	exit(-1);
      }
+   tmp = eina_list_data_get(eina_list_last(stack));
+   tmp_length = strlen(tmp);
+
+   stack = eina_list_remove_list(stack, eina_list_last(stack));
+   if (eina_list_count(stack) > 0)
+     {
+        const char *prev;
+        New_Nested_Handler *nested;
+        char *hierarchy;
+        char *lookup;
+
+        hierarchy = alloca(eina_strbuf_length_get(stack_buf) + 1);
+        memcpy(hierarchy,
+               eina_strbuf_string_get(stack_buf),
+               eina_strbuf_length_get(stack_buf) + 1);
+
+        /* This is nasty, but it's the way to get parts.part when they are collapsed together. still not perfect */
+        lookup = strrchr(hierarchy + eina_strbuf_length_get(stack_buf) - tmp_length, '.');
+        while (lookup)
+          {
+             hierarchy[lookup - hierarchy] = '\0';
+             nested = eina_hash_find(_new_nested_hash, hierarchy);
+             if (nested && nested->func_pop) nested->func_pop();
+             lookup = strrchr(hierarchy + eina_strbuf_length_get(stack_buf) - tmp_length, '.');
+          }
+
+        hierarchy[eina_strbuf_length_get(stack_buf) - 1 - tmp_length] = '\0';
+
+        nested = eina_hash_find(_new_nested_hash, hierarchy);
+        if (nested)
+          {
+             if (nested->func_pop) nested->func_pop();
+
+             prev = eina_list_data_get(eina_list_last(stack));
+             if (!strcmp(tmp, prev))
+               {
+                  if (!strcmp(nested->token, tmp))
+                    do_remove = EINA_FALSE;
+               }
+          }
+
+        if (do_remove)
+          eina_strbuf_remove(stack_buf,
+                             eina_strbuf_length_get(stack_buf) - tmp_length - 1,
+                             eina_strbuf_length_get(stack_buf)); /* remove: '.tmp' */
+     }
+   else
+     {
+        eina_strbuf_remove(stack_buf,
+                           eina_strbuf_length_get(stack_buf) - tmp_length,
+                           eina_strbuf_length_get(stack_buf)); /* remove: 'tmp' */
+     }
+   free(tmp);
+}
+
+static const char *
+stack_id(void)
+{
+   return eina_strbuf_string_get(stack_buf);
 }
 
 static void
@@ -480,9 +562,12 @@ parse(char *data, off_t size)
    char *p, *end, *token;
    int delim = 0;
    int do_params = 0;
+   int do_indexes = 0;  // 0: none, 1: ready, 2: done
 
    DBG("Parsing input file");
 
+   /* Allocate arrays used to impl nested parts */
+   edje_cc_handlers_hierarchy_alloc();
    p = data;
    end = data + size;
    line = 1;
@@ -500,7 +585,14 @@ parse(char *data, off_t size)
 	  }
 	else if (delim)
 	  {
-	     if (*token == ',' || *token == ':') do_params = 1;
+             if ((do_indexes == 2) && (*token != ']'))
+               {
+                  ERR("parse error %s:%i. %c marker before ] marker",
+                      file_in, line - 1, *token);
+                  err_show();
+                  exit(-1);
+               }
+             else if (*token == ',' || *token == ':') do_params = 1;
 	     else if (*token == '}')
 	       {
 		  if (do_params)
@@ -511,22 +603,21 @@ parse(char *data, off_t size)
 		       exit(-1);
 		    }
 		  else
-		    stack_chop_top();
+		    stack_pop();
 	       }
 	     else if (*token == ';')
 	       {
 		  if (do_params)
 		    {
+                       void *param;
+
 		       do_params = 0;
 		       new_statement();
 		       /* clear out params */
-		       while (params)
-			 {
-			    free(eina_list_data_get(params));
-			    params = eina_list_remove(params, eina_list_data_get(params));
-			 }
+		       while ((param = eina_array_pop(&params)))
+                         free(param);
 		       /* remove top from stack */
-		       stack_chop_top();
+		       stack_pop();
 		    }
 	       }
 	     else if (*token == '{')
@@ -536,18 +627,46 @@ parse(char *data, off_t size)
 		       ERR("parse error %s:%i. { marker before ; marker",
 			   file_in, line - 1);
                        err_show();
-		       exit(-1);
-		    }
-	       }
-	     free(token);
-	  }
-	else
-	  {
-	     if (do_params)
-	       params = eina_list_append(params, token);
-	     else
-	       {
-		  stack = eina_list_append(stack, token);
+                       exit(-1);
+                    }
+               }
+             else if (*token == '[')
+               {
+                  do_indexes = 1;
+               }
+             else if (*token == ']')
+               {
+                  if (do_indexes == 2)
+                    do_indexes = 0;
+                  else
+                    {
+                       if (do_indexes == 0)
+                         ERR("parse error %s:%i. ] marker before [ marker",
+                             file_in, line - 1);
+                       else
+                         ERR("parse error %s:%i. [?] empty bracket",
+                             file_in, line - 1);
+
+                       err_show();
+                       exit(-1);
+                    }
+               }
+             free(token);
+          }
+        else
+          {
+             if (do_params)
+               {
+                  eina_array_push(&params, token);
+               }
+             else if (do_indexes)
+               {
+                  do_indexes++;
+                  eina_array_push(&params, token);
+               }
+             else
+               {
+                  stack_push(token);
 		  new_object();
 		  if ((verbatim == 1) && (p < (end - 2)))
 		    {
@@ -629,6 +748,7 @@ parse(char *data, off_t size)
 	  }
      }
 
+   edje_cc_handlers_hierarchy_free();
    DBG("Parsing done");
 }
 
@@ -738,8 +858,16 @@ compile(void)
                  eina_prefix_lib_get(pfx));
         if (ecore_file_exists(buf2))
           {
-             snprintf(buf, sizeof(buf), "%s -a %s %s -I%s %s -o %s",
-                      buf2, watchfile ? watchfile : "/dev/null", file_in, inc, def, tmpn);
+             if (depfile)
+               snprintf(buf, sizeof(buf), "%s -MMD %s -MT %s %s -I%s %s -o %s",
+                        buf2, depfile, file_out, file_in,
+                        inc, def, tmpn);
+             else if (anotate)
+               snprintf(buf, sizeof(buf), "%s -anotate -a %s %s -I%s %s -o %s",
+                        buf2, watchfile ? watchfile : "/dev/null", file_in, inc, def, tmpn);
+             else
+               snprintf(buf, sizeof(buf), "%s -a %s %s -I%s %s -o %s",
+                        buf2, watchfile ? watchfile : "/dev/null", file_in, inc, def, tmpn);
              ret = system(buf);
           }
         else
@@ -769,7 +897,14 @@ compile(void)
    lseek(fd, 0, SEEK_SET);
    data = malloc(size);
    if (data && (read(fd, data, size) == size))
-      parse(data, size);
+     {
+        stack_buf = eina_strbuf_new();
+	eina_array_step_set(&params, sizeof (Eina_Array), 8);
+        parse(data, size);
+	eina_array_flush(&params);
+        eina_strbuf_free(stack_buf);
+        stack_buf = NULL;
+     }
    else
      {
 	ERR("Cannot read file \"%s\". %s", file_in, strerror(errno));
@@ -793,7 +928,7 @@ is_param(int n)
 {
    char *str;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (str) return 1;
    return 0;
 }
@@ -805,7 +940,7 @@ is_num(int n)
    char *end;
    long int ret;
    
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -830,7 +965,7 @@ parse_str(int n)
    char *str;
    char *s;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -894,7 +1029,7 @@ parse_enum(int n, ...)
    int result;
    va_list va;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -913,14 +1048,15 @@ parse_enum(int n, ...)
 int
 parse_flags(int n, ...)
 {
-   Eina_List *lst;
    int result = 0;
    va_list va;
-   char *data;
 
    va_start(va, n);
-   EINA_LIST_FOREACH(eina_list_nth_list(params, n), lst, data)
-     result |= _parse_enum(data, va);
+   while (n < (int) eina_array_count(&params))
+     {
+        result |= _parse_enum(eina_array_data_get(&params, n), va);
+        n++;
+     }
    va_end(va);
 
    return result;
@@ -932,7 +1068,7 @@ parse_int(int n)
    char *str;
    int i;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -950,7 +1086,7 @@ parse_int_range(int n, int f, int t)
    char *str;
    int i;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -975,7 +1111,7 @@ parse_bool(int n)
    char *str, buf[4096];
    int i;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -1013,7 +1149,7 @@ parse_float(int n)
    char *str;
    double i;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -1031,7 +1167,7 @@ parse_float_range(int n, double f, double t)
    char *str;
    double i;
 
-   str = eina_list_nth(params, n);
+   str = _parse_param_get(n);
    if (!str)
      {
 	ERR("%s:%i no parameter supplied as argument %i",
@@ -1053,13 +1189,13 @@ parse_float_range(int n, double f, double t)
 int
 get_arg_count(void)
 {
-   return eina_list_count (params);
+   return eina_array_count(&params);
 }
 
 void
 check_arg_count(int required_args)
 {
-   int num_args = eina_list_count (params);
+   int num_args = eina_array_count(&params);
 
    if (num_args != required_args)
      {
@@ -1073,7 +1209,7 @@ check_arg_count(int required_args)
 void
 check_min_arg_count(int min_required_args)
 {
-   int num_args = eina_list_count (params);
+   int num_args = eina_array_count(&params);
 
    if (num_args < min_required_args)
      {

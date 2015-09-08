@@ -17,10 +17,6 @@ AM_CPPFLAGS = \
 pkgdir = $(libdir)/edje/modules/multisense_factory/$(MODULE_ARCH)
 pkg_LTLIBRARIES = module.la
 
-if ENABLE_MULTISENSE
 module_la_SOURCES = multisense_factory.c
-else
-module_la_SOURCES =
-endif
 module_la_LDFLAGS = -no-undefined @lt_enable_auto_import@ -module -avoid-version $(top_builddir)/src/lib/libedje.la @EDJE_LIBS@ @REMIX_LIBS@
 module_la_LIBTOOLFLAGS = --tag=disable-static

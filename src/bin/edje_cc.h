@@ -42,6 +42,7 @@ extern int _edje_cc_log_dom ;
 /* types */
 typedef struct _New_Object_Handler    New_Object_Handler;
 typedef struct _New_Statement_Handler New_Statement_Handler;
+typedef struct _New_Nested_Handler    New_Nested_Handler;
 typedef struct _External_List         External_List;
 typedef struct _External              External;
 typedef struct _Font_List             Font_List;
@@ -65,6 +66,14 @@ struct _New_Statement_Handler
 {
    const char *type;
    void (*func)(void);
+};
+
+struct _New_Nested_Handler
+{
+   const char *type;
+   const char *token;
+   void (*func_push)(void);
+   void (*func_pop)(void);
 };
 
 struct _External_List
@@ -189,6 +198,7 @@ void    check_min_arg_count(int n);
 
 int     object_handler_num(void);
 int     statement_handler_num(void);
+int     nested_handler_num(void);
 
 void    reorder_parts(void);
 void    source_edd(void);
@@ -202,9 +212,13 @@ void   *mem_alloc(size_t size);
 char   *mem_strdup(const char *s);
 #define SZ sizeof
 
-void    using_file(const char *filename);
+void    using_file(const char *filename, const char type);
 
 void    error_and_abort(Eet_File *ef, const char *fmt, ...);
+
+
+void edje_cc_handlers_hierarchy_alloc(void);
+void edje_cc_handlers_hierarchy_free(void);
 
 /* global vars */
 extern Eina_List             *ext_dirs;
@@ -215,6 +229,7 @@ extern char                  *file_in;
 extern char                  *tmp_dir;
 extern char                  *file_out;
 extern char                  *watchfile;
+extern char                  *depfile;
 extern int                    no_lossy;
 extern int                    no_comp;
 extern int                    no_raw;
@@ -223,9 +238,9 @@ extern int                    min_quality;
 extern int                    max_quality;
 extern int                    line;
 extern Eina_List             *stack;
-extern Eina_List             *params;
 extern Edje_File             *edje_file;
 extern Eina_List             *edje_collections;
+extern Eina_Hash             *edje_collections_lookup;
 extern Eina_List             *externals;
 extern Eina_List             *fonts;
 extern Eina_List             *codes;
@@ -233,7 +248,16 @@ extern Eina_List             *defines;
 extern Eina_List             *aliases;
 extern New_Object_Handler     object_handlers[];
 extern New_Statement_Handler  statement_handlers[];
+extern New_Nested_Handler     nested_handlers[];
 extern int                    compress_mode;
 extern int                    threads;
+extern int                    anotate;
+extern int                    no_etc1;
+extern int                    no_etc2;
+
+/*********************Ninepatch patch for Samsung************************************/
+Eina_Bool    is_ninepatch_image(char* name);
+Eina_Bool    ninepatch_image_info_get(char* name, int *w, int *h, int* borderleft, int* borderright, int* bordertop, int* borderbottom);
+/************************************************************************************/
 
 #endif

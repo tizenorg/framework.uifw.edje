@@ -22,6 +22,11 @@
 #define WIDTH  480
 #define HEIGHT 320
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 static const char commands[] = \
   "commands are:\n"
   "\tDown - move part down\n"

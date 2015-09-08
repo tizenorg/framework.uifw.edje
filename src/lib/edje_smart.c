@@ -8,7 +8,7 @@ static void _edje_smart_show(Evas_Object * obj);
 static void _edje_smart_hide(Evas_Object * obj);
 static void _edje_smart_calculate(Evas_Object * obj);
 
-static Eina_Bool _edje_smart_file_set(Evas_Object *obj, const char *file, const char *group);
+static Eina_Bool _edje_smart_file_set(Evas_Object *obj, const char *file, const char *group, Eina_Array *nested);
 
 static Edje_Smart_Api _edje_smart_class = EDJE_SMART_API_INIT_NAME_VERSION("edje");
 static Evas_Smart_Class _edje_smart_parent;
@@ -77,6 +77,16 @@ _edje_object_smart_class_get(void)
    return class;
 }
 
+static void
+_edje_color_class_free(void *data)
+{
+   Edje_Color_Class *cc = data;
+
+   if (cc->name) eina_stringshare_del(cc->name);
+   free(cc);
+}
+
+
 /* Private Routines */
 static void
 _edje_smart_add(Evas_Object *obj)
@@ -106,13 +116,14 @@ _edje_smart_add(Evas_Object *obj)
    evas_object_static_clip_set(ed->base.clipper, 1);
    evas_object_smart_member_add(ed->base.clipper, obj);
    evas_object_color_set(ed->base.clipper, 255, 255, 255, 255);
-   evas_object_move(ed->base.clipper, -10000, -10000);
-   evas_object_resize(ed->base.clipper, 20000, 20000);
+   evas_object_move(ed->base.clipper, -100000, -100000);
+   evas_object_resize(ed->base.clipper, 200000, 200000);
    evas_object_pass_events_set(ed->base.clipper, 1);
    ed->is_rtl = EINA_FALSE;
-   ed->have_objects = 1;
+   ed->have_objects = EINA_TRUE;
    ed->references = 1;
    ed->user_defined = NULL;
+   ed->color_classes = eina_hash_string_small_new(_edje_color_class_free);
 
    evas_object_geometry_get(obj, &(ed->x), &(ed->y), &(ed->w), &(ed->h));
    ed->obj = obj;
@@ -150,7 +161,8 @@ _edje_smart_del(Evas_Object * obj)
    if (_edje_script_only(ed)) _edje_script_only_shutdown(ed);
    if (_edje_lua_script_only(ed)) _edje_lua_script_only_shutdown(ed);
    if (ed->persp) edje_object_perspective_set(obj, NULL);
-   _edje_file_del(ed);
+
+   _edje_file_del(ed, EINA_FALSE);
    _edje_clean_objects(ed);
    _edje_unref(ed);
    _edje_lib_unref();
@@ -181,7 +193,7 @@ _edje_smart_move(Evas_Object * obj, Evas_Coord x, Evas_Coord y)
 
    if (ed->have_mapped_part)
      {
-        ed->dirty = 1;
+        ed->dirty = EINA_TRUE;
         _edje_recalc_do(ed);
      }
    else
@@ -191,18 +203,29 @@ _edje_smart_move(Evas_Object * obj, Evas_Coord x, Evas_Coord y)
         for (i = 0; i < ed->table_parts_size; i++)
           {
              Edje_Real_Part *ep;
-             Evas_Coord ox, oy;
 
              ep = ed->table_parts[i];
-             evas_object_geometry_get(ep->object, &ox, &oy, NULL, NULL);
-             evas_object_move(ep->object, ed->x + ep->x + ep->text.offset.x, ed->y + ep->y + ep->text.offset.y);
+             if (!ep->object) continue;
+             if ((ep->type == EDJE_RP_TYPE_TEXT) && (ep->typedata.text))
+               {
+                  evas_object_move(ep->object,
+                                   ed->x + ep->x + ep->typedata.text->offset.x,
+                                   ed->y + ep->y + ep->typedata.text->offset.y);
+               }
+             else
+               {
+                  evas_object_move(ep->object, ed->x + ep->x, ed->y + ep->y);
+                  if ((ep->type == EDJE_RP_TYPE_SWALLOW) &&
+                      (ep->typedata.swallow))
+                    {
+                       if (ep->typedata.swallow->swallowed_object)
+                         evas_object_move
+                            (ep->typedata.swallow->swallowed_object,
+                             ed->x + ep->x, ed->y + ep->y);
+                    }
+               }
              if (ep->part->entry_mode > EDJE_ENTRY_EDIT_MODE_NONE)
                _edje_entry_real_part_configure(ep);
-             if (ep->swallowed_object)
-               {
-                  evas_object_geometry_get(ep->swallowed_object, &ox, &oy, NULL, NULL);
-                  evas_object_move(ep->swallowed_object, ed->x + ep->x + ep->text.offset.x, ed->y + ep->y + ep->text.offset.y);
-               }
           }
      }
 //   _edje_emit(ed, "move", NULL);
@@ -258,7 +281,7 @@ _edje_smart_resize(Evas_Object * obj, Evas_Coord w, Evas_Coord h)
    ed->w = w;
    ed->h = h;
 #ifdef EDJE_CALC_CACHE
-   ed->all_part_change = 1;
+   ed->all_part_change = EINA_TRUE;
 #endif
    if (_edje_script_only(ed))
      {
@@ -271,7 +294,7 @@ _edje_smart_resize(Evas_Object * obj, Evas_Coord w, Evas_Coord h)
         return;
      }
 //   evas_object_resize(ed->clipper, ed->w, ed->h);
-   ed->dirty = 1;
+   ed->dirty = EINA_TRUE;
    _edje_recalc_do(ed);
    _edje_emit(ed, "resize", NULL);
 }
@@ -331,7 +354,7 @@ _edje_smart_calculate(Evas_Object *obj)
 }
 
 static Eina_Bool
-_edje_smart_file_set(Evas_Object *obj, const char *file, const char *group)
+_edje_smart_file_set(Evas_Object *obj, const char *file, const char *group, Eina_Array *nested)
 {
-   return _edje_object_file_set_internal(obj, file, group, NULL, NULL);
+   return _edje_object_file_set_internal(obj, file, group, NULL, NULL, nested);
 }

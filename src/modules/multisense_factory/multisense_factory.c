@@ -1,6 +1,14 @@
 #include "config.h"
 #include "edje_private.h"
 
+int _multisense_factory_log_dom = -1;
+int init_count = 0;
+
+#ifdef INF
+# undef INF
+#endif
+#define INF(...) EINA_LOG_DOM_INFO(_multisense_factory_log_dom, __VA_ARGS__)
+
 #define DEFAULT_SAMPLERATE 44100
 
 #ifdef HAVE_LIBREMIX
@@ -33,7 +41,7 @@ multisense_sound_player_get(Edje_Multisense_Env *msenv)
      }
 #endif
    if (!player_plugin)
-     return remix_monitor_new(env);
+     return NULL;//remix_monitor_new(env);
 
    player = remix_new(env, player_plugin, NULL);
    return player;
@@ -41,10 +49,28 @@ multisense_sound_player_get(Edje_Multisense_Env *msenv)
 #endif
 
 EAPI Eina_Bool
-multisense_factory_init(Edje_Multisense_Env *env __UNUSED__)
+multisense_factory_init(Edje_Multisense_Env *env)
 {
+   init_count++;
+   if (init_count == 1)
+     {
+        eina_init();
+        eina_log_level_set(EINA_LOG_LEVEL_INFO);
+        _multisense_factory_log_dom = eina_log_domain_register("multisense_factory", EINA_COLOR_CYAN);
+     }
 #ifdef HAVE_LIBREMIX
    remix_set_samplerate(env->remixenv, DEFAULT_SAMPLERATE);
 #endif
+   return EINA_TRUE;
+}
+EAPI Eina_Bool
+multisense_factory_shutdown(Edje_Multisense_Env *env __UNUSED__)
+{
+   init_count--;
+   if (init_count == 0)
+     {
+        eina_log_domain_unregister(_multisense_factory_log_dom);
+        _multisense_factory_log_dom = -1;
+     }
    return EINA_TRUE;
 }

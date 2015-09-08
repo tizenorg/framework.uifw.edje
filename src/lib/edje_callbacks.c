@@ -133,9 +133,12 @@ _edje_mouse_down_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, voi
 
    if (rp->clicked_button == 0)
      {
-	rp->clicked_button = ev->button;
+        rp->clicked_button = ev->button;
         if (!(ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD))
-         rp->still_in = 1;
+          {
+             INF("set still_in true : %s", rp->part->name);
+             rp->still_in = 1;
+          }
      }
 //   _edje_recalc_do(ed);
    _edje_thaw(ed);
@@ -163,8 +166,9 @@ _edje_mouse_up_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, void 
 
    if ((!ev->event_flags) || (!ignored))
      {
-	snprintf(buf, sizeof(buf), "mouse,up,%i", ev->button);
-	_edje_emit(ed, buf, rp->part->name);
+        snprintf(buf, sizeof(buf), "mouse,up,%i", ev->button);
+        _edje_emit(ed, buf, rp->part->name);
+        INF("Mouse up event : name=%s, button=[%d,%d], still_in=%d, flags=[%d,%d]", rp->part->name, rp->clicked_button, ev->button, rp->still_in, rp->part->ignore_flags, ev->event_flags);
      }
 
    if (rp->events_to)
@@ -185,8 +189,8 @@ _edje_mouse_up_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, void 
 	     if (rp->drag->down.count == 0)
 	       {
 		  rp->drag->need_reset = 1;
-                  ed->recalc_call = 1;
-		  ed->dirty = 1;
+                  ed->recalc_call = EINA_TRUE;
+		  ed->dirty = EINA_TRUE;
 #ifdef EDJE_CALC_CACHE
 		  rp->invalidate = 1;
 #endif
@@ -198,8 +202,9 @@ _edje_mouse_up_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, void 
 
    if ((rp->still_in) && (rp->clicked_button == ev->button) && (!ignored))
      {
-	snprintf(buf, sizeof(buf), "mouse,clicked,%i", ev->button);
-	_edje_emit(ed, buf, rp->part->name);
+        INF("Mouse clicked event : name=%s", rp->part->name);
+        snprintf(buf, sizeof(buf), "mouse,clicked,%i", ev->button);
+        _edje_emit(ed, buf, rp->part->name);
      }
    rp->clicked_button = 0;
    rp->still_in = 0;
@@ -231,9 +236,11 @@ _edje_mouse_move_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, voi
 
    if (rp->still_in)
      {
-
         if (ev->event_flags & EVAS_EVENT_FLAG_ON_HOLD)
-          rp->still_in = 0;
+          {
+             INF("reset still_in false : %s, [%d,%d]", rp->part->name, ev->cur.canvas.x, ev->cur.canvas.y);
+             rp->still_in = 0;
+          }
         else
           {
             Evas_Coord x, y, w, h;
@@ -241,7 +248,10 @@ _edje_mouse_move_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, voi
             evas_object_geometry_get(obj, &x, &y, &w, &h);
             if ((ev->cur.canvas.x < x) || (ev->cur.canvas.y < y) ||
                 (ev->cur.canvas.x >= (x + w)) || (ev->cur.canvas.y >= (y + h)))
-              rp->still_in = 0;
+              {
+                 INF("reset still_in false : %s, [%d,%d,%d,%d], [%d,%d]", rp->part->name, x, y, w, h, ev->cur.canvas.x, ev->cur.canvas.y);
+                 rp->still_in = 0;
+              }
           }
      }
    else
@@ -253,7 +263,10 @@ _edje_mouse_move_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, voi
             evas_object_geometry_get(obj, &x, &y, &w, &h);
             if ((ev->cur.canvas.x >= x) && (ev->cur.canvas.y >= y) &&
                 (ev->cur.canvas.x < (x + w)) && (ev->cur.canvas.y < (y + h)))
-              rp->still_in = 1;
+              {
+                 INF("set still_in true : %s, [%d,%d,%d,%d], [%d,%d]", rp->part->name, x, y, w, h, ev->cur.canvas.x, ev->cur.canvas.y);
+                 rp->still_in = 1;
+              }
           }
      }
    _edje_freeze(ed);
@@ -265,8 +278,8 @@ _edje_mouse_move_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, voi
 	       rp->drag->tmp.x = ev->cur.canvas.x - rp->drag->down.x;
 	     if (rp->part->dragable.y)
 	       rp->drag->tmp.y = ev->cur.canvas.y - rp->drag->down.y;
-             ed->recalc_call = 1;
-	     ed->dirty = 1;
+             ed->recalc_call = EINA_TRUE;
+	     ed->dirty = EINA_TRUE;
 #ifdef EDJE_CALC_CACHE
 	     rp->invalidate = 1;
 #endif
@@ -284,8 +297,8 @@ _edje_mouse_move_signal_cb(void *data, Evas *e __UNUSED__, Evas_Object *obj, voi
 		  rp->drag->val.y = dy;
 		  if (!ignored)
 		    _edje_emit(ed, "drag", rp->part->name);
-                  ed->recalc_call = 1;
-		  ed->dirty = 1;
+                  ed->recalc_call = EINA_TRUE;
+		  ed->dirty = EINA_TRUE;
 #ifdef EDJE_CALC_CACHE
 		  rp->invalidate = 1;
 #endif
@@ -342,7 +355,7 @@ _edje_timer_cb(void *data __UNUSED__)
 	  {
 	     const void *tmp;
 
-	     ed->walking_actions = 1;
+	     ed->walking_actions = EINA_TRUE;
 	     EINA_LIST_FOREACH(ed->actions, l, tmp)
 	       newl = eina_list_append(newl, tmp);
 	     while (newl)
@@ -379,7 +392,7 @@ _edje_timer_cb(void *data __UNUSED__)
 		       free(runp);
 		    }
 	       }
-	     ed->walking_actions = 0;
+	     ed->walking_actions = EINA_FALSE;
 	  }
 	break_prog:
 	_edje_unblock(ed);

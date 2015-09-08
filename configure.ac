@@ -1,7 +1,7 @@
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [1])
-m4_define([v_min], [6])
+m4_define([v_min], [7])
 m4_define([v_mic], [99])
 m4_define([v_rev], m4_esyscmd([(svnversion "${SVN_REPO_PATH:-.}" | grep -v '\(export\|Unversioned directory\)' || echo 0) | awk -F : '{printf("%s\n", $1);}' | tr -d ' :MSP\n']))
 m4_if(v_rev, [0], [m4_define([v_rev], m4_esyscmd([git log 2> /dev/null | (grep -m1 git-svn-id || echo 0) | sed -e 's/.*@\([0-9]*\).*/\1/' | tr -d '\n']))])
@@ -97,6 +97,7 @@ AC_ARG_ENABLE([amalgamation],
 AM_CONDITIONAL([EDJE_AMALGAMATION], [test "x${do_amalgamation}" = "xyes"])
 
 EFL_WITH_BIN([edje], [edje-cc], [edje_cc])
+EFL_WITH_BIN([edje], [edje-codegen], [edje_codegen])
 
 EFL_ENABLE_BIN([edje-cc])
 EFL_ENABLE_BIN([edje-decc])
@@ -105,6 +106,7 @@ EFL_ENABLE_BIN([edje-player])
 EFL_ENABLE_BIN([edje-inspector])
 EFL_ENABLE_BIN([edje-external-inspector])
 EFL_ENABLE_BIN([edje-watch])
+EFL_ENABLE_BIN([edje-codegen])
 
 # Optional EDJE_PROGRAM_CACHE (use much more ram, but increase speed in some cases)
 want_edje_program_cache="no"
@@ -271,6 +273,7 @@ PKG_CHECK_MODULES([EDJE],
     ecore >= 1.6.99
     ecore-evas >= 1.6.99
     ecore-file >= 1.6.99
+    ecore-input >= 1.6.99
     embryo >= 1.6.99
    ])
 
@@ -280,27 +283,49 @@ EDJE_CFLAGS="${EDJE_CFLAGS} ${LUA_CFLAGS}"
 requirement_edje="embryo >= 1.6.99 ecore-evas >= 1.6.99 ecore >= 1.6.99 evas >= 1.6.99 eet >= 1.6.99 eina >= 1.6.99 ${requirement_edje}"
 requirement_edje="${requirement_lua} ${requirement_edje}"
 
+want_ecore_imf="auto"
 have_ecore_imf="no"
-PKG_CHECK_MODULES([ECORE_IMF],
-   [
-    ecore-imf >= 1.6.99
-    ecore-imf-evas >= 1.6.99
-   ],
-   [
-    AC_DEFINE([HAVE_ECORE_IMF], [1], [Input Method Support for Edje Entry])
-    have_ecore_imf="yes"
-    requirement_edje="ecore-imf-evas >= 1.6.99 ecore-imf >= 1.6.99 ${requirement_edje}"
-   ],
-   [have_ecore_imf="no"])
+AC_ARG_ENABLE([ecore-imf],
+   [AC_HELP_STRING([--disable-ecore-imf], [Disable build with ecore-imf])],
+   [want_ecore_imf="${enableval}"])
 
-PKG_CHECK_MODULES([EIO],
-   [eio >= 1.6.99],
-   [
-    AC_DEFINE([HAVE_EIO], [1], [Eio is available for monitoring file assynchronously])
-    have_eio="yes"
-    requirement_edje="eio >= 1.6.99 ${requirement_edje}"
-   ],
-   [have_eio="no"])
+if test "x${want_ecore_imf}" != "xno"; then
+   PKG_CHECK_MODULES([ECORE_IMF],
+      [
+       ecore-imf >= 1.6.99
+       ecore-imf-evas >= 1.6.99
+      ],
+      [
+       AC_DEFINE([HAVE_ECORE_IMF], [1], [Input Method Support for Edje Entry])
+       have_ecore_imf="yes"
+       requirement_edje="ecore-imf-evas >= 1.6.99 ecore-imf >= 1.6.99 ${requirement_edje}"
+      ],
+      [have_ecore_imf="no"])
+fi
+if test "x${want_ecore_imf}" = "xyes" -a "x${have_ecore_imf}" = "xno"; then
+   AC_MSG_ERROR([Ecore-IMF required, but not found])
+fi
+
+want_eio="auto"
+have_eio="no"
+AC_ARG_ENABLE([eio],
+   [AC_HELP_STRING([--disable-eio], [Disable build with eio])],
+   [want_eio="${enableval}"])
+
+if test "x${want_eio}" != "xno"; then
+   PKG_CHECK_MODULES([EIO],
+      [eio >= 1.6.99],
+      [
+       AC_DEFINE([HAVE_EIO], [1], [Eio is available for monitoring file assynchronously])
+       have_eio="yes"
+       requirement_edje="eio >= 1.6.99 ${requirement_edje}"
+      ],
+      [have_eio="no"])
+fi
+if test "x${want_eio}" = "xyes" -a "x${have_eio}" = "xno"; then
+   AC_MSG_ERROR([Eio required, but not found])
+fi
+
 
 # Enable Multisense use
 want_multisense="yes"
@@ -490,6 +515,9 @@ fi
 
 AM_CONDITIONAL([BUILD_EPP], [test "x${have_edje_cc}" = "xyes"])
 
+# TODO: Add disable flag option
+AM_CONDITIONAL([BUILD_PNG2ETC], [test "x${have_edje_cc}" = "xyes"])
+
 if test "x${have_edje_decc}" = "xyes" ; then
    PKG_CHECK_MODULES([EDJE_DECC],
       [ecore-file >= 1.6.99 ecore-evas >= 1.6.99 ecore >= 1.6.99 evas >= 1.6.99 eet >= 1.6.99 eina >= 1.6.99])
@@ -515,6 +543,13 @@ if test "x${have_edje_watch}" = "xyes" ; then
       [ecore >= 1.6.99 eina >= 1.6.99 eio >= 1.6.99],
       [have_edje_watch="yes"],
       [have_edje_watch="no"])
+fi
+
+if test "x${have_edje_codegen}" = "xyes" ; then
+   PKG_CHECK_MODULES([EDJE_CODEGEN],
+      [ecore >= 1.6.99 eina >= 1.6.99],
+      [have_edje_codegen="yes"],
+      [have_edje_codegen="no"])
 fi
 
 AM_CONDITIONAL([BUILD_EDJE_WATCH], [test "x${have_edje_watch}" = "xyes"])
@@ -587,7 +622,7 @@ fi
 build_examples="no"
 AC_ARG_ENABLE([build-examples],
    AC_HELP_STRING([--enable-build-examples],
-                  [Enable building examples. This requires extra denpendencies. If you don't have them installed yet, don't build with this option or it will fail. Build again when you have it, overriding the previous installation). @<:@default==disabled@:>@]),
+                  [Enable building examples. This requires extra dependencies. If you don't have them installed yet, don't build with this option or it will fail. Build again when you have it, overriding the previous installation). @<:@default==disabled@:>@]),
    [
     if test "x${enableval}" = "xyes" ; then
        build_examples="yes"
@@ -606,6 +641,7 @@ edje.spec
 Makefile
 data/Makefile
 data/include/Makefile
+data/images/Makefile
 doc/Makefile
 doc/Doxyfile
 src/Makefile
@@ -637,6 +673,7 @@ echo "Configuration Options Summary:"
 echo
 echo "  Amalgamation.........: ${do_amalgamation}"
 echo "  Ecore IMF............: $have_ecore_imf"
+echo "  EIO..................: $have_eio"
 dnl echo "  Multisense...........: $want_multisense"
 
 if test "x${want_multisense}" = "xyes" ; then
@@ -665,6 +702,7 @@ echo "  Build edje_player............: $have_edje_player"
 echo "  Build edje_inspector.........: $have_edje_inspector"
 echo "  Build edje_external_inspector: $have_edje_external_inspector"
 echo "  Build edje_watch.............: $have_edje_watch"
+echo "  Build edje_codegen...........: $have_edje_codegen"
 echo
 echo "Compilation............: make (or gmake)"
 echo "  CPPFLAGS.............: $CPPFLAGS"

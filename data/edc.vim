@@ -5,6 +5,14 @@
 
 " For version 5.x: Clear all syntax items
 " For version 6.x: Quit when a syntax file was already loaded
+"
+" Usage:
+" 1) Copy this file to $HOME/.vim/syntax/
+" 2) Paste the following line to your $HOME/.vimrc file to load the syntax
+"    automatically:
+"
+"    au BufNewFile,BufRead *.edc set syntax=edc
+"
 if version < 600
   syntax clear
 elseif exists("b:current_syntax")
@@ -38,7 +46,7 @@ syn keyword	cLabel		external params size_range border_scale
 
 syn keyword	cConditional	if else switch
 syn keyword	cRepeat		while for do
-syn keyword	cConstant	COMP RAW LOSSY USER
+syn keyword	cConstant	COMP RAW LOSSY LOSSY_ETC1 LOSSY_ETC2 USER
 syn keyword	cConstant	RECT TEXT IMAGE SWALLOW TEXTBLOCK GRADIENT
 syn keyword	cConstant	GROUP BOX TABLE EXTERNAL ITEM
 syn keyword	cConstant	SOLID AUTOGRAB NOGRAB

@@ -20,6 +20,7 @@ char      *file_in = NULL;
 char      *tmp_dir = NULL;
 char      *file_out = NULL;
 char      *watchfile = NULL;
+char      *depfile = NULL;
 
 static const char *progname = NULL;
 
@@ -29,8 +30,11 @@ int        no_raw = 0;
 int        no_save = 0;
 int        min_quality = 0;
 int        max_quality = 100;
-int        compress_mode = EET_COMPRESSION_DEFAULT;
+int        compress_mode = EET_COMPRESSION_HI;
 int        threads = 0;
+int        anotate = 0;
+int        no_etc1 = 0;
+int        no_etc2 = 0;
 
 static void
 _edje_cc_log_cb(const Eina_Log_Domain *d,
@@ -46,38 +50,8 @@ _edje_cc_log_cb(const Eina_Log_Domain *d,
        (memcmp(d->name, "edje_cc", sizeof("edje_cc") - 1) == 0))
      {
         const char *prefix;
-        Eina_Bool use_color = !eina_log_color_disable_get();
 
-        if (use_color)
-          {
-#ifndef _WIN32
-             fputs(eina_log_level_color_get(level), stderr);
-#else
-             int color;
-             switch (level)
-               {
-                case EINA_LOG_LEVEL_CRITICAL:
-                   color = FOREGROUND_RED | FOREGROUND_INTENSITY;
-                   break;
-                case EINA_LOG_LEVEL_ERR:
-                   color = FOREGROUND_RED;
-                   break;
-                case EINA_LOG_LEVEL_WARN:
-                   color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-                   break;
-                case EINA_LOG_LEVEL_INFO:
-                   color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-                   break;
-                case EINA_LOG_LEVEL_DBG:
-                   color = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-                   break;
-                default:
-                   color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-               }
-             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-#endif
-          }
-
+        eina_log_console_color_set(stderr, eina_log_level_color_get(level));
         switch (level)
           {
            case EINA_LOG_LEVEL_CRITICAL:
@@ -93,17 +67,7 @@ _edje_cc_log_cb(const Eina_Log_Domain *d,
               prefix = "";
           }
         fprintf(stderr, "%s: %s", progname, prefix);
-
-        if (use_color)
-          {
-#ifndef _WIN32
-             fputs(EINA_COLOR_RESET, stderr);
-#else
-             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-                                     FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-#endif
-          }
-
+        eina_log_console_color_set(stderr, EINA_COLOR_RESET);
 
         vfprintf(stderr, fmt, args);
         putc('\n', stderr);
@@ -122,6 +86,8 @@ main_help(void)
       "Where OPTIONS is one or more of:\n"
       "\n"
       "-w files.txt             Dump all sources files path into files.txt\n"
+      "-anotate                 Anotate the dumped files.\n"
+      "-deps files.txt          Dump gnu style include dependencies path into files.txt (overrides -w/-anotate)\n"
       "-id image/directory      Add a directory to look in for relative path images\n"
       "-fd font/directory       Add a directory to look in for relative path fonts\n"
       "-sd sound/directory      Add a directory to look in for relative path sounds samples\n"
@@ -130,6 +96,8 @@ main_help(void)
       "-no-lossy                Do NOT allow images to be lossy\n"
       "-no-comp                 Do NOT allow images to be stored with lossless compression\n"
       "-no-raw                  Do NOT allow images to be stored with zero compression (raw)\n"
+      "-no-etc1                 Do NOT allow images to be stored as ETC1 (uses rg_etc1)\n"
+      "-no-etc2                 Do NOT allow images to be stored as ETC2 (uses external tool etcpack)\n"
       "-no-save                 Do NOT store the input EDC file in the EDJ file\n"
       "-min-quality VAL         Do NOT allow lossy images with quality < VAL (0-100)\n"
       "-max-quality VAL         Do NOT allow lossy images with quality > VAL (0-100)\n"
@@ -160,6 +128,9 @@ main(int argc, char **argv)
        EINA_LOG_ERR("Enable to create a log domain.");
        exit(-1);
      }
+   if (!eina_log_domain_level_check(_edje_cc_log_dom, EINA_LOG_LEVEL_WARN))
+     eina_log_domain_level_set("edje_cc", EINA_LOG_LEVEL_WARN);
+
    progname = ecore_file_file_get(argv[0]);
    eina_log_print_cb_set(_edje_cc_log_cb, NULL);
 
@@ -188,11 +159,19 @@ main(int argc, char **argv)
 	else if (!strcmp(argv[i], "-no-comp"))
 	  {
 	     no_comp = 1;
-	  }
-	else if (!strcmp(argv[i], "-no-raw"))
-	  {
-	     no_raw = 1;
-	  }
+          }
+        else if (!strcmp(argv[i], "-no-raw"))
+          {
+             no_raw = 1;
+          }
+        else if (!strcmp(argv[i], "-no-etc1"))
+          {
+             no_etc1 = 1;
+          }
+        else if (!strcmp(argv[i], "-no-etc2"))
+          {
+             no_etc2 = 1;
+          }
 	else if (!strcmp(argv[i], "-no-save"))
 	  {
 	     no_save = 1;
@@ -262,6 +241,16 @@ main(int argc, char **argv)
              i++;
              watchfile = argv[i];
              unlink(watchfile);
+	  }
+	else if (!strcmp(argv[i], "-anotate"))
+	  {
+             anotate = 1;
+          }
+	else if ((!strcmp(argv[i], "-deps")) && (i < (argc - 1)))
+	  {
+	     i++;
+	     depfile = argv[i];
+	     unlink(depfile);
 	  }
 	else if (!file_in)
 	  file_in = argv[i];
@@ -333,9 +322,8 @@ main(int argc, char **argv)
 	exit(-1);
      }
 
-   _on_edjecc = EINA_TRUE;
-
-   using_file(file_in);
+   using_file(file_in, 'E');
+   if (anotate) using_file(file_out, 'O');
 
    if (!edje_init())
      exit(-1);
@@ -349,6 +337,7 @@ main(int argc, char **argv)
 				* does not load nicely as a NULL or 0 value
 				* and needs a special fallback initialization
 				*/
+   edje_file->base_scale = FROM_INT(1);
 
    source_edd();
    source_fetch();

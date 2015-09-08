@@ -22,6 +22,11 @@
 #define WIDTH  (400)
 #define HEIGHT (400)
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 typedef int color[4];           /* rgba */
 
 static Ecore_Evas *ee1, *ee2;

@@ -20,6 +20,11 @@
 #define WIDTH  (700)
 #define HEIGHT (700)
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 #define WALK 10
 
 static const char commands[] = "commands are:\nEsc - Exit\nUp - move image up\nDown - move image down\n"\

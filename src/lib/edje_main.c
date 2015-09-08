@@ -7,12 +7,11 @@ static int _edje_init_count = 0;
 int _edje_default_log_dom = -1;
 Eina_Mempool *_edje_real_part_mp = NULL;
 Eina_Mempool *_edje_real_part_state_mp = NULL;
-EAPI Eina_Bool _on_edjecc = EINA_FALSE;
+Eina_Bool multisense_init = EINA_FALSE;
 
 /*============================================================================*
  *                                   API                                      *
  *============================================================================*/
-
 
 EAPI int
 edje_init(void)
@@ -67,10 +66,6 @@ edje_init(void)
    _edje_external_init();
    _edje_module_init();
    _edje_message_init();
-
-   /* Do the Multisense runtime framework initialisation, if it is not EDC compilation mode */
-   if (!_on_edjecc)
-     _edje_multisense_init();
 
    _edje_real_part_mp = eina_mempool_add("chained_mempool",
 					 "Edje_Real_Part", NULL,
@@ -128,6 +123,9 @@ _edje_shutdown_core(void)
 {
    if (_edje_users > 0) return;
 
+   if (multisense_init)
+     _edje_multisense_shutdown();
+
    _edje_file_cache_shutdown();
    _edje_color_class_members_free();
    _edje_color_class_hash_free();
@@ -137,7 +135,6 @@ _edje_shutdown_core(void)
    _edje_real_part_state_mp = NULL;
    _edje_real_part_mp = NULL;
 
-   _edje_multisense_shutdown();
    _edje_message_shutdown();
    _edje_module_shutdown();
    _edje_external_shutdown();
@@ -192,16 +189,29 @@ edje_shutdown(void)
 }
 
 /* Private Routines */
-static Eina_Bool
-_class_member_free(const Eina_Hash *hash __UNUSED__,
-                   const void *key,
-                   void *data,
-                   void *fdata)
+static void
+_class_member_free(Eina_Hash *hash,
+                   void (*_edje_class_member_direct_del)(const char *class, void *l))
 {
-   void (*_edje_class_member_direct_del)(const char *class, void *l) = fdata;
+   const char *color_class;
+   Eina_Iterator *it;
+   Eina_List *class_kill = NULL;
 
-   _edje_class_member_direct_del(key, data);
-   return EINA_TRUE;
+   if (hash)
+     {
+        it = eina_hash_iterator_key_new(hash);
+        EINA_ITERATOR_FOREACH(it, color_class)
+          class_kill = eina_list_append(class_kill, color_class);
+        eina_iterator_free(it);
+        EINA_LIST_FREE(class_kill, color_class)
+          {
+             void *l;
+
+             l = eina_hash_find(hash, color_class);
+             _edje_class_member_direct_del(color_class, l);
+          }
+        eina_hash_free(hash);
+     }
 }
 
 void
@@ -210,18 +220,17 @@ _edje_del(Edje *ed)
    Edje_Running_Program *runp;
    Edje_Pending_Program *pp;
    Edje_Signal_Callback *escb;
-   Edje_Color_Class *cc;
    Edje_Text_Class *tc;
    Edje_Text_Insert_Filter_Callback *cb;
 
    if (ed->processing_messages)
      {
-	ed->delete_me = 1;
+	ed->delete_me = EINA_TRUE;
 	return;
      }
    _edje_message_del(ed);
    _edje_callbacks_patterns_clean(ed);
-   _edje_file_del(ed);
+   _edje_file_del(ed, EINA_FALSE);
    if (ed->path) eina_stringshare_del(ed->path);
    if (ed->group) eina_stringshare_del(ed->group);
    if (ed->parent) eina_stringshare_del(ed->parent);
@@ -241,17 +250,36 @@ _edje_del(Edje *ed)
 	if (escb->source) eina_stringshare_del(escb->source);
 	free(escb);
      }
-   EINA_LIST_FREE(ed->color_classes, cc)
-     {
-	if (cc->name) eina_stringshare_del(cc->name);
-	free(cc);
-     }
+   eina_hash_free(ed->color_classes);
    EINA_LIST_FREE(ed->text_classes, tc)
      {
 	if (tc->name) eina_stringshare_del(tc->name);
 	if (tc->font) eina_stringshare_del(tc->font);
 	free(tc);
      }
+   //// TIZEN ONLY: support edje's styles ////
+   Edje_Style *stl;
+   EINA_LIST_FREE(ed->styles, stl)
+     {
+        Edje_Style_Tag *tag;
+
+        EINA_LIST_FREE(stl->tags, tag)
+          {
+             if (tag->value)  eina_stringshare_del(tag->value);
+             if (tag->key) eina_stringshare_del(tag->key);
+             if (tag->text_class) eina_stringshare_del(tag->text_class);
+             if (tag->font) eina_stringshare_del(tag->font);
+             if (tag->color_class) eina_stringshare_del(tag->color_class);
+             if (tag->color) eina_stringshare_del(tag->color);
+             if (tag->outline_color) eina_stringshare_del(tag->outline_color);
+             if (tag->shadow_color) eina_stringshare_del(tag->shadow_color);
+             free(tag);
+          }
+        if (stl->name) eina_stringshare_del(stl->name);
+        if (stl->style) evas_textblock_style_free(stl->style);
+        free(stl);
+     }
+   ////////////////////////////////////////////
    EINA_LIST_FREE(ed->text_insert_filter_callbacks, cb)
      {
         eina_stringshare_del(cb->part);
@@ -263,16 +291,8 @@ _edje_del(Edje *ed)
         free(cb);
      }
 
-   if (ed->members.text_class)
-     {
-        eina_hash_foreach(ed->members.text_class, _class_member_free, _edje_text_class_member_direct_del);
-        eina_hash_free(ed->members.text_class);
-     }
-   if (ed->members.color_class)
-     {
-        eina_hash_foreach(ed->members.color_class, _class_member_free, _edje_color_class_member_direct_del);
-        eina_hash_free(ed->members.color_class);
-     }
+   _class_member_free(ed->members.text_class, _edje_text_class_member_direct_del);
+   _class_member_free(ed->members.color_class, _edje_color_class_member_direct_del);
    free(ed);
 }
 

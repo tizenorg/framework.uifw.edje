@@ -24,7 +24,7 @@ typedef struct _SndInstanceData SndInstanceData;
 struct _VIO_DATA
 {
    sf_count_t  offset, length;
-   const char *data;
+   void *data;
 };
 
 struct _SndInstanceData
@@ -135,7 +135,7 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
 {
    SF_VIRTUAL_IO *eet_vio = NULL;
    SndInstanceData *si;
-   const void *sound_data;
+   void *sound_data = NULL;
    int sound_size;
 
    if ((!path) || (!sound_id)) return NULL;
@@ -151,11 +151,16 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
    si->efp = eet_open(path, EET_FILE_MODE_READ);
    if (!si->efp) goto err;
 
-   // xxx: eet_read_direct does not work on Threads, using eet_read.
    sound_data = eet_read(si->efp, sound_id, &(sound_size));
-   eet_close(si->efp);
-   si->efp = NULL;
+   //sound_data = eet_read_direct(si->efp, sound_id, &(sound_size));
    if (sound_data == NULL) goto err;
+
+   //close immediately to avoid synchronisation issue during shutdown,
+   if (si->efp)
+     {
+        eet_close(si->efp);
+        si->efp = NULL;
+     }
 
    eet_vio = calloc(1, sizeof(SF_VIRTUAL_IO));
    if (!eet_vio) goto err;
@@ -187,6 +192,24 @@ remix_eet_sndfile_create(RemixEnv *env, RemixBase *sndfile, const char *path, co
 
 err:
    if (eet_vio) free(eet_vio);
+   if (si)
+     {
+        if (si->efp) eet_close(si->efp);
+        if (si->path) free(si->path);
+        if (si->sound_id) free(si->sound_id);
+        if (si->snd_info) free(si->snd_info);
+        if (si->vio_data)
+          {
+             if (si->vio_data->data) free(si->vio_data->data);
+             free(si->vio_data);
+          }
+        else
+          {
+             if (sound_data) free(sound_data);
+          }
+        free(si);
+     }
+
    remix_set_error(env, REMIX_ERROR_SYSTEM);
    remix_destroy(env, (RemixBase *)sndfile);
    return RemixNone;
@@ -225,15 +248,18 @@ remix_eet_sndfile_destroy(RemixEnv *env, RemixBase *base)
    SndInstanceData *si = remix_base_get_instance_data(env, base);
    if (si)
      {
-        sf_close (si->pcm_fp);
-        eet_close(si->efp);
+        if (si->pcm_fp) sf_close (si->pcm_fp);
         if (si->path) free(si->path);
         if (si->sound_id) free(si->sound_id);
         if (si->snd_info) free(si->snd_info);
         if (si->efp) eet_close(si->efp);
         if (si->inbuf) free(si->inbuf);
         if (si->outbuf) free(si->outbuf);
-        if (si->vio_data) free(si->vio_data);
+        if (si->vio_data)
+          {
+             if (si->vio_data->data) free(si->vio_data->data);
+             free(si->vio_data);
+          }
         free(si);
       }
    if (base) free (base);
@@ -406,6 +432,13 @@ remix_eet_sndfile_seek(RemixEnv *env, RemixBase *base, RemixCount offset)
    return sf_seek(si->pcm_fp, offset, SEEK_SET);
 }
 
+static int
+remix_eet_sndfile_reader_destroy (RemixEnv * env, RemixPlugin * plugin)
+{
+  cd_set_free (env, plugin->init_scheme);
+  return 0;
+}
+
 static struct _RemixMethods _remix_eet_sndfile_reader_methods =
 {
    remix_eet_sndfile_clone,
@@ -474,7 +507,7 @@ static struct _RemixPlugin eet_sndfile_reader_plugin =
    CD_EMPTY_SET, /* process scheme */
    NULL, /* suggests */
    NULL, /* plugin data */
-   NULL  /* destroy */
+   remix_eet_sndfile_reader_destroy /* destroy */
 };
 
 EAPI CDList *

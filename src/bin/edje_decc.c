@@ -442,6 +442,10 @@ output(void)
 	     fprintf(f, "#!/bin/sh\n");
 	     fprintf(f, "%s $@ -id . -fd . %s -o %s.edj\n", edje_file->compiler, sf->name, outdir);
 	     fclose(f);
+	     if (chmod(out,
+                   S_IRUSR | S_IWUSR | S_IXUSR |
+                   S_IRGRP | S_IWGRP | S_IXGRP) < 0)
+           ERR("chmod on %s failed", out);
 
 	     WRN("*** CAUTION ***\n"
 		 "Please check the build script for anything malicious "
@@ -456,8 +460,6 @@ output(void)
                   ERR("symlink %s -> %s failed", sf->name, out);
                }
 	  }
-
-	chmod(out, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP);
 
      }
 
@@ -505,6 +507,7 @@ output(void)
 
      }
    eet_close(tef);
+   if (outdir) free(outdir);
 }
 
 static int

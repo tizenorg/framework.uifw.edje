@@ -57,13 +57,13 @@ fi
 F=`basename $IN`
 B=`basename $F .edj`
 T="./...edje_tmp"
-rm -rf $T
-mkdir -p $T
-cp $IN $T
+/bin/rm -rf $T
+/bin/mkdir -p $T
+/bin/cp $IN $T
 cd $T
 edje_decc $F
 cd $B
 ./build.sh $OPT
 cd ../..
-mv $T/$B/$F $IN
-rm -rf $T
+/bin/mv $T/$B/$F $IN
+/bin/rm -rf $T

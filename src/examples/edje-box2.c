@@ -24,6 +24,11 @@
 #include <Ecore_Evas.h>
 #include <Edje.h>
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 static const char commands[] = \
   "commands are:\n"
   "\tShift - remove box\n"

@@ -1,9 +1,10 @@
 /**
- * @page Examples Examples
+ * @page edje_examples Edje Examples
  *
  * Here is a page with examples.
  *
  * @li @ref Example_Edje_Basics
+ * @li @ref tutorial_edje_nested
  * @li @ref tutorial_edje_swallow
  * @li @ref tutorial_edje_swallow2
  * @li @ref tutorial_edje_text
@@ -137,7 +138,7 @@
  *
  * @image html edje-basics-example.png
  * @image rtf edje-basics-example.png
- * @image latex edje-basics-example.eps width=\textwidth
+ * @image latex edje-basics-example.eps "edje basics example" width=\textwidth
  *
  * The full example follows.
  * @include edje-basic.c
@@ -151,6 +152,29 @@
  * edje_cc basic.edc
  * @endverbatim
  * @example edje-basic.c
+ */
+
+/**
+ * @page tutorial_edje_nested Edje Nested Part (hierarchy) example
+ *
+ * Nested part feature represents the concept of hierarchy to edje.
+ *
+ * A nested part inherits it's location relatively to the parent part.
+ * Thus, parent part modifications such move or map effects all nested parts.
+ * To declare a nested part just start a new part declaration within
+ * (before closing) the current part declaration.
+ *
+ * Note that nested part declaration is allowed only after
+ * current part name is defined.
+ *
+ * Here's an example of a rect nested in other rect plus inner nested rect:
+ * @include edje-nested.edc
+ *
+ * The example's window should look like this picture:
+ *
+ * @image html edje-nested.png
+ * @image rtf img/edje-nested.png
+ * @image latex edje-nested.eps "edje nested" width=\textwidth
  */
 
 /**
@@ -229,7 +253,7 @@
  *
  * @image html edje-text.png
  * @image rtf edje-text.png
- * @image latex edje-text.eps width=\textwidth
+ * @image latex edje-text.eps "edje text" width=\textwidth
  *
  * The full source code follows:
  * @include edje-text.c
@@ -298,7 +322,7 @@
  *
  * @image html edje-table-example.png
  * @image rtf edje-table-example.png
- * @image latex edje-table-example.eps width=\textwidth
+ * @image latex edje-table-example.eps "edje table example" width=\textwidth
  *
  * The full source code follows:
  * @include edje-table.c
@@ -393,7 +417,7 @@
  *
  * @image html edje-box-example.png
  * @image rtf edje-box-example.png
- * @image latex edje-box-example.eps width=\textwidth
+ * @image latex edje-box-example.eps "edje box example" width=\textwidth
  *
  * The full source code follows:
  * @include edje-box.c
@@ -455,7 +479,7 @@
  *
  * @image html edje-box2-example.png
  * @image rtf edje-box2-example.png
- * @image latex edje-box2-example.eps width=\textwidth
+ * @image latex edje-box2-example.eps "edje box2 example" width=\textwidth
  *
  * The full source code follows:
  * @include edje-box2.c
@@ -564,7 +588,7 @@
  *
  * @image html edje-drag-example.png
  * @image rtf edje-drag-example.png
- * @image latex edje-drag-example.eps width=\textwidth
+ * @image latex edje-drag-example.eps "edje drag example" width=\textwidth
  *
  * The full source code follows:
  * @include edje-drag.c
@@ -662,7 +686,7 @@
  *
  * @image html edje-perspective-example.png
  * @image rtf edje-perspective-example.png
- * @image latex edje-perspective-example.eps width=\textwidth
+ * @image latex edje-perspective-example.eps "edje perspective example" width=\textwidth
  *
  * The full source code follows:
  * @include edje-perspective.c
@@ -794,7 +818,7 @@
  *
  * @image html edje-signals-messages-example.png
  * @image rtf edje-signals-messages-example.png
- * @image latex edje-signals-messages-example.eps width=\textwidth
+ * @image latex edje-signals-messages-example.eps "edje signals message example" width=\textwidth
  *
  * The full example follows, along with its EDC file.
  *
@@ -870,11 +894,11 @@
  *
  * @image html edje-color-class-example.png
  * @image rtf edje-color-class-example.png
- * @image latex edje-color-class-example.eps width=\textwidth
+ * @image latex edje-color-class-example.eps "edje color class example" width=\textwidth
  * @n
  * @image html edje-color-class-example2.png
  * @image rtf edje-color-class-example2.png
- * @image latex edje-color-class-example2.eps width=\textwidth
+ * @image latex edje-color-class-example2.eps "edje color class example 2" width=\textwidth
  *
  * The full source code follows:
  * @include edje-color-class.c
@@ -947,11 +971,11 @@
  *
  * @image html edje-animations.png
  * @image rtf edje-animations.png
- * @image latex edje-animations.eps width=\textwidth
+ * @image latex edje-animations.eps "edje animations" width=\textwidth
  * @n
  * @image html edje-animations2.png
  * @image rtf edje-animations2.png
- * @image latex edje-animations2.eps width=\textwidth
+ * @image latex edje-animations2.eps "edje animations 2" width=\textwidth
  *
  * The full example follows.
  *
@@ -1032,7 +1056,7 @@
  *
  * @image html basic2final.png
  * @image rtf basic2final.png
- * @image latex basic2final.eps width=\textwidth
+ * @image latex basic2final.eps "basic 2 final" width=\textwidth
  *
  * The complete .edc file:
  * @include basic2.edc
@@ -1089,7 +1113,7 @@
  *
  * @image html swallow2final.png
  * @image rtf swallow2final.png
- * @image latex swallow2final.eps width=\textwidth
+ * @image latex swallow2final.eps "swallow 2 final" width=\textwidth
  *
  * The complete .edc file:
  * @include swallow.edc
@@ -1164,7 +1188,7 @@
  * When you compile and run it you should see this:
  * @image html signal2final.png
  * @image rtf signal2final.png
- * @image latex signal2final.eps width=\textwidth
+ * @image latex signal2final.eps "signal 2 final" width=\textwidth
  *
  * The .edc file:
  * @include signalsBubble.edc
@@ -1253,7 +1277,7 @@
  * When you compile and run it you should see this:
  * @image html signal2final.png
  * @image rtf signal2final.png
- * @image latex signal2final.eps width=\textwidth
+ * @image latex signal2final.eps "signal to final" width=\textwidth
  *
  * The .edc file:
  * @include animations2.edc

@@ -252,6 +252,7 @@ alsa_player_prepare(RemixEnv *env, RemixBase *base)
 static RemixCount
 alsa_player_playbuffer(RemixEnv *env __UNUSED__, Alsa_Player_Data *player, RemixPCM *data, RemixCount count)
 {
+   int pcmreturn;
 #ifdef MIXDBG
      {
         static int total = 0;
@@ -276,7 +277,11 @@ alsa_player_playbuffer(RemixEnv *env __UNUSED__, Alsa_Player_Data *player, Remix
           }
      }
 #endif
-   return snd_pcm_writei(player->alsa_dev, data, count);
+   while ((pcmreturn = snd_pcm_writei(player->alsa_dev, data, count)) < 0) {
+           snd_pcm_prepare(player->alsa_dev);
+           WRN("<<<<<<<<<<<<<<< Buffer Underrun >>>>>>>>>>>>>>>");
+         }
+   return pcmreturn;
 }
 
 static RemixCount

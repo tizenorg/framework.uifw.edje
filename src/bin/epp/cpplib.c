@@ -513,6 +513,8 @@ unsigned char       is_hor_space[256];
 /* table to tell if c is horizontal or vertical space.  */
 static unsigned char is_space[256];
 
+static int           anotate = 0;
+
 /* Initialize syntactic classifications of characters.  */
 
 static void
@@ -3334,13 +3336,19 @@ do_include(cpp_reader * pfile, struct directive *keyword,
 	strncpy(fname, (const char *)fbeg, flen);
 	fname[flen] = 0;
 	if (redundant_include_p(pfile, fname))
-	   return 0;
+      {
+         free(fname);
+         return 0;
+      }
 	if (importing)
 	   f = lookup_import(pfile, fname, NULL);
 	else
 	   f = open_include_file(pfile, fname, NULL);
 	if (f == -2)
-	   return 0;		/* Already included this file */
+      {
+         free(fname);
+         return 0;		/* Already included this file */
+      }
      }
    else
      {
@@ -3389,13 +3397,19 @@ do_include(cpp_reader * pfile, struct directive *keyword,
 	      * of redundant include files: #import, #pragma once, and
 	      * redundant_include_p.  It would be nice if they were unified.  */
 	     if (redundant_include_p(pfile, fname))
-		return 0;
+           {
+              free(fname);
+              return 0;
+           }
 	     if (importing)
 		f = lookup_import(pfile, fname, searchptr);
 	     else
 		f = open_include_file(pfile, fname, searchptr);
 	     if (f == -2)
-		return 0;	/* Already included this file */
+           {
+              free(fname);
+              return 0;	/* Already included this file */
+           }
 #ifdef EACCES
 	     else if (f == -1 && errno == EACCES)
 		cpp_warning(pfile, "Header file %s exists, but is not readable",
@@ -3463,6 +3477,7 @@ do_include(cpp_reader * pfile, struct directive *keyword,
 	   cpp_error_from_errno(pfile, fname);
 	else
 	   cpp_error(pfile, "No include path in which to find %s", fname);
+	free(fname);
      }
    else
      {
@@ -3476,6 +3491,7 @@ do_include(cpp_reader * pfile, struct directive *keyword,
 	     if (!strcmp(ptr->fname, fname))
 	       {
 		  close(f);
+          free(fname);
 		  return 0;	/* This file was once'd. */
 	       }
 	  }
@@ -3900,6 +3916,7 @@ do_error(cpp_reader * pfile, struct directive *keyword __UNUSED__,
    copy[length] = 0;
    SKIP_WHITE_SPACE(copy);
    cpp_error(pfile, "#error %s", copy);
+   free(copy);
    return 0;
 }
 
@@ -3920,6 +3937,7 @@ do_warning(cpp_reader * pfile, struct directive *keyword __UNUSED__,
    copy[length] = 0;
    SKIP_WHITE_SPACE(copy);
    cpp_warning(pfile, "#warning %s", copy);
+   free(copy);
    return 0;
 }
 
@@ -5489,7 +5507,7 @@ open_include_file(cpp_reader * pfile, char *filename,
        && !strncmp(searchptr->fname, filename, p - filename))
      {
 	/* FILENAME is in SEARCHPTR, which we've already checked.  */
-        using_file(filename);
+        using_file(filename, 'E');
 	return open(filename, O_RDONLY | O_BINARY, 0666);
      }
    if (p == filename)
@@ -5510,11 +5528,11 @@ open_include_file(cpp_reader * pfile, char *filename,
    for (map = read_name_map(pfile, dir); map; map = map->map_next)
       if (!strcmp(map->map_from, from))
         {
-           using_file(map->map_to);
+           using_file(map->map_to, 'E');
            return open(map->map_to, O_RDONLY | O_BINARY, 0666);
         }
 
-   using_file(filename);
+   using_file(filename, 'E');
    return open(filename, O_RDONLY | O_BINARY, 0666);
 }
 
@@ -5524,7 +5542,7 @@ static int
 open_include_file(cpp_reader * pfile __UNUSED__, char *filename,
 		  file_name_list * searchptr __UNUSED__)
 {
-   using_file(filename);
+   using_file(filename, 'E');
    return open(filename, O_RDONLY | O_BINARY, 0666);
 }
 
@@ -5674,6 +5692,7 @@ push_parse_file(cpp_reader * pfile, const char *fname)
    char               *p;
    int                 f;
    cpp_buffer         *fp;
+   char               *epath = 0;
 
    /* The code looks at the defaults through this pointer, rather than through
     * the constant structure above.  This pointer gets changed if an environment
@@ -5821,8 +5840,6 @@ push_parse_file(cpp_reader * pfile, const char *fname)
 
    {				/* read the appropriate environment variable and if it exists
 				 * replace include_defaults with the listed path. */
-      char               *epath = 0;
-
       switch ((opts->objc << 1) + opts->cplusplus)
 	{
 	case 0:
@@ -5941,6 +5958,7 @@ push_parse_file(cpp_reader * pfile, const char *fname)
 		       }
 		  }
 	     }
+	free(default_prefix);
 	/* Search ordinary names for GNU include directories.  */
 	for (di = include_defaults; di->fname; di++)
 	  {
@@ -5995,6 +6013,7 @@ push_parse_file(cpp_reader * pfile, const char *fname)
 	     if (fd < 0)
 	       {
 		  cpp_perror_with_name(pfile, pend->arg);
+          if (epath) free(include_defaults);
 		  return FATAL_EXIT_CODE;
 	       }
 	     cpp_push_buffer(pfile, NULL, 0);
@@ -6139,6 +6158,8 @@ push_parse_file(cpp_reader * pfile, const char *fname)
 	     if (fd < 0)
 	       {
 		  cpp_perror_with_name(pfile, pend->arg);
+                  if (f) close(f);
+          if (epath) free(include_defaults);
 		  return FATAL_EXIT_CODE;
 	       }
 	     cpp_push_buffer(pfile, NULL, 0);
@@ -6159,6 +6180,7 @@ push_parse_file(cpp_reader * pfile, const char *fname)
 
    if (finclude(pfile, f, fname, 0, NULL))
       output_line_command(pfile, 0, same_file);
+   if (epath) free(include_defaults);
    return SUCCESS_EXIT_CODE;
 }
 
@@ -6284,12 +6306,14 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 		    {
 		       file_name_list     *dirtmp;
 		       char               *prefix;
+             int                 is_prefix_alloc = 0;
 
 		       if (opts->include_prefix)
 			  prefix = opts->include_prefix;
 		       else
 			 {
 			    prefix = savestring(GCC_INCLUDE_DIR);
+             is_prefix_alloc++;
 			    /* Remove the `include' from /usr/local/lib/gcc.../include.  */
 			    if (!strcmp
 				(prefix + strlen(prefix) - 8, "/include"))
@@ -6317,6 +6341,7 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 		       else
 			  opts->last_after_include->next = dirtmp;
 		       opts->last_after_include = dirtmp;	/* Tail follows the last one */
+           if (is_prefix_alloc) free(prefix);
 		    }
 		  /* Add directory to main path for includes,
 		   * with the default prefix at the front of its name.  */
@@ -6324,12 +6349,14 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 		    {
 		       file_name_list     *dirtmp;
 		       char               *prefix;
+             int                 is_prefix_alloc = 0;
 
 		       if (opts->include_prefix)
 			  prefix = opts->include_prefix;
 		       else
 			 {
 			    prefix = savestring(GCC_INCLUDE_DIR);
+             is_prefix_alloc++;
 			    /* Remove the `include' from /usr/local/lib/gcc.../include.  */
 			    if (!strcmp
 				(prefix + strlen(prefix) - 8, "/include"))
@@ -6353,6 +6380,7 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 		       dirtmp->got_name_map = 0;
 
 		       append_include_chain(pfile, dirtmp, dirtmp);
+             if (is_prefix_alloc) free(prefix);
 		    }
 		  /* Add directory to end of path for includes.  */
 		  if (!strcmp(argv[i], "-idirafter"))
@@ -6477,10 +6505,10 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 		  /* The style of the choices here is a bit mixed.
 		   * The chosen scheme is a hybrid of keeping all options in one string
 		   * and specifying each option in a separate argument:
-		   * -M|-MM|-MD file|-MMD file [-MG].  An alternative is:
-		   * -M|-MM|-MD file|-MMD file|-MG|-MMG; or more concisely:
-		   * -M[M][G][D file].  This is awkward to handle in specs, and is not
-		   * as extensible.  */
+		   * -M|-MM|-MT file|-MD file|-MMD file [-MG].  An alternative is:
+		   * -M|-MM|-MT file|-MD file|-MMD file|-MG|-MMG; or more concisely:
+		   * -M[M][G][D file][T file].  This is awkward to handle in specs, and is
+		   * not as extensible.  */
 		  /* ??? -MG must be specified in addition to one of -M or -MM.
 		   * This can be relaxed in the future without breaking anything.
 		   * The converse isn't true.  */
@@ -6506,6 +6534,15 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 			  cpp_fatal("Filename missing after %s option",
 				    argv[i]);
 		       opts->deps_file = argv[++i];
+		    }
+		  /* For MT option, use file named by next arg as Target-name to write
+		   * with the dependency information.  */
+		  else if (!strcmp(argv[i], "-MT"))
+		    {
+		       if (i + 1 == argc)
+			  cpp_fatal("Filename missing after %s option",
+				    argv[i]);
+		       opts->deps_target = argv[++i];
 		    }
 		  else
 		    {
@@ -6577,6 +6614,10 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
                             {
                                opts->watchfile = argv[i];
                             }
+                       }
+                     else if (!strcmp(argv[i], "-anotate"))
+                       {
+                          anotate = 1;
                        }
 		     break;
                   }
@@ -6736,7 +6777,6 @@ cpp_finish(cpp_reader * pfile)
 	     else if (!(deps_stream = fopen(opts->deps_file, deps_mode)))
 		cpp_pfatal_with_name(pfile, opts->deps_file);
 	     fputs(pfile->deps_buffer, deps_stream);
-	     putc('\n', deps_stream);
 	     if (opts->deps_file)
 	       {
 		  if (ferror(deps_stream) || fclose(deps_stream) != 0)
@@ -7449,13 +7489,20 @@ cpp_perror_with_name(cpp_reader * pfile, const char *name)
 extern cpp_options         options;
 
 void
-using_file(const char *filename)
+using_file(const char *filename, const char type)
 {
    FILE *f;
 
    f = fopen(options.watchfile, "a");
    if (!f) return ;
-   fputs(filename, f);
-   fputc('\n', f);
+   if (anotate)
+     {
+        fprintf(f, "%c: %s\n", type, filename);
+     }
+   else
+     {
+        fputs(filename, f);
+        fputc('\n', f);
+     }
    fclose(f);
 }

@@ -1,0 +1,15 @@
+<manifest>
+	<request>
+		<domain name="_"/>
+	</request>
+	<assign>
+		<filesystem path="/usr/bin/edje_cc" exec_label="none" />
+		<filesystem path="/usr/bin/edje_codegen" exec_label="none" />
+		<filesystem path="/usr/bin/edje_decc" exec_label="none" />
+		<filesystem path="/usr/bin/edje_external_inspector" exec_label="none" />
+		<filesystem path="/usr/bin/edje_player" exec_label="none" />
+		<filesystem path="/usr/bin/edje_recc" exec_label="none" />
+		<filesystem path="/usr/bin/inkscape2edc" exec_label="none" />
+		<filesystem path="/usr/lib/edje/utils/epp" exec_label="none" />
+	</assign>
+</manifest>

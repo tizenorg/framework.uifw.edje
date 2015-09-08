@@ -173,7 +173,9 @@ _edje_file_change(void *data, int ev_type __UNUSED__, void *event)
 static Edje_File *
 _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Collection **edc_ret, time_t mtime)
 {
+   Edje_Color_Class *cc;
    Edje_File *edf;
+   Eina_List *l;
    Edje_Part_Collection *edc;
    Eet_File *ef;
 #ifdef HAVE_EIO
@@ -225,12 +227,21 @@ _edje_file_open(const char *file, const char *coll, int *error_ret, Edje_Part_Co
      {
 	WRN("`%s` may use feature from a newer edje and could not show up as expected.", file);
      }
+   if (edf->base_scale <= ZERO)
+     {
+        edf->base_scale = FROM_INT(1);
+        WRN("The base_scale can not be a 0.0. It is changed the default value(1.0)");
+     }
 
    edf->path = eina_stringshare_add(file);
    edf->references = 1;
 
    /* This should be done at edje generation time */
    _edje_textblock_style_parse_and_fix(edf);
+   edf->color_hash = eina_hash_string_small_new(NULL);
+   EINA_LIST_FOREACH(edf->color_classes, l, cc)
+     if (cc->name)
+       eina_hash_direct_add(edf->color_hash, cc->name, cc);
 
    if (coll)
      {
@@ -274,7 +285,7 @@ _edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, E
    if (!_edje_file_hash)
      {
 	_edje_file_hash = eina_hash_string_small_new(NULL);
-	goto open_new;
+	goto find_list;
      }
 
    edf = eina_hash_find(_edje_file_hash, file);
@@ -290,6 +301,7 @@ _edje_cache_file_coll_open(const char *file, const char *coll, int *error_ret, E
 	goto open;
      }
 
+find_list:
    EINA_LIST_FOREACH(_edje_file_cache, l, edf)
      {
 	if (!strcmp(edf->path, file))
@@ -552,6 +564,71 @@ _edje_file_cache_shutdown(void)
    edje_file_cache_flush();
 }
 
+//////  TIZEN ONLY: for color class reparsing ////////////
+
+static Eina_Bool
+_textblock_styles_cache_free(const Eina_Hash *hash __UNUSED__, const void *key __UNUSED__, void *data, void *fdata)
+{
+   Edje_File *edf = data;
+   char *class_name = fdata;
+   Eina_List *l, *ll;
+   Edje_Style *stl;
+
+   EINA_LIST_FOREACH(edf->styles, l, stl)
+     {
+        Edje_Style_Tag *tag;
+        Eina_Bool found = EINA_FALSE;
+
+        EINA_LIST_FOREACH(stl->tags, ll, tag)
+          {
+             if (!tag->text_class && !tag->color_class) continue;
+
+             if (tag->text_class && !strcmp(tag->text_class, class_name))
+               {
+                  found = EINA_TRUE;
+                  break;
+               }
+             if (tag->color_class && !strcmp(tag->color_class, class_name))
+               {
+                  found = EINA_TRUE;
+                  break;
+               }
+          }
+        if (found)
+          stl->cache = EINA_FALSE;
+     }
+
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_textblock_styles_cache_update(const Eina_Hash *hash __UNUSED__, const void *key __UNUSED__, void *data, void *fdata __UNUSED__)
+{
+   Edje_File *edf = data;
+   _edje_file_textblock_style_all_update(edf);
+
+   return EINA_TRUE;
+}
+
+
+void
+_edje_file_textblock_styles_cache_free(const char *class_name)
+{
+   if (!class_name) return;
+   if (!_edje_file_hash) return;
+
+   eina_hash_foreach(_edje_file_hash, _textblock_styles_cache_free, class_name);
+}
+
+void
+_edje_file_textblock_styles_cache_update(void)
+{
+   if (!_edje_file_hash) return;
+
+   eina_hash_foreach(_edje_file_hash, _textblock_styles_cache_update, NULL);
+}
+
+///////////////////////////////////////////////////////////
 
 /*============================================================================*
  *                                 Global                                     *

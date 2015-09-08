@@ -1,7 +1,3 @@
-2012-06-06  Leandro Pereira
-
-        * Made state index optional (defaulting to 0.0).
-
 2011-01-29  Carsten Haitzler (The Rasterman)
 
         1.0.0 release
@@ -150,6 +146,11 @@
 
 	* Entry: Added changed,user signal. This signal indicates the entry
 	has changed because of user interaction, i.e not by code.
+
+2012-08-04  Flavio Ceolin
+
+        * Added edje_codegen - tool that genereates code to working with
+          edje files.
 
 2011-08-22  Cedric Bail
 
@@ -486,6 +487,10 @@
 	* Fix decompile of sound samples not double-free
         * Fix alsa configure option to be alsa, not flac.
 
+2012-06-06  Leandro Pereira
+
+        * Made state index optional (defaulting to 0.0).
+
 2012-06-06  Jihoon Kim
 
 	* edje_entry: display preedit string even though there is no attribute
@@ -556,3 +561,170 @@
 2012-08-14  Hermet
 
 	* Fix the uv mapping correctly in case of image swallowed.
+
+2012-08-21  Guilherme Silveira
+
+	* Fix password timeout with fixed point.
+
+2012-08-24  Cedric Bail
+
+	* Properly destroy color_class and text_class on an Edje_Object.
+
+2012-08-27  Tom Hacohen (TAsn)
+
+	* Textblock: Fixed issue with textblock fit not sizing correctly. This
+	fix is not perfect.
+
+2012-08-29  Cedric Bail
+
+	* Don't leak memory on edje block error during signal emit.
+
+2012-08-30  Carsten Haitzler (The Rasterman)
+
+        1.7.0 release
+
+2012-08-30  Cedric Bail
+
+	* Check the number of parameter for image in edc.
+
+2012-09-04  Cedric Bail
+
+	* Report type of file when listing file used by an edc.
+
+2012-09-04  Jihoon Kim (jihoon)
+
+	* Add EDJE_INPUT_PANEL_RETURN_KEY_TYPE_SIGNIN.
+
+2012-09-04  Aharon Hillel
+
+	* Added nested parts support.
+	This lets us do nested parts, e.g parts "{ part { part { } } }"
+
+2012-09-05  ChunEon Park (Hermet)
+
+	* if user change image size of the image object which is swallowed and
+	it's map enabled by the edje, then edje needs to update it's uv mapping
+  	info.
+
+2012-09-11  Cedric Bail
+
+	* O(1) lookup used when searching Part_Lookup in edje_cc.
+	* O(1) lookup when generating alias of group.
+	* O(1) access time for parameters in edje_cc_handler.
+	* Recycle and use less memory during load time.
+
+2012-09-11  Carsten Haitzler (The Rasterman)
+
+        * Improve memory footprint by cutting core edje real part
+        struct down by less than half its size and making some parts allocated
+        extra only if the type needs it.
+
+2012-09-12  Cedric Bail
+
+	* Small improvement in memory footprint by using an array instead of a list for
+	some callback list.
+
+2012-09-17  Cedric Bail
+
+	* Don't generate an annotate file if edje_cc failed.
+
+2012-09-17  Michael Bouchaud (yoz)
+
+        * fix group inheritance on a group who have a script with global
+        varable.
+        * fix group inheritance on a group who have some programs uses script
+
+2012-09-20  David Seikel (onefang)
+
+	* Lua: Lua 5.2 support added.
+
+2012-09-21  Flavio Ceolin
+
+	* edje_codegen: added support for externals
+
+2012-09-27  Michael Bouchaud (yoz)
+
+        * fix scale_set in sub group
+
+2012-09-27  Flavio Ceolin
+
+	* edje_codegen: adding support for draggable
+
+2012-10-10
+
+	* edje_entry: Add more tags(preedit_sub1~4) for a variety of preediting states.
+
+2012-10-20  Cedric Bail
+
+	1.7.1 release
+
+2012-10-26  Michael Bouchaud (yoz)
+
+        * fix edje_object_scale_set with edje containing boxes and/or tables
+
+2012-10-31  ChunEon Park (Hermet)
+
+        * Fix to update the text classes when text classes are changed.
+        * fix edje_object_scale_set with edje containing boxes and/or tables
+
+2012-10-31  Carsten Haitzler (The Rasterman)
+
+        * Fix edje_cc to use max compression, not default compression for edje_cc.
+
+2012-11-02  ChunEon Park (Hermet)
+
+        * Fix to not update map uv for proxy
+
+2012-11-21  Carsten Haitzler (The Rasterman)
+
+        * Backport fix for null name strcmp with group inheritance
+        from 76449 in trunk.
+
+
+2012-12-05  Robert David
+
+	* Fix Solaris 11 build.
+
+2012-12-07  Luis Felipe Strano Moraes
+
+	* 1.7.3 release
+
+2012-12-05  Tae-Hwan Kim (Bluezery)
+
+        * Fix inheriting gorups with programs that have after programs where
+        after programs are duplicated in the list.
+
+2012-12-13  Doug Newgard
+
+	* Enforce compilation with Lua 5.1 only.
+
+2012-12-17 Vincent Torri
+
+	* Add XML output to doc
+	* Add installation rule for doc
+
+2012-12-18  WooHyun Jung
+
+	* Before cursor is moved by mouse_down, imf_context_reset should be called with current cursor position.
+
+2012-12-20  David Seikel (onefang)
+
+	* Lua: Backport from 76883 in trunk, and revert 80791 - Lua 5.2 support added.
+
+2012-12-20  Tom Hacohen (TAsn)
+
+	* Backport from 78587 in trunk.
+	Edje entry: Fix update of cursor with IMF and user_insert.
+	Was missing, now cursor updates like it should.
+
+2012-12-21  Luis Felipe Strano Moraes
+
+	* 1.7.4 release
+
+2013-01-04  Luis Felipe Strano Moraes
+
+	* 1.7.5 release
+
+2013-01-14  Daniel Willmann
+	* Backport r82767, r82770
+	* edje: Fix off-by-one errors when using alloca in various functions

@@ -2,6 +2,8 @@
 # include "config.h"
 #endif
 
+#include <sys/wait.h>
+
 #include <Eina.h>
 #include <Ecore.h>
 #include <Eio.h>
@@ -9,10 +11,11 @@
 # include <Evil.h>
 #endif
 
-char watchfile[PATH_MAX];
-char *edje_cc_command = NULL;
-Eina_List *watching = NULL;
-Ecore_Timer *timeout = NULL;
+static char watchfile[PATH_MAX];
+static char *edje_cc_command = NULL;
+static Eina_List *watching = NULL;
+static Ecore_Timer *timeout = NULL;
+static Eina_Bool anotate = EINA_FALSE;
 
 static void
 read_watch_file(const char *file)
@@ -32,9 +35,22 @@ read_watch_file(const char *file)
    EINA_ITERATOR_FOREACH(it, ln)
      {
         const char *path;
+        Eina_Bool do_append = EINA_TRUE;
 
-        path = eina_stringshare_add_length(ln->start, ln->length);
-        r = eina_list_append(r, eio_monitor_add(path));
+	if (ln->length < 4) continue ;
+        if (anotate)
+          {
+             path = eina_stringshare_add_length(ln->start + 3, ln->length - 3);
+             fprintf(stdout, "%c: %s\n", *ln->start, path);
+             if (*ln->start == 'O')
+               do_append = EINA_FALSE;
+          }
+        else
+          {
+             path = eina_stringshare_add_length(ln->start, ln->length);
+          }
+        if (do_append)
+	  r = eina_list_append(r, eio_monitor_add(path));
         eina_stringshare_del(path);
      }
    eina_iterator_free(it);
@@ -51,13 +67,18 @@ Eina_Bool
 rebuild(void *data __UNUSED__)
 {
    double start, end;
+   int ret;
 
    start = ecore_time_get();
-   fprintf(stderr, "SYSTEM('%s')\n", edje_cc_command);
-   if (system(edje_cc_command) == 0)
+   fprintf(stdout, "* SYSTEM('%s')\n", edje_cc_command);
+   fflush(stdout);
+
+   ret = system(edje_cc_command);
+   if (WEXITSTATUS(ret) == 0)
      read_watch_file(watchfile);
    end = ecore_time_get();
-   fprintf(stderr, "DONE IN %f\n", end - start);
+   fprintf(stdout, "* DONE IN %f\n", end - start);
+   fflush(stdout);
 
    timeout = NULL;
    return EINA_FALSE;
@@ -66,9 +87,6 @@ rebuild(void *data __UNUSED__)
 Eina_Bool
 some_change(void *data __UNUSED__, int type __UNUSED__, void *event __UNUSED__)
 {
-   Eio_Monitor_Event *ev = event;
-
-   fprintf(stderr, "EVENT %i on [%s]\n", type, ev->filename);
    if (timeout) ecore_timer_del(timeout);
    timeout = ecore_timer_add(0.5, rebuild, NULL);
 
@@ -80,7 +98,6 @@ main(int argc, char **argv)
 {
    char *watchout;
    Eina_Strbuf *buf;
-   double start, end;
    int tfd;
    int i;
 
@@ -89,7 +106,7 @@ main(int argc, char **argv)
    eio_init();
 
    if (argc < 2) return -1;
-
+   
    ecore_event_handler_add(EIO_MONITOR_FILE_MODIFIED, some_change, NULL);
    ecore_event_handler_add(EIO_MONITOR_FILE_CREATED, some_change, NULL);
    ecore_event_handler_add(EIO_MONITOR_FILE_DELETED, some_change, NULL);
@@ -110,20 +127,20 @@ main(int argc, char **argv)
    buf = eina_strbuf_new();
    if (!buf) return -1;
 
-   eina_strbuf_append_printf(buf, "%s/edje_cc -threads -fastcomp -w %s ", PACKAGE_BIN_DIR, watchfile);
+   eina_strbuf_append_printf(buf, "%s/edje_cc -fastcomp -w %s ", PACKAGE_BIN_DIR, watchfile);
    for (i = 1; i < argc; ++i)
-     eina_strbuf_append_printf(buf, "%s ", argv[i]);
+     {
+        if (!strcmp(argv[i], "-anotate"))
+          anotate = EINA_TRUE;
+        eina_strbuf_append_printf(buf, "%s ", argv[i]);
+     }
+   eina_strbuf_append(buf, "> /dev/null 2>/dev/null");
 
    edje_cc_command = eina_strbuf_string_steal(buf);
 
    eina_strbuf_free(buf);
 
-   start = ecore_time_get();
-   fprintf(stderr, "SYSTEM('%s')\n", edje_cc_command);
-   system(edje_cc_command);
-   read_watch_file(watchfile);
-   end = ecore_time_get();
-   fprintf(stderr, "DONE %f\n", end - start);
+   rebuild(NULL);
 
    ecore_main_loop_begin();
 

@@ -12,6 +12,10 @@
 
 #define WIDTH     (700)
 #define HEIGHT    (700)
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
 
 static void
 _on_delete(Ecore_Evas *ee)

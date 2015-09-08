@@ -27,6 +27,11 @@
 
 #define NRECTS 20
 
+#define PATH_MAX  256
+#define PACKAGE_BIN_DIR "."
+#define PACKAGE_LIB_DIR "."
+#define PACKAGE_DATA_DIR "."
+
 static const char commands[] = \
   "commands are:\n"
   "\ti - prepend rectangle\n"
